@@ -57,13 +57,13 @@ const Header = () => {
         {/* Auth Buttons */}
         <div className="hidden md:flex items-center gap-4">
           <Link
-            to="/login"
+            to="#"
             className="text-[#0D1B2A] font-semibold hover:text-emerald-600 transition-colors"
           >
             Log In
           </Link>
           <Link
-            to="/signup"
+            to="#"
             className="bg-[#0D1B2A] text-white px-5 py-2.5 rounded-full font-medium hover:bg-emerald-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             Sign Up
@@ -87,7 +87,7 @@ const Header = () => {
           animate={{ opacity: 1, y: 0 }}
           className="absolute top-full left-0 right-0 bg-white shadow-lg p-6 md:hidden flex flex-col gap-4 border-t border-gray-100"
         >
-          <Link to="/about" className="text-lg font-medium text-gray-700">
+          <Link to="#" className="text-lg font-medium text-gray-700">
             About
           </Link>
           <Link
@@ -97,10 +97,10 @@ const Header = () => {
             How it Works
           </Link>
           <hr className="border-gray-100" />
-          <Link to="/login" className="text-lg font-medium text-gray-700">
+          <Link to="#" className="text-lg font-medium text-gray-700">
             Log In
           </Link>
-          <Link to="/signup" className="text-lg font-medium text-emerald-600">
+          <Link to="#" className="text-lg font-medium text-emerald-600">
             Sign Up
           </Link>
         </motion.div>

@@ -11,19 +11,19 @@ const Footer = () => {
 
         <div className="flex gap-8">
           <Link
-            to="/faq"
+            to="#"
             className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
           >
             FAQ
           </Link>
           <Link
-            to="/privacy"
+            to="#"
             className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
           >
             Privacy Policy
           </Link>
           <Link
-            to="/contact"
+            to="#"
             className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
           >
             Contact
