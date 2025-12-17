@@ -33,7 +33,7 @@ const AppRouter = createBrowserRouter([
     element: <ReportPage></ReportPage>,
   },
   {
-    path: "/upload/mobile-capture/:sessionId",
+    path: "/mobile-capture/:sessionId",
     element: <MobileCapturePage></MobileCapturePage>,
   },
 ]);
