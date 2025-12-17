@@ -4,7 +4,8 @@ import { Smartphone, Copy, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
 const QRPanel = ({ onSimulateMobile }) => {
-  const demoLink = "https://smartpack.ai/upload/session-123";
+const sessionId = "session-123";
+const demoLink = `https://smart-packaging.vercel.app/upload/mobile-capture/${sessionId}`;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-fit sticky top-24 border border-gray-100">

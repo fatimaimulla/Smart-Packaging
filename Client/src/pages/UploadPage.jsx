@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import QRPanel from "../components/upload/QRPanel";
 import Footer from "../common/Footer";
-import MobileCaptureModal from "../components/upload/MobileCaptureModel";
+import MobileCaptureModal from "../components/upload/MobileCaptureModal";
 import { ArrowRight } from "lucide-react";
 import ImagePreviewCard from "../components/upload/ImagePreviewCard";
 import UploadZone from "../components/upload/UploadZone";
@@ -37,12 +37,16 @@ const UploadPage = () => {
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const handleMobileCapture = () => {
-    // Simulate receiving an image from mobile
-    const mockFile = new File([""], "mobile_capture.jpg", {
-      type: "image/jpeg",
-    });
-    handleUpload([mockFile]);
+  // const handleMobileCapture = () => {
+  //   // Simulate receiving an image from mobile
+  //   const mockFile = new File([""], "mobile_capture.jpg", {
+  //     type: "image/jpeg",
+  //   });
+  //   handleUpload([mockFile]);
+  // };
+
+  const handleMobileCapture = (file) => {
+    handleUpload([file]);
   };
 
   // Validation Logic
