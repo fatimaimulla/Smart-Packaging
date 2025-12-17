@@ -34,7 +34,7 @@ const Header = () => {
             <Box size={24} strokeWidth={2.5} />
           </div>
           <span className="font-bold text-xl tracking-tight text-[#0D1B2A]">
-            SmartPack<span className="text-emerald-500">.ai</span>
+            SmartPack
           </span>
         </Link>
 
