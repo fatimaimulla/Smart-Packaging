@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 const QRPanel = ({ onSimulateMobile }) => {
 const sessionId = "session-123";
-const demoLink = `http://172.30.16.1:5173/mobile-capture/${sessionId}`;
+const demoLink = `https://smart-packaging.vercel.app/upload/mobile-capture/${sessionId}`;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-fit sticky top-24 border border-gray-100">
