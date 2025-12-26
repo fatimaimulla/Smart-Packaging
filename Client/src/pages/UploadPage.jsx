@@ -7,8 +7,11 @@ import ImagePreviewCard from "../components/upload/ImagePreviewCard";
 import UploadZone from "../components/upload/UploadZone";
 import ReferenceSelector from "../components/upload/ReferenceSelector";
 import Header from "../common/Header";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
+import { toast } from "sonner";
+import  uploadFromSystemHandler  from "@/api/uploadFromSystemHandler.js";
+
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -37,6 +40,43 @@ const UploadPage = () => {
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
+    
+
+    const uploadToBackend = async (  ) => {
+      if (images.length != 2) {
+        toast.error("Please upload 2 images");
+        return;
+      }
+
+      const topView = images.find((img) => img.type === "Top View")?.file;
+      const sideView = images.find((img) => img.type === "Side View")?.file;
+      if (!topView || !sideView) {
+        toast.error("Both Top View and Side View are required");
+        return;
+      }
+      try {
+        const res = await uploadFromSystemHandler({
+          topImage: topView,
+          sideImage: sideView,
+          referenceType,
+        });
+        console.log(res);
+        if(res.data.success) {
+          toast.success(res.data.message);
+          navigate("/review")
+        } else {
+          toast.error(res.data.message);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error(error.message);
+        }
+      }
+    };
+
+    
   // const handleMobileCapture = () => {
   //   // Simulate receiving an image from mobile
   //   const mockFile = new File([""], "mobile_capture.jpg", {
@@ -142,7 +182,7 @@ const UploadPage = () => {
                 </div>
 
                 <button
-                  onClick={() => navigate("/review")}
+                  onClick={uploadToBackend}
                   disabled={!canContinue}
                   className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold"
                 >

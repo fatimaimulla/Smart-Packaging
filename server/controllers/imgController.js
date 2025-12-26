@@ -32,7 +32,7 @@ export const imgUpload = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Image uploaded successfully.", succcess: true });
+      .json({ message: "Image uploaded successfully.", success: true });
   } catch (error) {
     console.log(error);
   }
