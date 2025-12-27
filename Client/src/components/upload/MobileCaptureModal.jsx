@@ -14,28 +14,53 @@ const MobileCaptureModal = ({ isOpen, onClose, onCapture }) => {
   /* ==============================
      CAMERA SETUP
   ============================== */
+  // useEffect(() => {
+  //   if (!isOpen) return;
+
+  //   const startCamera = async () => {
+  //     const mediaStream = await navigator.mediaDevices.getUserMedia({
+  //       video: { facingMode: "environment" },
+  //       audio: false,
+  //     });
+  //     setStream(mediaStream);
+  //     if (videoRef.current) {
+  //       videoRef.current.srcObject = mediaStream;
+  //     }
+  //   };
+
+  //   startCamera();
+
+  //   return () => {
+  //     if (stream) {
+  //       stream.getTracks().forEach((t) => t.stop());
+  //     }
+  //   };
+  // }, [isOpen]);
   useEffect(() => {
     if (!isOpen) return;
 
+    let localStream;
+
     const startCamera = async () => {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
+      localStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
         audio: false,
       });
-      setStream(mediaStream);
+
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+        videoRef.current.srcObject = localStream;
       }
     };
 
     startCamera();
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((t) => t.stop());
+      if (localStream) {
+        localStream.getTracks().forEach((t) => t.stop());
       }
     };
   }, [isOpen]);
+
 
   /* ==============================
      GYROSCOPE PERMISSION (iOS SAFE)
@@ -96,17 +121,38 @@ const MobileCaptureModal = ({ isOpen, onClose, onCapture }) => {
   /* ==============================
      CAPTURE IMAGE
   ============================== */
+  // const handleCapture = () => {
+  //   if (!videoRef.current || !canvasRef.current) return;
+
+  //   const video = videoRef.current;
+  //   const canvas = canvasRef.current;
+
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
+
+  //   const ctx = canvas.getContext("2d");
+  //   ctx.drawImage(video, 0, 0);
+
+  //   canvas.toBlob((blob) => {
+  //     const file = new File([blob], "mobile_capture.jpg", {
+  //       type: "image/jpeg",
+  //     });
+
+  //     onCapture(file);
+  //     onClose();
+  //   }, "image/jpeg");
+  // };
+
   const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
-    const video = videoRef.current;
     const canvas = canvasRef.current;
+    const video = videoRef.current;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0);
+    canvas.getContext("2d").drawImage(video, 0, 0);
 
     canvas.toBlob((blob) => {
       const file = new File([blob], "mobile_capture.jpg", {
@@ -114,8 +160,8 @@ const MobileCaptureModal = ({ isOpen, onClose, onCapture }) => {
       });
 
       onCapture(file);
-      onClose();
-    }, "image/jpeg");
+      onClose(); // modal closes after ONE capture
+    });
   };
 
   if (!isOpen) return null;
