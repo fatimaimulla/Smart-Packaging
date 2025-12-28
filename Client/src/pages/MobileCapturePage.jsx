@@ -39,6 +39,7 @@ const MobileCapturePage = () => {
         onClose={() => {}}
         // onCapture={(file)=>console.log("captured",file)}
         onCapture={(file)=>{
+          handleCapture(file);
           alert(
             `Image captured!\n\nName: ${file.name}\nSize: ${file.size}\nType: ${file.type}`
           );
