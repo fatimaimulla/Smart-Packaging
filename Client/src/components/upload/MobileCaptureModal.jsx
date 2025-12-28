@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { X, Camera } from "lucide-react";
 
-const MobileCaptureModal = ({ isOpen, onClose, onCapture }) => {
+const MobileCaptureModal = ({ isOpen,label, onClose, onCapture }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -171,6 +171,7 @@ const MobileCaptureModal = ({ isOpen, onClose, onCapture }) => {
       <div className="bg-black rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-white/10">
         {/* Header */}
         <div className="flex justify-between items-center p-4 text-white">
+          <span className="font-semibold">{label}</span>
           <span className="font-semibold">Align & Capture</span>
           <button onClick={onClose}>
             <X />

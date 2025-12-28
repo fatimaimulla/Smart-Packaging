@@ -35,8 +35,14 @@ const MobileCapturePage = () => {
     <div className="min-h-screen bg-black flex items-center justify-center">
       <MobileCaptureModal
         isOpen={true}
+        label={step === 1 ? "Top View" : "Side View"}
         onClose={() => {}}
-        onCapture={handleCapture}
+        // onCapture={(file)=>console.log("captured",file)}
+        onCapture={(file)=>{
+          alert(
+            `Image captured!\n\nName: ${file.name}\nSize: ${file.size}\nType: ${file.type}`
+          );
+        }}
       />
     </div>
   );
