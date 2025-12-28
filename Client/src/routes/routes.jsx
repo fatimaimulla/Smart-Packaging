@@ -6,6 +6,7 @@ import RecommendationPage from "../pages/RecommendationPage";
 import DieLineGeneratorPage from "../pages/DieLineGeneratorPage";
 import ReportPage from "../pages/ReportPage";
 import MobileCapturePage from "../pages/MobileCapturePage";
+import MobileReviewPage from "@/pages/MobileReviewPage";
 
 const AppRouter = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const AppRouter = createBrowserRouter([
   {
     path: "/mobile-capture/:sessionId",
     element: <MobileCapturePage></MobileCapturePage>,
+  },
+  {
+    path: "/mobile-review/:sessionId",
+    element: <MobileReviewPage></MobileReviewPage>,
   },
 ]);
 
