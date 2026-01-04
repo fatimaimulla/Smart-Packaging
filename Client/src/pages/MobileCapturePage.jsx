@@ -280,7 +280,7 @@ const MobileCapturePage = () => {
                   </div>
                   <img
                     src={topImage ? URL.createObjectURL(topImage) : ""}
-                    className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
+                    className="w-full aspect-[3/4] object-cover  bg-gray-100"
                     alt="Top View"
                   />
                 </div>
@@ -302,7 +302,7 @@ const MobileCapturePage = () => {
                   </div>
                   <img
                     src={sideImage ? URL.createObjectURL(sideImage) : ""}
-                    className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
+                    className="w-full aspect-[3/4] object-cover  bg-gray-100"
                     alt="Side View"
                   />
                 </div>
