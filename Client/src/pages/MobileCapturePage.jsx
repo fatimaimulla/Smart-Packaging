@@ -15,6 +15,11 @@ import ImageEditor from "@/components/mobile/ImageEditor";
 import { Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 import uploadFromSystemHandler from "@/api/uploadFromSystemHandler";
 import { toast } from "sonner";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
+import { Pagination } from "swiper/modules";
+
 
 const MobileCapturePage = () => {
   const { sessionId } = useParams();
@@ -186,60 +191,140 @@ const MobileCapturePage = () => {
     );
   }
 
+  // if (step === "final-review") {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex flex-col p-6 safe-area-inset-top safe-area-inset-bottom">
+  //       <h1 className="text-2xl font-bold text-[#0D1B2A] mb-2 mt-8">Review</h1>
+  //       <p className="text-gray-500 mb-8">
+  //         Swipe to check your images before uploading.
+  //       </p>
+
+  //       {/* Carousel (Simplified for Mobile) */}
+  //       <div className="flex-1 overflow-y-auto space-y-6">
+  //         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+  //           <div className="flex justify-between items-center mb-2">
+  //             <span className="font-bold text-gray-700">Top View</span>
+  //             <button
+  //               onClick={() => setStep("capture-top")}
+  //               className="text-emerald-600 text-sm font-semibold"
+  //             >
+  //               Retake
+  //             </button>
+  //           </div>
+  //           <img
+  //             src={topImage ? URL.createObjectURL(topImage) : ""}
+  //             className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
+  //             alt="Top View"
+  //           />
+  //         </div>
+
+  //         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+  //           <div className="flex justify-between items-center mb-2">
+  //             <span className="font-bold text-gray-700">Side View</span>
+  //             <button
+  //               onClick={() => setStep("capture-side")}
+  //               className="text-emerald-600 text-sm font-semibold"
+  //             >
+  //               Retake
+  //             </button>
+  //           </div>
+  //           <img
+  //             src={sideImage ? URL.createObjectURL(sideImage) : ""}
+  //             className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
+  //             alt="Side View"
+  //           />
+  //         </div>
+  //       </div>
+
+  //       <button
+  //         onClick={handleUpload}
+  //         className="w-full py-4 mt-4 bg-[#0D1B2A] text-white rounded-xl font-bold text-lg shadow-lg"
+  //       >
+  //         Confirm & Upload
+  //       </button>
+  //     </div>
+  //   );
+  // }
+
   if (step === "final-review") {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col p-6 safe-area-inset-top safe-area-inset-bottom">
-        <h1 className="text-2xl font-bold text-[#0D1B2A] mb-2 mt-8">Review</h1>
-        <p className="text-gray-500 mb-8">
-          Swipe to check your images before uploading.
-        </p>
-
-        {/* Carousel (Simplified for Mobile) */}
-        <div className="flex-1 overflow-y-auto space-y-6">
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-bold text-gray-700">Top View</span>
-              <button
-                onClick={() => setStep("capture-top")}
-                className="text-emerald-600 text-sm font-semibold"
-              >
-                Retake
-              </button>
-            </div>
-            <img
-              src={topImage ? URL.createObjectURL(topImage) : ""}
-              className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
-              alt="Top View"
-            />
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-bold text-gray-700">Side View</span>
-              <button
-                onClick={() => setStep("capture-side")}
-                className="text-emerald-600 text-sm font-semibold"
-              >
-                Retake
-              </button>
-            </div>
-            <img
-              src={sideImage ? URL.createObjectURL(sideImage) : ""}
-              className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
-              alt="Side View"
-            />
-          </div>
+      <div className="min-h-screen bg-gray-50 flex flex-col safe-area-inset-top safe-area-inset-bottom">
+        {/* Header */}
+        <div className="px-6 pt-8">
+          <h1 className="text-2xl font-bold text-[#0D1B2A] mb-1">Review</h1>
+          <p className="text-gray-500 mb-4">
+            Swipe to verify your images before uploading.
+          </p>
         </div>
 
-        <button
-          onClick={handleUpload}
-          className="w-full py-4 mt-4 bg-[#0D1B2A] text-white rounded-xl font-bold text-lg shadow-lg"
-        >
-          Confirm & Upload
-        </button>
+        {/* Swiper */}
+        <div className="flex-1">
+          <Swiper
+            modules={[Pagination]}
+            pagination={{ clickable: true }}
+            spaceBetween={24}
+            className="h-full"
+          >
+            {/* Top View */}
+            <SwiperSlide>
+              <div className="px-6">
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-gray-700">Top View</span>
+                    <button
+                      onClick={() => setStep("capture-top")}
+                      className="text-emerald-600 text-sm font-semibold"
+                    >
+                      Retake
+                    </button>
+                  </div>
+                  <img
+                    src={topImage ? URL.createObjectURL(topImage) : ""}
+                    className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
+                    alt="Top View"
+                  />
+                </div>
+              </div>
+            </SwiperSlide>
+
+            {/* Side View */}
+            <SwiperSlide>
+              <div className="px-6">
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-gray-700">Side View</span>
+                    <button
+                      onClick={() => setStep("capture-side")}
+                      className="text-emerald-600 text-sm font-semibold"
+                    >
+                      Retake
+                    </button>
+                  </div>
+                  <img
+                    src={sideImage ? URL.createObjectURL(sideImage) : ""}
+                    className="w-full aspect-[3/4] object-cover rounded-xl bg-gray-100"
+                    alt="Side View"
+                  />
+                </div>
+              </div>
+            </SwiperSlide>
+          </Swiper>
+        </div>
+
+        {/* Confirm Button */}
+        <div className="p-6">
+          <button
+            onClick={handleUpload}
+            className="w-full py-4 bg-[#0D1B2A] text-white rounded-xl font-bold text-lg shadow-lg"
+          >
+            Confirm & Upload
+          </button>
+        </div>
       </div>
     );
   }
+
+
 
   if (step === "uploading") {
     return (

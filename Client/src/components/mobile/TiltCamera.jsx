@@ -201,25 +201,6 @@ const TiltCamera = ({
         </div>
 
         {/* Tilt Guidance Overlay */}
-
-        {/* <div className="flex-1 flex items-center justify-center pointer-events-none">
-            <div className={clsx(
-                "w-64 h-64 border-2 rounded-2xl transition-all duration-300 flex items-center justify-center relative",
-                getStatusColor()
-            )}>
-                <div className="w-4 h-4 rounded-full bg-white/50" />
-                
-                <div 
-                    className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/30 transition-transform duration-200"
-                    style={{ transform: `translateY(-50%) rotate(${orientation.gamma}deg)` }}
-                />
-                 <div 
-                    className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30 transition-transform duration-200"
-                    style={{ transform: `translateX(-50%) translateY(${orientation.beta * 2}px)` }}
-                />
-            </div>
-        </div> */}
-        {/* Tilt Guidance Overlay */}
         <div className="flex-1 flex flex-col items-center justify-center pointer-events-none gap-6">
           {/* Circular Guide */}
           <div
