@@ -1,0 +1,240 @@
+import React, { useEffect, useRef, useState } from "react";
+import { Camera, RotateCcw, Edit2 } from "lucide-react";
+import { clsx } from "clsx";
+import { motion } from "framer-motion";
+
+const TiltCamera = ({
+  label,
+  referenceObject,
+  onCapture,
+  onEditReference,
+}) => {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [stream, setStream] = useState(null);
+  const [orientation, setOrientation] = useState({ beta: 0, gamma: 0 });
+  const [tiltStatus, setTiltStatus] = useState("red"); // red, amber, green
+  const [isSteady, setIsSteady] = useState(false);
+  const steadyTimerRef = useRef(null);
+
+  // 1. Camera Setup
+  useEffect(() => {
+    let localStream;
+    const startCamera = async () => {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+          audio: false,
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = localStream;
+        }
+        setStream(localStream);
+      } catch (err) {
+        console.error("Camera access denied:", err);
+      }
+    };
+    startCamera();
+    return () => {
+      if (localStream) localStream.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  // 2. Sensor Setup (DeviceOrientation)
+  useEffect(() => {
+    const handleOrientation = (e) => {
+      // Normalize beta (front/back tilt) and gamma (left/right tilt)
+      // This is a simplified normalization for portrait mode
+      const beta = e.beta || 0;
+      const gamma = e.gamma || 0;
+      setOrientation({ beta, gamma });
+    };
+
+    // Request permission for iOS 13+
+    const reqPermission = async () => {
+      if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function"
+      ) {
+        try {
+          await DeviceOrientationEvent.requestPermission();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    reqPermission();
+
+    window.addEventListener("deviceorientation", handleOrientation);
+    return () => window.removeEventListener("deviceorientation", handleOrientation);
+  }, []);
+
+  // 3. Tilt Logic & Debounce
+  useEffect(() => {
+    const { beta, gamma } = orientation;
+    const maxTilt = Math.max(Math.abs(beta), Math.abs(gamma));
+
+    let status = "red";
+    if (maxTilt <= 7) status = "green";
+    else if (maxTilt <= 12) status = "amber";
+
+    setTiltStatus(status);
+
+    if (status === "green") {
+      if (!steadyTimerRef.current) {
+        steadyTimerRef.current = setTimeout(() => {
+          setIsSteady(true);
+          // Haptic feedback if available
+          if (navigator.vibrate) navigator.vibrate(50);
+        }, 400); // 400ms debounce
+      }
+    } else {
+      if (steadyTimerRef.current) {
+        clearTimeout(steadyTimerRef.current);
+        steadyTimerRef.current = null;
+      }
+      setIsSteady(false);
+    }
+  }, [orientation]);
+
+  // 4. Capture Handler
+  const handleCapture = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    // Set canvas to video dimensions
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        // Flash effect
+        const flash = document.getElementById("camera-flash");
+        if (flash) {
+            flash.style.opacity = "1";
+            setTimeout(() => flash.style.opacity = "0", 100);
+        }
+        
+        const file = new File([blob], `${label.toLowerCase().replace(" ", "_")}.jpg`, { type: "image/jpeg" });
+        onCapture(file);
+      }
+    }, "image/jpeg", 0.9);
+  };
+
+  // Visual Helpers
+  const getStatusColor = () => {
+    if (tiltStatus === "green") return "border-emerald-400 bg-emerald-400/10";
+    if (tiltStatus === "amber") return "border-yellow-400 bg-yellow-400/10";
+    return "border-red-400 bg-red-400/10";
+  };
+
+  const getStatusText = () => {
+    if (tiltStatus === "green") return isSteady ? "Perfect" : "Hold Steady...";
+    if (tiltStatus === "amber") return "Almost there";
+    return "Align Device";
+  };
+
+  return (
+    <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
+       {/* Flash Overlay */}
+       <div id="camera-flash" className="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-100 z-50"></div>
+
+      {/* Camera Preview */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* UI Layer */}
+      <div className="relative z-10 flex flex-col h-full p-6 safe-area-inset-top safe-area-inset-bottom">
+        
+        {/* Top Bar: Label & Reference Pill */}
+        <div className="flex justify-between items-start pt-4">
+          <div className="bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
+            <span className="text-white font-bold text-sm tracking-wider uppercase">
+              {label}
+            </span>
+          </div>
+
+          {/* Reference Pill */}
+          <button
+            onClick={onEditReference}
+            className="flex flex-col items-center bg-white/90 backdrop-blur-md rounded-full py-3 px-2 shadow-lg active:scale-95 transition-transform w-12"
+          >
+             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-2 text-gray-800">
+                {/* Icon based on selection */}
+                <Edit2 size={14} />
+             </div>
+             <span className="text-[10px] font-bold text-gray-800 vertical-lr uppercase tracking-widest" style={{ writingMode: 'vertical-lr' }}>
+                {referenceObject || "REF"}
+             </span>
+          </button>
+        </div>
+
+        {/* Tilt Guidance Overlay */}
+        <div className="flex-1 flex items-center justify-center pointer-events-none">
+            {/* Crosshair / Reticle */}
+            <div className={clsx(
+                "w-64 h-64 border-2 rounded-2xl transition-all duration-300 flex items-center justify-center relative",
+                getStatusColor()
+            )}>
+                <div className="w-4 h-4 rounded-full bg-white/50" />
+                
+                {/* Dynamic Level Indicators */}
+                <div 
+                    className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/30 transition-transform duration-200"
+                    style={{ transform: `translateY(-50%) rotate(${orientation.gamma}deg)` }}
+                />
+                 <div 
+                    className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30 transition-transform duration-200"
+                    style={{ transform: `translateX(-50%) translateY(${orientation.beta * 2}px)` }}
+                />
+            </div>
+        </div>
+
+        {/* Bottom Controls */}
+        <div className="flex flex-col items-center gap-6 pb-8">
+            {/* Status Text */}
+            <div className={clsx(
+                "px-4 py-2 rounded-full text-sm font-bold transition-colors",
+                tiltStatus === "green" ? "bg-emerald-500 text-white" : "bg-black/50 text-white/80 backdrop-blur-sm"
+            )}>
+                {getStatusText()}
+            </div>
+
+            {/* Shutter Button */}
+            <button
+                onClick={handleCapture}
+                disabled={!isSteady}
+                className={clsx(
+                    "w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all duration-300",
+                    isSteady 
+                        ? "border-white bg-white/20 scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                        : "border-gray-500 bg-transparent opacity-50"
+                )}
+                aria-label="Capture Photo"
+            >
+                <div className={clsx(
+                    "w-16 h-16 rounded-full transition-all duration-300",
+                    isSteady ? "bg-white" : "bg-gray-400"
+                )} />
+            </button>
+        </div>
+      </div>
+
+      <canvas ref={canvasRef} className="hidden" />
+    </div>
+  );
+};
+
+export default TiltCamera;
