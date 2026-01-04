@@ -141,11 +141,28 @@ const TiltCamera = ({
     if (tiltStatus === "amber") return "Almost there";
     return "Align Device";
   };
+  const getDirectionText = () => {
+    const { beta, gamma } = orientation;
+
+    if (tiltStatus === "green") {
+      return isSteady ? "PERFECT" : "HOLD STEADY";
+    }
+
+    if (Math.abs(gamma) > Math.abs(beta)) {
+      return gamma > 0 ? "TILT RIGHT" : "TILT LEFT";
+    } else {
+      return beta > 0 ? "TILT DOWN" : "TILT UP";
+    }
+  };
+
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
-       {/* Flash Overlay */}
-       <div id="camera-flash" className="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-100 z-50"></div>
+      {/* Flash Overlay */}
+      <div
+        id="camera-flash"
+        className="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-100 z-50"
+      ></div>
 
       {/* Camera Preview */}
       <video
@@ -157,7 +174,6 @@ const TiltCamera = ({
 
       {/* UI Layer */}
       <div className="relative z-10 flex flex-col h-full p-6 safe-area-inset-top safe-area-inset-bottom">
-        
         {/* Top Bar: Label & Reference Pill */}
         <div className="flex justify-between items-start pt-4">
           <div className="bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
@@ -171,26 +187,28 @@ const TiltCamera = ({
             onClick={onEditReference}
             className="flex flex-col items-center bg-white/90 backdrop-blur-md rounded-full py-3 px-2 shadow-lg active:scale-95 transition-transform w-12"
           >
-             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-2 text-gray-800">
-                {/* Icon based on selection */}
-                <Edit2 size={14} />
-             </div>
-             <span className="text-[10px] font-bold text-gray-800 vertical-lr uppercase tracking-widest" style={{ writingMode: 'vertical-lr' }}>
-                {referenceObject || "REF"}
-             </span>
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-2 text-gray-800">
+              {/* Icon based on selection */}
+              <Edit2 size={14} />
+            </div>
+            <span
+              className="text-[10px] font-bold text-gray-800 vertical-lr uppercase tracking-widest"
+              style={{ writingMode: "vertical-lr" }}
+            >
+              {referenceObject || "REF"}
+            </span>
           </button>
         </div>
 
         {/* Tilt Guidance Overlay */}
-        <div className="flex-1 flex items-center justify-center pointer-events-none">
-            {/* Crosshair / Reticle */}
+
+        {/* <div className="flex-1 flex items-center justify-center pointer-events-none">
             <div className={clsx(
                 "w-64 h-64 border-2 rounded-2xl transition-all duration-300 flex items-center justify-center relative",
                 getStatusColor()
             )}>
                 <div className="w-4 h-4 rounded-full bg-white/50" />
                 
-                {/* Dynamic Level Indicators */}
                 <div 
                     className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/30 transition-transform duration-200"
                     style={{ transform: `translateY(-50%) rotate(${orientation.gamma}deg)` }}
@@ -200,35 +218,79 @@ const TiltCamera = ({
                     style={{ transform: `translateX(-50%) translateY(${orientation.beta * 2}px)` }}
                 />
             </div>
+        </div> */}
+        {/* Tilt Guidance Overlay */}
+        <div className="flex-1 flex flex-col items-center justify-center pointer-events-none gap-6">
+          {/* Circular Guide */}
+          <div
+            className={clsx(
+              "w-64 h-64 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+              tiltStatus === "green"
+                ? "border-emerald-400"
+                : tiltStatus === "amber"
+                ? "border-yellow-400"
+                : "border-red-400"
+            )}
+          >
+            {/* Crosshair */}
+            <div className="relative w-6 h-6">
+              <div className="absolute inset-x-0 top-1/2 h-px bg-white/70" />
+              <div className="absolute inset-y-0 left-1/2 w-px bg-white/70" />
+            </div>
+          </div>
+
+          {/* Direction Text */}
+          <div className="text-center">
+            <p
+              className={clsx(
+                "text-lg font-bold tracking-widest",
+                tiltStatus === "green" ? "text-emerald-400" : "text-red-400"
+              )}
+            >
+              {getDirectionText()}
+            </p>
+
+            {/* Pitch / Roll */}
+            <p className="text-xs text-white/60 mt-1">
+              Pitch: {Math.round(orientation.beta)}° | Roll:{" "}
+              {Math.round(orientation.gamma)}°
+            </p>
+          </div>
         </div>
 
         {/* Bottom Controls */}
         <div className="flex flex-col items-center gap-6 pb-8">
-            {/* Status Text */}
-            <div className={clsx(
-                "px-4 py-2 rounded-full text-sm font-bold transition-colors",
-                tiltStatus === "green" ? "bg-emerald-500 text-white" : "bg-black/50 text-white/80 backdrop-blur-sm"
-            )}>
-                {getStatusText()}
-            </div>
+          {/* Status Text */}
+          <div
+            className={clsx(
+              "px-4 py-2 rounded-full text-sm font-bold transition-colors",
+              tiltStatus === "green"
+                ? "bg-emerald-500 text-white"
+                : "bg-black/50 text-white/80 backdrop-blur-sm"
+            )}
+          >
+            {getStatusText()}
+          </div>
 
-            {/* Shutter Button */}
-            <button
-                onClick={handleCapture}
-                disabled={!isSteady}
-                className={clsx(
-                    "w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all duration-300",
-                    isSteady 
-                        ? "border-white bg-white/20 scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
-                        : "border-gray-500 bg-transparent opacity-50"
-                )}
-                aria-label="Capture Photo"
-            >
-                <div className={clsx(
-                    "w-16 h-16 rounded-full transition-all duration-300",
-                    isSteady ? "bg-white" : "bg-gray-400"
-                )} />
-            </button>
+          {/* Shutter Button */}
+          <button
+            onClick={handleCapture}
+            disabled={!isSteady}
+            className={clsx(
+              "w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all duration-300",
+              isSteady
+                ? "border-white bg-white/20 scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                : "border-gray-500 bg-transparent opacity-50"
+            )}
+            aria-label="Capture Photo"
+          >
+            <div
+              className={clsx(
+                "w-16 h-16 rounded-full transition-all duration-300",
+                isSteady ? "bg-white" : "bg-gray-400"
+              )}
+            />
+          </button>
         </div>
       </div>
 
