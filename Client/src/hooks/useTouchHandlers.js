@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
+import { useCropMath } from "./useCropMath";
 
 export const useTouchHandlers = ({
   cropRect,
@@ -21,6 +22,8 @@ export const useTouchHandlers = ({
       stateRef.current.isDragging = false;
     };
   }, []);
+  const { clampToImage } = useCropMath();
+
 
   // const getHandle = (x, y) => {
   //   const threshold = 30;
@@ -107,6 +110,8 @@ export const useTouchHandlers = ({
       const dx = point.clientX - stateRef.current.startPos.x;
       const dy = point.clientY - stateRef.current.startPos.y;
 
+      const initialRect = stateRef.current.initialRect; // ✅ REQUIRED
+
       const next = { ...stateRef.current.initialRect };
       const handle = stateRef.current.activeHandle;
 
@@ -127,19 +132,56 @@ export const useTouchHandlers = ({
           )
         );
       } else {
+        // if (handle.includes("l")) {
+        //   next.x += dx;
+        //   next.width -= dx;
+        // }
+        // if (handle.includes("r")) {
+        //   next.width += dx;
+        // }
+        // if (handle.includes("t")) {
+        //   next.y += dy;
+        //   next.height -= dy;
+        // }
+        // if (handle.includes("b")) {
+        //   next.height += dy;
+        // }
+        // LEFT
         if (handle.includes("l")) {
-          next.x += dx;
-          next.width -= dx;
+          const newX = Math.min(
+            initialRect.x + initialRect.width - minSize,
+            Math.max(displayRect.x, initialRect.x + dx)
+          );
+          next.width = initialRect.width + (initialRect.x - newX);
+          next.x = newX;
         }
+
+        // RIGHT
         if (handle.includes("r")) {
-          next.width += dx;
+          const maxWidth = displayRect.x + displayRect.width - initialRect.x;
+          next.width = Math.min(
+            maxWidth,
+            Math.max(minSize, initialRect.width + dx)
+          );
         }
+
+        // TOP
         if (handle.includes("t")) {
-          next.y += dy;
-          next.height -= dy;
+          const newY = Math.min(
+            initialRect.y + initialRect.height - minSize,
+            Math.max(displayRect.y, initialRect.y + dy)
+          );
+          next.height = initialRect.height + (initialRect.y - newY);
+          next.y = newY;
         }
+
+        // BOTTOM
         if (handle.includes("b")) {
-          next.height += dy;
+          const maxHeight = displayRect.y + displayRect.height - initialRect.y;
+          next.height = Math.min(
+            maxHeight,
+            Math.max(minSize, initialRect.height + dy)
+          );
         }
 
         next.width = Math.max(minSize, next.width);
@@ -150,7 +192,15 @@ export const useTouchHandlers = ({
         }
       }
 
-      onUpdate(next);
+      // onUpdate(next);
+      // const clamped = clampToImage(next, displayRect);
+      // onUpdate(clamped);
+      if (handle === "move") {
+        onUpdate(clampToImage(next, displayRect));
+      } else {
+        onUpdate(next);
+      }
+
     },
     [displayRect, minSize, aspectRatio, onUpdate]
   );

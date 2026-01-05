@@ -204,22 +204,24 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
       )}
 
       {/* FOOTER */}
-      <div className="absolute bottom-0 w-full h-24 bg-black/90 flex items-center justify-between px-6">
-        <button
-          onClick={onRetake}
-          className="text-white font-medium flex items-center gap-2"
-        >
-          <RotateCcw size={18} />
-          Retake
-        </button>
+      <div className="absolute bottom-0 left-0 right-0 bg-black p-6 safe-area-inset-bottom">
+        <div className="flex justify-between items-center gap-4">
+          <button
+            onClick={onRetake}
+            className="flex-1 py-4 bg-gray-800 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+          >
+            <RotateCcw size={18} />
+            Retake
+          </button>
 
-        <button
-          onClick={handleAccept}
-          className="bg-white text-black px-8 py-3 rounded-full font-bold"
-        >
-          <Check size={18} />
-          Save
-        </button>
+          <button
+            onClick={handleAccept}
+            className="flex-1 py-4 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+          >
+            <Check size={18} strokeWidth={3} />
+            Accept
+          </button>
+        </div>
       </div>
     </div>
   );
