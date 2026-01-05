@@ -1,101 +1,165 @@
-import React, { useState, useCallback } from "react";
-import Cropper from "react-easy-crop";
-import { Check, X, RotateCcw } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Check, RotateCcw } from "lucide-react";
 
 const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const containerRef = useRef(null);
+  const imgRef = useRef(null);
 
-  const imageUrl = React.useMemo(() => URL.createObjectURL(imageFile), [imageFile]);
+  const imageUrl = React.useMemo(
+    () => URL.createObjectURL(imageFile),
+    [imageFile]
+  );
 
-  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
+  // --- SAME LOGIC DATA ---
+  const [cropRect, setCropRect] = useState(null);
+  const [dragging, setDragging] = useState(null);
+
+  // initialize crop
+  useEffect(() => {
+    const rect = containerRef.current.getBoundingClientRect();
+    const width = rect.width * 0.7;
+    const height = (width * 4) / 3;
+
+    setCropRect({
+      x: (rect.width - width) / 2,
+      y: (rect.height - height) / 2,
+      width,
+      height,
+    });
   }, []);
 
-  // Helper to create the cropped image
-  const createCroppedImage = async () => {
-    try {
-      const croppedImage = await getCroppedImg(imageUrl, croppedAreaPixels);
-      onAccept(croppedImage);
-    } catch (e) {
-      console.error(e);
+  // --- DRAG LOGIC ---
+  const startDrag = (e, type) => {
+    e.stopPropagation();
+    setDragging({ type, startX: e.clientX, startY: e.clientY, rect: cropRect });
+  };
+
+  const onMove = (e) => {
+    if (!dragging) return;
+
+    const dx = e.clientX - dragging.startX;
+    const dy = e.clientY - dragging.startY;
+
+    const r = dragging.rect;
+
+    if (dragging.type === "move") {
+      setCropRect({
+        ...r,
+        x: r.x + dx,
+        y: r.y + dy,
+      });
+    }
+
+    if (dragging.type === "br") {
+      setCropRect({
+        ...r,
+        width: Math.max(80, r.width + dx),
+        height: Math.max(80, r.height + dy),
+      });
     }
   };
 
+  const stopDrag = () => setDragging(null);
+
+  // --- SAME OUTPUT LOGIC ---
+  const handleAccept = async () => {
+    const rect = cropRect;
+    const img = imgRef.current;
+
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+
+    const croppedAreaPixels = {
+      x: rect.x * scaleX,
+      y: rect.y * scaleY,
+      width: rect.width * scaleX,
+      height: rect.height * scaleY,
+    };
+
+    const cropped = await getCroppedImg(imageUrl, croppedAreaPixels);
+    onAccept(cropped);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      <div className="relative flex-1 bg-gray-900">
-        <Cropper
-          image={imageUrl}
-          crop={crop}
-          zoom={zoom}
-          aspect={3 / 4}
-          onCropChange={setCrop}
-          onCropComplete={onCropComplete}
-          onZoomChange={setZoom}
+    <div
+      className="fixed inset-0 bg-black z-50 flex flex-col"
+      onMouseMove={onMove}
+      onMouseUp={stopDrag}
+      onMouseLeave={stopDrag}
+    >
+      {/* IMAGE AREA */}
+      <div ref={containerRef} className="relative flex-1 overflow-hidden">
+        <img
+          ref={imgRef}
+          src={imageUrl}
+          alt="crop"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
         />
+
+        {/* DARK OVERLAY */}
+        {cropRect && (
+          <>
+            <div className="absolute inset-0 bg-black/60" />
+
+            {/* CUTOUT */}
+            <div
+              className="absolute bg-transparent shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"
+              style={{
+                left: cropRect.x,
+                top: cropRect.y,
+                width: cropRect.width,
+                height: cropRect.height,
+              }}
+            />
+
+            {/* CROP BOX */}
+            <div
+              className="absolute border-2 border-white"
+              style={{
+                left: cropRect.x,
+                top: cropRect.y,
+                width: cropRect.width,
+                height: cropRect.height,
+              }}
+              onMouseDown={(e) => startDrag(e, "move")}
+            >
+              {/* GRID */}
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-40 pointer-events-none">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="border border-white/40" />
+                ))}
+              </div>
+
+              {/* HANDLE */}
+              <div
+                className="absolute w-6 h-6 border-4 border-white bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-se-resize"
+                onMouseDown={(e) => startDrag(e, "br")}
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Controls */}
-      <div className="bg-black p-6 safe-area-inset-bottom">
-        <div className="flex justify-between items-center gap-4">
-          <button
-            onClick={onRetake}
-            className="flex-1 py-4 bg-gray-800 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
-          >
-            <RotateCcw size={18} />
-            Retake
-          </button>
-          <button
-            onClick={createCroppedImage}
-            className="flex-1 py-4 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-          >
-            <Check size={18} strokeWidth={3} />
-            Accept
-          </button>
-        </div>
+      {/* CONTROLS */}
+      <div className="bg-black p-6 flex gap-4">
+        <button
+          onClick={onRetake}
+          className="flex-1 py-4 bg-gray-800 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+        >
+          <RotateCcw size={18} />
+          Retake
+        </button>
+
+        <button
+          onClick={handleAccept}
+          className="flex-1 py-4 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2"
+        >
+          <Check size={18} />
+          Accept
+        </button>
       </div>
     </div>
   );
 };
-
-// --- Utility for Cropping ---
-const createImage = (url) =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.src = url;
-  });
-
-async function getCroppedImg(imageSrc, pixelCrop) {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
-
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  );
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-        // preserve name
-        const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
-        resolve(file);
-    }, "image/jpeg", 0.95);
-  });
-}
 
 export default ImageEditor;
