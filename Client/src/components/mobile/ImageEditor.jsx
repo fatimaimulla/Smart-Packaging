@@ -31,35 +31,77 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
   }, [imageUrl]);
 
   // Layout calculation
+  // useEffect(() => {
+  //   if (!imgData || !containerRef.current) return;
+
+  //   const rect = containerRef.current.getBoundingClientRect();
+  //   const padding = 40;
+  //   const maxW = rect.width - padding * 2;
+  //   const maxH = rect.height - 160;
+
+  //   const scale = Math.min(maxW / imgData.width, maxH / imgData.height);
+
+  //   const w = imgData.width * scale;
+  //   const h = imgData.height * scale;
+
+  //   const TOP_OFFSET = 24; // space from header
+
+  //   const dRect = {
+  //     x: (rect.width - w) / 2,
+  //     y: (rect.height - h) / 2 + TOP_OFFSET,
+  //     width: w,
+  //     height: h,
+  //     scale,
+  //   };
+
+  //   setDisplayRect(dRect);
+  //   setCropRect({
+  //     x: dRect.x + 8,
+  //     y: dRect.y + 8,
+  //     width: dRect.width - 16,
+  //     height: dRect.height - 16,
+  //   });
+  // }, [imgData]);
+
+  // ... inside Layout calculation useEffect
   useEffect(() => {
     if (!imgData || !containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
-    const padding = 40;
-    const maxW = rect.width - padding * 2;
-    const maxH = rect.height - 160;
 
-    const scale = Math.min(maxW / imgData.width, maxH / imgData.height);
+    // 1. Calculate available space
+    // Subtract footer height (~120px) and a bit of top padding for status bars
+    const footerHeight = 140;
+    const topPadding = 40;
+    const availableWidth = rect.width - 40; // horizontal padding
+    const availableHeight = rect.height - footerHeight - topPadding;
+
+    // 2. Calculate Scale
+    const scale = Math.min(
+      availableWidth / imgData.width,
+      availableHeight / imgData.height
+    );
 
     const w = imgData.width * scale;
     const h = imgData.height * scale;
 
-    const TOP_OFFSET = 24; // space from header
-
+    // 3. Center the image in the remaining space
     const dRect = {
       x: (rect.width - w) / 2,
-      y: (rect.height - h) / 2 + TOP_OFFSET,
+      y: topPadding + (availableHeight - h) / 2, // Centers image between top and footer
       width: w,
       height: h,
       scale,
     };
 
     setDisplayRect(dRect);
+
+    // 4. Reset Crop Rect to match the Image exactly (with a small inset)
     setCropRect({
-      x: dRect.x + 8,
-      y: dRect.y + 8,
-      width: dRect.width - 16,
-      height: dRect.height - 16,
+      x: dRect.x + 10,
+      y: dRect.y + 10,
+      width: dRect.width - 20,
+      height: dRect.height - 20,
     });
   }, [imgData]);
 
