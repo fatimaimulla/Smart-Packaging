@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
-import { useCropMath } from "../../hooks/useCropMath"
+import { useCropMath } from "../../hooks/useCropMath";
 import { useTouchHandlers } from "../../hooks/useTouchHandlers";
 
 const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
@@ -44,65 +44,47 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
   //   const w = imgData.width * scale;
   //   const h = imgData.height * scale;
 
-  //   const TOP_OFFSET = 24; // space from header
-
   //   const dRect = {
   //     x: (rect.width - w) / 2,
-  //     y: (rect.height - h) / 2 + TOP_OFFSET,
+  //     y: (rect.height - h) / 2,
   //     width: w,
   //     height: h,
   //     scale,
   //   };
 
   //   setDisplayRect(dRect);
-  //   setCropRect({
-  //     x: dRect.x + 8,
-  //     y: dRect.y + 8,
-  //     width: dRect.width - 16,
-  //     height: dRect.height - 16,
-  //   });
+  //   setCropRect({ ...dRect });
   // }, [imgData]);
 
-  // ... inside Layout calculation useEffect
+  // Inside the layout calculation useEffect
   useEffect(() => {
     if (!imgData || !containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
 
-    // 1. Calculate available space
-    // Subtract footer height (~120px) and a bit of top padding for status bars
-    const footerHeight = 140;
-    const topPadding = 40;
-    const availableWidth = rect.width - 40; // horizontal padding
-    const availableHeight = rect.height - footerHeight - topPadding;
+    // Increase vertical padding to account for the footer height (~100px - 120px)
+    const paddingX = 40;
+    const paddingY = 120; // Increased to push image away from buttons
 
-    // 2. Calculate Scale
-    const scale = Math.min(
-      availableWidth / imgData.width,
-      availableHeight / imgData.height
-    );
+    const maxW = rect.width - paddingX * 2;
+    const maxH = rect.height - paddingY * 2; // Use a symmetric padding or calculate footer height
+
+    const scale = Math.min(maxW / imgData.width, maxH / imgData.height);
 
     const w = imgData.width * scale;
     const h = imgData.height * scale;
 
-    // 3. Center the image in the remaining space
     const dRect = {
+      // Center it in the remaining space
       x: (rect.width - w) / 2,
-      y: topPadding + (availableHeight - h) / 2, // Centers image between top and footer
+      y: (rect.height - h - 80) / 2, // Subtracting ~80px to shift it upwards from the footer
       width: w,
       height: h,
       scale,
     };
 
     setDisplayRect(dRect);
-
-    // 4. Reset Crop Rect to match the Image exactly (with a small inset)
-    setCropRect({
-      x: dRect.x + 10,
-      y: dRect.y + 10,
-      width: dRect.width - 20,
-      height: dRect.height - 20,
-    });
+    setCropRect({ ...dRect });
   }, [imgData]);
 
   // Touch / pointer logic
@@ -154,7 +136,7 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-black overflow-hidden select-none pt-safe"
+      className="fixed inset-0 bg-black overflow-hidden touch-none select-none"
       onPointerDown={handleTouchStart}
       onPointerMove={handleTouchMove}
       onPointerUp={handleTouchEnd}
@@ -178,9 +160,9 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
       {/* OVERLAY */}
       {cropRect && (
         <>
-          <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+          <div className="absolute inset-0 bg-black/60" />
           <div
-            className="absolute shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] pointer-events-none"
+            className="absolute shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"
             style={{
               left: cropRect.x + viewportOffset.x,
               top: cropRect.y + viewportOffset.y,
@@ -222,7 +204,7 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
           </div> */}
           {/* CROP BOX */}
           <div
-            className="absolute border-2 border-white pointer-events-auto"
+            className="absolute border-2 border-white"
             style={{
               left: cropRect.x + viewportOffset.x,
               top: cropRect.y + viewportOffset.y,
@@ -237,25 +219,23 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
               ))}
             </div>
             {/* SIDE HIT ZONES (IMPORTANT) */}
-            <div className="absolute top-0 left-6 right-6 h-6 pointer-events-auto bg-transparent" />{" "}
-            {/* top */}
-            <div className="absolute bottom-0 left-6 right-6 h-6 pointer-events-auto bg-transparent" />{" "}
+            <div className="absolute top-0 left-6 right-6 h-6" /> {/* top */}
+            <div className="absolute bottom-0 left-6 right-6 h-6" />{" "}
             {/* bottom */}
-            <div className="absolute left-0 top-6 bottom-6 w-6 pointer-events-auto bg-transparent" />{" "}
-            {/* left */}
-            <div className="absolute right-0 top-6 bottom-6 w-6 pointer-events-auto bg-transparent" />{" "}
+            <div className="absolute left-0 top-6 bottom-6 w-6" /> {/* left */}
+            <div className="absolute right-0 top-6 bottom-6 w-6" />{" "}
             {/* right */}
             {/* CORNER HANDLES */}
-            <div className="absolute w-6 h-6 border-white border-4 top-0 left-0 -translate-x-1 -translate-y-1 pointer-events-auto" />
-            <div className="absolute w-6 h-6 border-white border-4 top-0 right-0 translate-x-1 -translate-y-1 pointer-events-auto" />
-            <div className="absolute w-6 h-6 border-white border-4 bottom-0 left-0 -translate-x-1 translate-y-1 pointer-events-auto" />
-            <div className="absolute w-6 h-6 border-white border-4 bottom-0 right-0 translate-x-1 translate-y-1 pointer-events-auto" />
+            <div className="absolute w-6 h-6 border-white border-4 top-0 left-0 -translate-x-1 -translate-y-1" />
+            <div className="absolute w-6 h-6 border-white border-4 top-0 right-0 translate-x-1 -translate-y-1" />
+            <div className="absolute w-6 h-6 border-white border-4 bottom-0 left-0 -translate-x-1 translate-y-1" />
+            <div className="absolute w-6 h-6 border-white border-4 bottom-0 right-0 translate-x-1 translate-y-1" />
           </div>
         </>
       )}
 
       {/* FOOTER */}
-      <div className="absolute bottom-0 left-0 right-0 bg-black p-6 pb-safe">
+      <div className="absolute bottom-0 left-0 right-0 bg-black p-6 safe-area-inset-bottom">
         <div className="flex justify-between items-center gap-4">
           <button
             onClick={onRetake}
