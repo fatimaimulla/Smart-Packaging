@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ZoomIn, ZoomOut, Maximize, Move, Download } from "lucide-react";
 import { clsx } from "clsx";
+import Fefco0201Dieline from "../dieline/Fefco0201";
 
 const DieLineViewer = ({ dimensions, settings }) => {
   const containerRef = useRef(null);
@@ -120,85 +121,13 @@ const DieLineViewer = ({ dimensions, settings }) => {
         />
 
         {/* The Parametric Die-Line */}
-        <svg
-          className="absolute top-0 left-0 pointer-events-none"
-          style={{
-            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-            transformOrigin: "0 0",
-            width: totalWidth,
-            height: totalHeight,
-            overflow: "visible",
-          }}
-        >
-          {/* Cut Lines (Outer Boundary) */}
-          <path
-            d={`
-              M ${x0} ${y2} L ${x1} ${y2} 
-              L ${x1} ${y1} L ${x2} ${y1} 
-              L ${x2} ${y2} L ${x3} ${y2} 
-              L ${x3} ${y1} L ${x4} ${y1} 
-              L ${x4} ${y2} L ${x5} ${y2} 
-              L ${x5} ${y3} L ${x4} ${y3} 
-              L ${x4} ${y4} L ${x3} ${y4} 
-              L ${x3} ${y3} L ${x2} ${y3} 
-              L ${x2} ${y4} L ${x1} ${y4} 
-              L ${x1} ${y3} L ${x0} ${y3} 
-              Z
-            `}
-            fill="none"
-            stroke="#0D1B2A"
-            strokeWidth="2"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {/* Fold Lines (Vertical) */}
-          <path
-            d={`
-              M ${x1} ${y2} L ${x1} ${y3}
-              M ${x2} ${y2} L ${x2} ${y3}
-              M ${x3} ${y2} L ${x3} ${y3}
-              M ${x4} ${y2} L ${x4} ${y3}
-            `}
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="1.5"
-            strokeDasharray="5,5"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {/* Fold Lines (Horizontal) */}
-          <path
-            d={`
-              M ${x1} ${y2} L ${x5} ${y2}
-              M ${x1} ${y3} L ${x5} ${y3}
-            `}
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="1.5"
-            strokeDasharray="5,5"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {/* Dimensions Labels (Simplified) */}
-          <text
-            x={x1 + l / 2}
-            y={y2 + h / 2}
-            textAnchor="middle"
-            fontSize="12"
-            fill="#6B7280"
-          >
-            L: {l}
-          </text>
-          <text
-            x={x2 + w / 2}
-            y={y2 + h / 2}
-            textAnchor="middle"
-            fontSize="12"
-            fill="#6B7280"
-          >
-            W: {w}
-          </text>
-        </svg>
+        <Fefco0201Dieline
+          x={x0}
+          y={y1}
+          length={l}
+          height={h}
+          width={w}
+        />
       </div>
 
       {/* Controls */}
@@ -229,12 +158,16 @@ const DieLineViewer = ({ dimensions, settings }) => {
       {/* Legend */}
       <div className="flex gap-6 text-sm text-gray-500 mt-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-0.5 bg-[#0D1B2A]"></div>
-          <span>Cut Line</span>
+          <div className="w-8 h-0.5 bg-[#A2D68E]"></div>
+          <span>Bleed Line</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-0.5 bg-[#343CB7]"></div>
+          <span>Trim Line</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-8 h-0.5 border-t-2 border-dashed border-red-500"></div>
-          <span>Fold Line</span>
+          <span>Crease Line</span>
         </div>
       </div>
     </div>

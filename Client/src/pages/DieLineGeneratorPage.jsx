@@ -5,15 +5,16 @@ import TemplateSettings from "../components/template/TemplateSettings";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
 
+
 const DieLineGeneratorPage = () => {
   const location = useLocation();
 
   // Get dimensions from previous step or use defaults
   // Note: These are "Internal" dimensions. The viewer might add thickness logic later.
   const initialDimensions = location.state?.dimensions || {
-    l: 200,
-    w: 150,
-    h: 100,
+    l: 191,
+    w: 383,
+    h: 245,
   };
 
   const [settings, setSettings] = useState({
