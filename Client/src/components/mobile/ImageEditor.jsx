@@ -129,9 +129,9 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
       {/* OVERLAY */}
       {cropRect && (
         <>
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/60 pointer-events-none" />
           <div
-            className="absolute shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"
+            className="absolute shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] pointer-events-none"
             style={{
               left: cropRect.x + viewportOffset.x,
               top: cropRect.y + viewportOffset.y,
@@ -173,7 +173,7 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
           </div> */}
           {/* CROP BOX */}
           <div
-            className="absolute border-2 border-white"
+            className="absolute border-2 border-white pointer-events-auto"
             style={{
               left: cropRect.x + viewportOffset.x,
               top: cropRect.y + viewportOffset.y,
@@ -188,17 +188,19 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
               ))}
             </div>
             {/* SIDE HIT ZONES (IMPORTANT) */}
-            <div className="absolute top-0 left-6 right-6 h-6" /> {/* top */}
-            <div className="absolute bottom-0 left-6 right-6 h-6" />{" "}
+            <div className="absolute top-0 left-6 right-6 h-6 pointer-events-auto bg-transparent" />{" "}
+            {/* top */}
+            <div className="absolute bottom-0 left-6 right-6 h-6 pointer-events-auto bg-transparent" />{" "}
             {/* bottom */}
-            <div className="absolute left-0 top-6 bottom-6 w-6" /> {/* left */}
-            <div className="absolute right-0 top-6 bottom-6 w-6" />{" "}
+            <div className="absolute left-0 top-6 bottom-6 w-6 pointer-events-auto bg-transparent" />{" "}
+            {/* left */}
+            <div className="absolute right-0 top-6 bottom-6 w-6 pointer-events-auto bg-transparent" />{" "}
             {/* right */}
             {/* CORNER HANDLES */}
-            <div className="absolute w-6 h-6 border-white border-4 top-0 left-0 -translate-x-1 -translate-y-1" />
-            <div className="absolute w-6 h-6 border-white border-4 top-0 right-0 translate-x-1 -translate-y-1" />
-            <div className="absolute w-6 h-6 border-white border-4 bottom-0 left-0 -translate-x-1 translate-y-1" />
-            <div className="absolute w-6 h-6 border-white border-4 bottom-0 right-0 translate-x-1 translate-y-1" />
+            <div className="absolute w-6 h-6 border-white border-4 top-0 left-0 -translate-x-1 -translate-y-1 pointer-events-auto" />
+            <div className="absolute w-6 h-6 border-white border-4 top-0 right-0 translate-x-1 -translate-y-1 pointer-events-auto" />
+            <div className="absolute w-6 h-6 border-white border-4 bottom-0 left-0 -translate-x-1 translate-y-1 pointer-events-auto" />
+            <div className="absolute w-6 h-6 border-white border-4 bottom-0 right-0 translate-x-1 translate-y-1 pointer-events-auto" />
           </div>
         </>
       )}
