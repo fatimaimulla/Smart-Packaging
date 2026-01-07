@@ -44,16 +44,23 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
     const w = imgData.width * scale;
     const h = imgData.height * scale;
 
+    const TOP_OFFSET = 24; // space from header
+
     const dRect = {
       x: (rect.width - w) / 2,
-      y: (rect.height - h) / 2,
+      y: (rect.height - h) / 2 + TOP_OFFSET,
       width: w,
       height: h,
       scale,
     };
 
     setDisplayRect(dRect);
-    setCropRect({ ...dRect });
+    setCropRect({
+      x: dRect.x + 8,
+      y: dRect.y + 8,
+      width: dRect.width - 16,
+      height: dRect.height - 16,
+    });
   }, [imgData]);
 
   // Touch / pointer logic
@@ -105,7 +112,7 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-black overflow-hidden touch-none select-none"
+      className="fixed inset-0 bg-black overflow-hidden select-none pt-safe"
       onPointerDown={handleTouchStart}
       onPointerMove={handleTouchMove}
       onPointerUp={handleTouchEnd}
@@ -206,7 +213,7 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
       )}
 
       {/* FOOTER */}
-      <div className="absolute bottom-0 left-0 right-0 bg-black p-6 safe-area-inset-bottom">
+      <div className="absolute bottom-0 left-0 right-0 bg-black p-6 pb-safe">
         <div className="flex justify-between items-center gap-4">
           <button
             onClick={onRetake}
