@@ -7,6 +7,7 @@ import DieLineGeneratorPage from "../pages/DieLineGeneratorPage";
 import ReportPage from "../pages/ReportPage";
 import MobileCapturePage from "../pages/MobileCapturePage";
 import MobileReviewPage from "@/pages/MobileReviewPage";
+import DielineLibraryPage from "@/pages/DielineLibraryPage";
 
 const AppRouter = createBrowserRouter([
   {
@@ -28,6 +29,11 @@ const AppRouter = createBrowserRouter([
   {
     path: "/dieline",
     element: <DieLineGeneratorPage></DieLineGeneratorPage>,
+  },
+  {
+    path: "/dieline-library",
+    element:<DielineLibraryPage></DielineLibraryPage>
+
   },
   {
     path: "/report",
