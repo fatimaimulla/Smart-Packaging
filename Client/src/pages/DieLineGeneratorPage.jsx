@@ -1,63 +1,92 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import DieLineViewer from "../components/template/DieLineViewer";
-import TemplateSettings from "../components/template/TemplateSettings";
 import Header from "../common/Header";
-import Footer from "../common/Footer";
-
+// import LeftSettingsPanel from "../components/dieline/LeftSettingsPanel";
+// import RightPreviewPanel from "../components/dieline/RightPreviewPanel";
+import DieLineViewer from "../components/template/DieLineViewer";
+import SidebarNav from "@/components/template/SidebarNav";
+import LeftSettingsPanel from "@/components/template/LeftSettingsPanel";
+import RightPreviewPanel from "@/components/template/RightPreviewPanel";
+// import SidebarNav from "../components/dieline/SidebarNav";
 
 const DieLineGeneratorPage = () => {
   const location = useLocation();
 
   // Get dimensions from previous step or use defaults
-  // Note: These are "Internal" dimensions. The viewer might add thickness logic later.
   const initialDimensions = location.state?.dimensions || {
-    l: 191,
-    w: 383,
-    h: 245,
+    l: 62,
+    w: 55,
+    h: 98,
   };
 
+  // Centralized State
   const [settings, setSettings] = useState({
-    thickness: 3,
-    glueFlap: 35,
-    topFlap: initialDimensions.w / 2 + 2, // Standard RSC flap is width/2
-    bottomFlap: initialDimensions.w / 2 + 2,
+    l: initialDimensions.l,
+    w: initialDimensions.w,
+    h: initialDimensions.h,
+    thickness: 0.5,
+    material: "White card board",
+    sizeMode: "manufacture", // 'manufacture' | 'inner'
+    glueFlap: 15,
+    topFlap: initialDimensions.w / 2,
+    bottomFlap: initialDimensions.w / 2,
   });
 
   const handleRegenerate = () => {
-    // In a real app, this might fetch a new SVG from an API
-    // Here, the state update automatically triggers the SVG redraw in DieLineViewer
     console.log("Regenerating with", settings);
   };
 
+  // Derived dimensions object for the viewer
+  const dimensions = {
+    l: settings.l,
+    w: settings.w,
+    h: settings.h,
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
+    <div className="h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] flex flex-col font-sans overflow-hidden">
       <Header />
 
-      <main className="pt-32 pb-20 px-6">
-        <div className="max-w-screen-xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {/* LEFT PANEL: Preview (2/3 width) */}
-            <div className="md:col-span-2 h-[600px] md:h-[800px]">
-              <DieLineViewer
-                dimensions={initialDimensions}
-                settings={settings}
-              />
-            </div>
+      {/* Main Content Area - Fixed Height minus Header */}
+      <main className="flex-1 pt-20 pb-0 flex overflow-hidden">
+        {/* 1. Far Left Navigation Strip */}
+        <SidebarNav />
 
-            {/* RIGHT PANEL: Settings (1/3 width) */}
-            <div className="md:col-span-1">
-              <TemplateSettings
-                settings={settings}
-                setSettings={setSettings}
-                onRegenerate={handleRegenerate}
-              />
-            </div>
-          </div>
+        {/* 2. Settings Panel (Attached to Nav) */}
+        <div className="w-[320px] h-full bg-white border-r border-gray-200 z-20 flex-shrink-0 shadow-sm overflow-y-auto">
+          <LeftSettingsPanel
+            settings={settings}
+            setSettings={setSettings}
+            onRegenerate={handleRegenerate}
+          />
+        </div>
+
+        {/* 3. Center Viewer (Flexible) */}
+        <div className="flex-1 h-full relative bg-[#F3F4F6] overflow-hidden">
+          {/* Dotted Pattern Background */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.4]"
+            style={{
+              backgroundImage:
+                "radial-gradient(#CBD5E1 1.5px, transparent 1.5px)",
+              backgroundSize: "24px 24px",
+            }}
+          />
+          <DieLineViewer dimensions={dimensions} settings={settings} />
+        </div>
+
+        {/* 4. Right Panel (Fixed Width) */}
+        <div className="w-[340px] h-full bg-white border-l border-gray-200 z-20 flex-shrink-0 overflow-y-auto p-4 shadow-sm">
+          <RightPreviewPanel />
         </div>
       </main>
 
-      <Footer />
+      {/* Mobile/Tablet Fallback */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50 flex justify-between items-center shadow-lg">
+        <span className="text-sm font-bold text-[#0D1B2A]">
+          Please use Desktop for Design View
+        </span>
+      </div>
     </div>
   );
 };

@@ -39,13 +39,13 @@ const TemplateSettings = ({ settings, setSettings, onRegenerate }) => {
         {/* Flap Settings */}
         <div className="space-y-4">
           <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-            Flap Dimensions (mm)
+            Dimensions (mm)
           </h4>
 
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                Glue Flap Width
+                Length
               </label>
               <input
                 type="number"
@@ -80,6 +80,8 @@ const TemplateSettings = ({ settings, setSettings, onRegenerate }) => {
             </div>
           </div>
         </div>
+
+        
 
         {/* Validation Warning */}
         {settings.glueFlap < 20 && (
