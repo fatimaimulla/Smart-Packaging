@@ -1,62 +1,101 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ZoomIn, ZoomOut, Maximize, Move, Download } from "lucide-react";
+import {
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  MousePointer2,
+  Move,
+  Edit3,
+  SlidersHorizontal,
+} from "lucide-react";
 import { clsx } from "clsx";
 import Fefco0201Dieline from "../dieline/Fefco0201";
 
 const DieLineViewer = ({ dimensions, settings }) => {
   const containerRef = useRef(null);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.85);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [activeTool, setActiveTool] = useState("pan"); // Default to pan for better UX
 
   // Dimensions & Settings
   const { l, w, h } = dimensions;
-  const { glueFlap, topFlap, bottomFlap } = settings;
+  const thickness = settings.thickness || 0.5;
 
-  // Calculate Drawing Points (Parametric FEFCO 0201)
-  // We assume a standard layout: GlueTab - L - W - L - W
-  const totalWidth = glueFlap + l + w + l + w;
-  const totalHeight = topFlap + h + bottomFlap;
+  // Calculate Derived Dimensions for Display
+  const innerL = (l - thickness * 2).toFixed(1);
+  const innerW = (w - thickness * 2).toFixed(1);
+  const innerH = (h - thickness * 2).toFixed(1);
 
-  // Center the drawing initially
+  const outerL = (l + thickness).toFixed(1);
+  const outerW = (w + thickness).toFixed(1);
+  const outerH = (h + thickness).toFixed(1);
+
+  // Reset view when dimensions change
   useEffect(() => {
-    if (containerRef.current) {
-      const { clientWidth, clientHeight } = containerRef.current;
-      // Fit to screen logic roughly
-      const scaleX = (clientWidth - 100) / totalWidth;
-      const scaleY = (clientHeight - 100) / totalHeight;
-      const newScale = Math.min(scaleX, scaleY, 1.5); // Cap max scale
-
-      setScale(newScale);
-      setPosition({
-        x: (clientWidth - totalWidth * newScale) / 2,
-        y: (clientHeight - totalHeight * newScale) / 2,
-      });
-    }
-  }, [dimensions, settings]);
+    handleFit();
+  }, []);
 
   // Zoom Handlers
   const handleZoomIn = () => setScale((s) => Math.min(s * 1.2, 5));
-  const handleZoomOut = () => setScale((s) => Math.max(s * 0.8, 0.1));
+  const handleZoomOut = () => setScale((s) => Math.max(s * 0.8, 0.2));
+
+  // const handleFit = () => {
+  //   setScale(0.85);
+  //   setPosition({ x: 0, y: 0 });
+  // };
+
   const handleFit = () => {
-    if (containerRef.current) {
-      const { clientWidth, clientHeight } = containerRef.current;
-      const scaleX = (clientWidth - 100) / totalWidth;
-      const scaleY = (clientHeight - 100) / totalHeight;
-      const newScale = Math.min(scaleX, scaleY);
-      setScale(newScale);
-      setPosition({
-        x: (clientWidth - totalWidth * newScale) / 2,
-        y: (clientHeight - totalHeight * newScale) / 2,
-      });
-    }
+    if (!containerRef.current) return;
+
+    const { clientWidth, clientHeight } = containerRef.current;
+
+    // Approximate dieline bounding size
+    const dielineWidth = l + w + l + w + settings.glueFlap;
+    const dielineHeight = h + settings.topFlap + settings.bottomFlap;
+
+    // Calculate scale to fit with some padding (0.8 = 80% of available space)
+    const scaleX = (clientWidth * 0.8) / dielineWidth;
+    const scaleY = (clientHeight * 0.8) / dielineHeight;
+
+    const fittedScale = Math.min(scaleX, scaleY);
+
+    setScale(fittedScale);
+    setPosition({ x: 0, y: 0 });
+  };
+  // Wheel Zoom Logic with center point zooming
+  const handleWheel = (e) => {
+    e.preventDefault();
+    
+    if (!containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Calculate zoom
+    const delta = -e.deltaY * 0.001;
+    const newScale = Math.min(Math.max(scale + delta, 0.2), 5);
+    
+    // Adjust position to zoom toward mouse cursor
+    const scaleRatio = newScale / scale;
+    
+    setPosition((pos) => ({
+      x: mouseX - (mouseX - pos.x) * scaleRatio,
+      y: mouseY - (mouseY - pos.y) * scaleRatio,
+    }));
+    
+    setScale(newScale);
   };
 
   // Pan Handlers
   const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    // Allow panning if tool is 'pan' OR if middle mouse button is clicked
+    if (activeTool === "pan" || e.button === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    }
   };
 
   const handleMouseMove = (e) => {
@@ -70,108 +109,201 @@ const DieLineViewer = ({ dimensions, settings }) => {
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // SVG Path Generation
-  // Y coordinates: 0 (top edge of top flap), topFlap (top fold), topFlap+h (bottom fold), totalHeight (bottom edge)
-  const y1 = 0;
-  const y2 = topFlap;
-  const y3 = topFlap + h;
-  const y4 = totalHeight;
-
-  // X coordinates
-  const x0 = 0;
-  const x1 = glueFlap;
-  const x2 = glueFlap + l;
-  const x3 = glueFlap + l + w;
-  const x4 = glueFlap + l + w + l;
-  const x5 = glueFlap + l + w + l + w;
-
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 relative flex flex-col gap-6 h-full border border-gray-100">
-      <div className="flex justify-between items-center z-10">
-        <h2 className="text-3xl font-semibold text-[#0D1B2A]">
-          Die-line Preview
-        </h2>
-        <div className="flex gap-2">
-          <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100">
-            FEFCO 0201
-          </span>
+    <div className="w-full h-full relative flex flex-col overflow-hidden bg-[#F3F4F6]">
+      {/* 1. Top-Left Legend & Info Overlay */}
+      <div className="absolute top-6 left-6 z-10 pointer-events-none select-none bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm">
+        {/* Legend */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 bg-[#4CBA33]"></div>
+            <span className="text-xs font-medium text-gray-600">Bleed</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 bg-[#343CB7]"></div>
+            <span className="text-xs font-medium text-gray-600">Trim</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 border-t border-dashed border-red-500"></div>
+            <span className="text-xs font-medium text-gray-600">Crease</span>
+          </div>
+        </div>
+
+        {/* Dimensions Text */}
+        <div className="space-y-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
+              Manufacture dimensions
+            </p>
+            <p className="text-sm font-bold text-gray-800 font-mono">
+              {l} × {w} × {h} mm
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
+                Inner
+              </p>
+              <p className="text-xs font-bold text-gray-600 font-mono">
+                {innerL} × {innerW} × {innerH}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
+                Outer
+              </p>
+              <p className="text-xs font-bold text-gray-600 font-mono">
+                {outerL} × {outerW} × {outerH}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* SVG Viewer Container */}
+      {/* 2. SVG Viewer Container */}
       <div
         ref={containerRef}
         className={clsx(
-          "flex-1 border border-gray-200 rounded-xl bg-gray-50 relative overflow-hidden cursor-grab active:cursor-grabbing min-h-[400px]",
-          isDragging && "cursor-grabbing"
+          "flex-1 relative overflow-hidden select-none",
+          activeTool === "pan"
+            ? "cursor-grab active:cursor-grabbing"
+            : "cursor-default"
         )}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
       >
-        {/* Grid Background */}
+        {/* Dotted Pattern Background */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          className="absolute inset-0 pointer-events-none opacity-[0.4]"
           style={{
             backgroundImage:
-              "linear-gradient(#0D1B2A 1px, transparent 1px), linear-gradient(90deg, #0D1B2A 1px, transparent 1px)",
-            backgroundSize: "20px 20px",
+              "radial-gradient(#CBD5E1 1.5px, transparent 1.5px)",
+            backgroundSize: "24px 24px",
           }}
         />
 
-        {/* The Parametric Die-Line */}
-        <Fefco0201Dieline
-          x={x0}
-          y={y1}
-          length={l}
-          height={h}
-          width={w}
-        />
+        <div
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transformOrigin: "0 0",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: isDragging ? "none" : "transform 0.1s ease-out",
+            willChange: "transform",
+          }}
+        >
+          {/* Removing extra padding to allow better fit */}
+          <div className="w-full h-full flex items-center justify-center p-10">
+            <Fefco0201Dieline
+              x={0}
+              y={0}
+              length={l}
+              height={h}
+              width={w}
+              thickness={settings.thickness}
+              glueFlap={settings.glueFlap}
+              topFlap={settings.topFlap}
+              bottomFlap={settings.bottomFlap}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="absolute bottom-12 right-12 flex flex-col gap-3">
-        <button
-          onClick={handleFit}
-          className="bg-white shadow-md rounded-full p-3 hover:scale-110 transition text-gray-600 hover:text-blue-600 border border-gray-100"
-          title="Fit to Screen"
-        >
-          <Maximize size={20} />
-        </button>
-        <button
-          onClick={handleZoomIn}
-          className="bg-white shadow-md rounded-full p-3 hover:scale-110 transition text-gray-600 hover:text-blue-600 border border-gray-100"
-          title="Zoom In"
-        >
-          <ZoomIn size={20} />
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="bg-white shadow-md rounded-full p-3 hover:scale-110 transition text-gray-600 hover:text-blue-600 border border-gray-100"
-          title="Zoom Out"
-        >
-          <ZoomOut size={20} />
-        </button>
-      </div>
+      {/* 3. Bottom Floating Toolbar */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 p-1.5 flex items-center gap-1">
+          <button
+            onClick={() => setActiveTool("select")}
+            className={clsx(
+              "p-2.5 rounded-lg transition-colors",
+              activeTool === "select"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+            title="Select Tool"
+          >
+            <MousePointer2 size={18} />
+          </button>
 
-      {/* Legend */}
-      <div className="flex gap-6 text-sm text-gray-500 mt-2">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-0.5 bg-[#A2D68E]"></div>
-          <span>Bleed Line</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-0.5 bg-[#343CB7]"></div>
-          <span>Trim Line</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-0.5 border-t-2 border-dashed border-red-500"></div>
-          <span>Crease Line</span>
+          <button
+            onClick={() => setActiveTool("pan")}
+            className={clsx(
+              "p-2.5 rounded-lg transition-colors",
+              activeTool === "pan"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+            title="Pan Tool"
+          >
+            <Move size={18} />
+          </button>
+
+          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+          <button
+            onClick={handleZoomIn}
+            className="p-2.5 text-gray-600 hover:bg-gray-50 rounded-lg hover:text-blue-600 transition-colors"
+            title="Zoom In"
+          >
+            <PlusIcon />
+          </button>
+
+          <button
+            onClick={handleZoomOut}
+            className="p-2.5 text-gray-600 hover:bg-gray-50 rounded-lg hover:text-blue-600 transition-colors"
+            title="Zoom Out"
+          >
+            <MinusIcon />
+          </button>
+
+          <button
+            onClick={handleFit}
+            className="p-2.5 text-gray-600 hover:bg-gray-50 rounded-lg hover:text-blue-600 transition-colors"
+            title="Fit to Screen"
+          >
+            <Maximize size={18} />
+          </button>
         </div>
       </div>
     </div>
   );
 };
+
+// Simple Icons
+const PlusIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
+const MinusIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
 
 export default DieLineViewer;
