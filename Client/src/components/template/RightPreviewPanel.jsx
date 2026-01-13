@@ -27,7 +27,7 @@ const RightPreviewPanel = () => {
               </div>
             }
           >
-            <Fefco0201_3D sliderValue={sliderValue} />
+            <Fefco0201_3D sliderValue={sliderValue}  />
           </Suspense>
         </div>
 

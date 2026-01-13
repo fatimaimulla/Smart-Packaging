@@ -203,9 +203,9 @@ const DieLineViewer = ({ dimensions, settings }) => {
             <Fefco0201Dieline
               x={0}
               y={0}
-              length={l}
+              length={w}
               height={h}
-              width={w}
+              width={l}
               thickness={settings.thickness}
               glueFlap={settings.glueFlap}
               topFlap={settings.topFlap}

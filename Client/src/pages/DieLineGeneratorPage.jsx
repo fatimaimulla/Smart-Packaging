@@ -14,9 +14,9 @@ const DieLineGeneratorPage = () => {
 
   // Get dimensions from previous step or use defaults
   const initialDimensions = location.state?.dimensions || {
-    l: 62,
-    w: 55,
-    h: 98,
+    l: 191,
+    w: 383,
+    h: 245,
   };
 
   // Centralized State
