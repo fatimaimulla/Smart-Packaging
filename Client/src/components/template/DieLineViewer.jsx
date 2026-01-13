@@ -7,14 +7,15 @@ import {
   Move,
   Edit3,
   SlidersHorizontal,
+  SquareDashedTopSolid,
 } from "lucide-react";
 import { clsx } from "clsx";
 import Fefco0201Dieline from "../dieline/Fefco0201";
 
 const DieLineViewer = ({ dimensions, settings }) => {
   const containerRef = useRef(null);
-  const [scale, setScale] = useState(0.85);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(0.9);
+  const [position, setPosition] = useState({ x: 150, y: 150 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [activeTool, setActiveTool] = useState("pan"); // Default to pan for better UX
@@ -37,10 +38,49 @@ const DieLineViewer = ({ dimensions, settings }) => {
     handleFit();
   }, []);
 
-  // Zoom Handlers
-  const handleZoomIn = () => setScale((s) => Math.min(s * 1.2, 5));
-  const handleZoomOut = () => setScale((s) => Math.max(s * 0.8, 0.2));
+  
 
+  // Zoom Handlers
+  // const handleZoomIn = () => setScale((s) => Math.min(s * 1.2, 5));
+  // const handleZoomOut = () => setScale((s) => Math.max(s * 0.8, 0.2));
+
+  const handleZoomIn = () => {
+    const oldScale = scale;
+    const newScale = Math.min(scale * 1.2, 5);
+    const ratio = newScale / oldScale;
+
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      setPosition((pos) => ({
+        x: centerX - (centerX - pos.x) * ratio,
+        y: centerY - (centerY - pos.y) * ratio,
+      }));
+    }
+
+    setScale(newScale);
+  };
+
+  const handleZoomOut = () => {
+    const oldScale = scale;
+    const newScale = Math.max(scale * 0.8, 0.2);
+    const ratio = newScale / oldScale;
+
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      setPosition((pos) => ({
+        x: centerX - (centerX - pos.x) * ratio,
+        y: centerY - (centerY - pos.y) * ratio,
+      }));
+    }
+
+    setScale(newScale);
+  };
   // const handleFit = () => {
   //   setScale(0.85);
   //   setPosition({ x: 0, y: 0 });
@@ -61,8 +101,16 @@ const DieLineViewer = ({ dimensions, settings }) => {
 
     const fittedScale = Math.min(scaleX, scaleY);
 
-    setScale(fittedScale);
-    setPosition({ x: 0, y: 0 });
+    const finalScale = Math.max(fittedScale, 0.9);
+    // Calculate center position
+    const scaledDielineWidth = dielineWidth * fittedScale;
+    const scaledDielineHeight = dielineHeight * fittedScale;
+
+    const centerX = (clientWidth - scaledDielineWidth) / 2 +200;
+    const centerY = (clientHeight - scaledDielineHeight) / 2+100;
+
+    setScale(finalScale);
+    setPosition({ x: centerX, y: centerY });
   };
   // Wheel Zoom Logic with center point zooming
   const handleWheel = (e) => {
