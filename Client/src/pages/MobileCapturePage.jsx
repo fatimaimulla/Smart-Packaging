@@ -21,9 +21,11 @@ import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";
 import Footer from "@/common/Footer";
 import Header from "@/common/Header";
-
+import { io } from "socket.io-client";
 const MobileCapturePage = () => {
   const { sessionId } = useParams();
+  const socket = io(import.meta.env.VITE_API_BASE_URL);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -104,8 +106,10 @@ const MobileCapturePage = () => {
         sideImage,
         referenceType: referenceObject,
       });
+      console.log(res)
 
       if (res.data.success) {
+        socket.emit("mobile-upload-complete", sessionId);
         setStep("success");
       } else {
         toast.error("Upload failed. Please try again.");

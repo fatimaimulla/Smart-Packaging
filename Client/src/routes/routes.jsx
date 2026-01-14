@@ -19,7 +19,7 @@ const AppRouter = createBrowserRouter([
     element: <UploadPage></UploadPage>,
   },
   {
-    path: "/review",
+    path: "/review/:sessionId",
     element: <ReviewPage></ReviewPage>,
   },
   {

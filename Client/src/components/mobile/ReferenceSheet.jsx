@@ -5,8 +5,8 @@ import { clsx } from "clsx";
 
 const options = [
   { id: "coin", label: "₹10 Coin", icon: Coins },
-  { id: "card", label: "ATM Card", icon: CreditCard },
-  { id: "marker", label: "2x2 Marker", icon: BoxSelect },
+  { id: "ATM card", label: "ATM Card", icon: CreditCard },
+  { id: "2x2 box", label: "2x2 Marker", icon: BoxSelect },
 ];
 
 const ReferenceSheet = ({ isOpen, selected, onSelect, onConfirm }) => {

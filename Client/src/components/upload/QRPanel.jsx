@@ -1,11 +1,28 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Smartphone, Copy, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
+import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 const QRPanel = ({ onSimulateMobile }) => {
-const sessionId = "session-123";
-const demoLink = `https://smart-packaging.vercel.app/mobile-capture/${sessionId}`;
+  const sessionId = "session-123";
+  const navigate = useNavigate();
+  const demoLink = `https://smart-packaging.vercel.app/mobile-capture/${sessionId}`;
+
+  const socket = io(import.meta.env.VITE_API_BASE_URL);
+
+  useEffect(() => {
+    socket.emit("join-session", sessionId);
+
+    socket.on("mobile-upload-complete", () => {
+      navigate(`/review/${sessionId}`);
+    });
+
+    return () => {
+      socket.off("upload-complete");
+    };
+  }, [sessionId]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-fit sticky top-24 border border-gray-100">
