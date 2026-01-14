@@ -99,26 +99,65 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
     });
 
   // Export (same logic as before)
+  // const handleAccept = async () => {
+  //   if (!cropRect || !displayRect || !imgData) return;
+
+  //   const imageCrop = displayToImage(displayRect, cropRect);
+
+  //   const canvas = document.createElement("canvas");
+  //   canvas.width = imageCrop.width;
+  //   canvas.height = imageCrop.height;
+  //   const ctx = canvas.getContext("2d");
+
+  //   ctx.drawImage(
+  //     imgData.el,
+  //     imageCrop.x,
+  //     imageCrop.y,
+  //     imageCrop.width,
+  //     imageCrop.height,
+  //     0,
+  //     0,
+  //     imageCrop.width,
+  //     imageCrop.height
+  //   );
+
+  //   canvas.toBlob(
+  //     (blob) => {
+  //       const file = new File([blob], "cropped.jpg", {
+  //         type: "image/jpeg",
+  //       });
+  //       onAccept(file);
+  //     },
+  //     "image/jpeg",
+  //     0.95
+  //   );
+  // };
   const handleAccept = async () => {
     if (!cropRect || !displayRect || !imgData) return;
 
-    const imageCrop = displayToImage(displayRect, cropRect);
+    // Calculate the crop area relative to the displayed image
+    const relativeCrop = {
+      x: (cropRect.x - displayRect.x) / displayRect.scale,
+      y: (cropRect.y - displayRect.y) / displayRect.scale,
+      width: cropRect.width / displayRect.scale,
+      height: cropRect.height / displayRect.scale,
+    };
 
     const canvas = document.createElement("canvas");
-    canvas.width = imageCrop.width;
-    canvas.height = imageCrop.height;
+    canvas.width = relativeCrop.width;
+    canvas.height = relativeCrop.height;
     const ctx = canvas.getContext("2d");
 
     ctx.drawImage(
       imgData.el,
-      imageCrop.x,
-      imageCrop.y,
-      imageCrop.width,
-      imageCrop.height,
+      relativeCrop.x,
+      relativeCrop.y,
+      relativeCrop.width,
+      relativeCrop.height,
       0,
       0,
-      imageCrop.width,
-      imageCrop.height
+      relativeCrop.width,
+      relativeCrop.height
     );
 
     canvas.toBlob(
@@ -132,7 +171,6 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
       0.95
     );
   };
-
   return (
     <div
       ref={containerRef}
