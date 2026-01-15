@@ -255,6 +255,134 @@ const MobileCapturePage = () => {
   //   );
   // }
 
+  // if (step === "final-review") {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans flex flex-col safe-area-inset-top safe-area-inset-bottom">
+  //       {/* Header */}
+  //       <Header />
+  //       <main className="pt-10 pb-10 px-6">
+  //         <div className="px-6 pt-8">
+  //           <h1 className="text-xl font-bold text-[#0D1B2A] mb-1">Review</h1>
+  //           <p className="text-gray-500 mb-4 text-sm">
+  //             Swipe to verify your images before uploading.
+  //           </p>
+  //         </div>
+  //         <div className="flex justify-center gap-12 border-b border-gray-300 mt-6 mb-4">
+  //           {["Top View", "Side View"].map((label, idx) => (
+  //             <button
+  //               key={label}
+  //               onClick={() => window.reviewSwiper?.slideTo(idx)}
+  //               className={`pb-2 text-sm font-semibold transition-all ${
+  //                 activeIndex === idx
+  //                   ? "text-black border-b-2 border-black"
+  //                   : "text-gray-400"
+  //               }`}
+  //             >
+  //               {label}
+  //             </button>
+  //           ))}
+  //         </div>
+
+  //         {/* Swiper */}
+  //         <div className="flex-1">
+  //           <Swiper
+  //             spaceBetween={24}
+  //             onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+  //             onSwiper={(swiper) => (window.reviewSwiper = swiper)}
+  //             className="h-full"
+  //           >
+  //             {/* Top View */}
+  //             <SwiperSlide>
+  //               <div className="px-2">
+  //                 <div className="relative w-full h-[70vh] rounded-xl overflow-hidden bg-black">
+  //                   {/* Top gradient for readability */}
+  //                   <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10" />
+
+  //                   {/* Floating controls */}
+  //                   <div className="absolute top-3 left-3 right-3 z-20 flex justify-end items-center">
+  //                     <button
+  //                       onClick={() => setStep("capture-top")}
+  //                       className="text-emerald-400 text-sm font-semibold"
+  //                     >
+  //                       Retake
+  //                     </button>
+  //                   </div>
+
+  //                   {/* Image */}
+  //                   <img
+  //                     src={topImage ? URL.createObjectURL(topImage) : ""}
+  //                     alt="Top View"
+  //                     className="max-w-full max-h-full object-contain"
+  //                   />
+  //                 </div>
+  //               </div>
+  //             </SwiperSlide>
+
+  //             {/* Side View */}
+  //             {/* <SwiperSlide>
+  //               <div className="px-6">
+  //                 <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+  //                   <div className="flex justify-between items-center mb-2">
+  //                     <span className="font-bold text-gray-700">Side View</span>
+  //                     <button
+  //                       onClick={() => setStep("capture-side")}
+  //                       className="text-emerald-600 text-sm font-semibold"
+  //                     >
+  //                       Retake
+  //                     </button>
+  //                   </div>
+  //                   <img
+  //                     src={sideImage ? URL.createObjectURL(sideImage) : ""}
+  //                     className="w-full aspect-[3/4] object-cover  bg-gray-100"
+  //                     alt="Side View"
+  //                   />
+  //                 </div>
+  //               </div>
+  //             </SwiperSlide> */}
+  //             <SwiperSlide>
+  //               <div className="px-2">
+  //                 <div className="relative w-full h-[70vh] rounded-xl overflow-hidden bg-black flex items-center justify-center">
+  //                   {/* Top gradient for readability */}
+  //                   <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10" />
+
+  //                   {/* Floating controls */}
+  //                   <div className="absolute top-3 left-3 right-3 z-20 flex justify-end items-center">
+  //                     <button
+  //                       onClick={() => setStep("capture-side")}
+  //                       className="text-emerald-400 text-sm font-semibold"
+  //                     >
+  //                       Retake
+  //                     </button>
+  //                   </div>
+
+  //                   {/* Image */}
+  //                   <img
+  //                     src={sideImage ? URL.createObjectURL(sideImage) : ""}
+  //                     alt="Side View"
+  //                     className="max-w-full max-h-full object-contain"
+  //                   />
+  //                 </div>
+  //               </div>
+  //             </SwiperSlide>
+  //           </Swiper>
+  //         </div>
+
+  //         {/* Confirm Button */}
+  //         <div className="p-6 flex items-center justify-center">
+  //           <button
+  //             onClick={handleUpload}
+  //             className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold"
+  //           >
+  //             Confirm & Upload
+  //           </button>
+  //         </div>
+  //       </main>
+
+  //       <Footer />
+  //     </div>
+  //   );
+  // }
+
   if (step === "final-review") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans flex flex-col safe-area-inset-top safe-area-inset-bottom">
@@ -284,19 +412,19 @@ const MobileCapturePage = () => {
           </div>
 
           {/* Swiper */}
-          <div className="flex-1">
+          <div className="flex-1 flex items-center justify-center">
             <Swiper
               spaceBetween={24}
               onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
               onSwiper={(swiper) => (window.reviewSwiper = swiper)}
-              className="h-full"
+              className="w-full"
             >
               {/* Top View */}
               <SwiperSlide>
-                <div className="px-2">
-                  <div className="relative w-full h-[70vh] rounded-xl overflow-hidden bg-black">
+                <div className="px-2 flex items-center justify-center">
+                  <div className="relative max-w-full rounded-xl overflow-hidden bg-black shadow-lg">
                     {/* Top gradient for readability */}
-                    <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10" />
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/60 to-transparent z-10" />
 
                     {/* Floating controls */}
                     <div className="absolute top-3 left-3 right-3 z-20 flex justify-end items-center">
@@ -312,38 +440,18 @@ const MobileCapturePage = () => {
                     <img
                       src={topImage ? URL.createObjectURL(topImage) : ""}
                       alt="Top View"
-                      className="max-w-full max-h-full object-contain"
+                      className="max-h-[70vh] w-auto"
                     />
                   </div>
                 </div>
               </SwiperSlide>
 
               {/* Side View */}
-              {/* <SwiperSlide>
-                <div className="px-6">
-                  <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-gray-700">Side View</span>
-                      <button
-                        onClick={() => setStep("capture-side")}
-                        className="text-emerald-600 text-sm font-semibold"
-                      >
-                        Retake
-                      </button>
-                    </div>
-                    <img
-                      src={sideImage ? URL.createObjectURL(sideImage) : ""}
-                      className="w-full aspect-[3/4] object-cover  bg-gray-100"
-                      alt="Side View"
-                    />
-                  </div>
-                </div>
-              </SwiperSlide> */}
               <SwiperSlide>
-                <div className="px-2">
-                  <div className="relative w-full h-[70vh] rounded-xl overflow-hidden bg-black flex items-center justify-center">
+                <div className="px-2 flex items-center justify-center">
+                  <div className="relative max-w-full rounded-xl overflow-hidden bg-black shadow-lg">
                     {/* Top gradient for readability */}
-                    <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10" />
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/60 to-transparent z-10" />
 
                     {/* Floating controls */}
                     <div className="absolute top-3 left-3 right-3 z-20 flex justify-end items-center">
@@ -359,7 +467,7 @@ const MobileCapturePage = () => {
                     <img
                       src={sideImage ? URL.createObjectURL(sideImage) : ""}
                       alt="Side View"
-                      className="max-w-full max-h-full object-contain"
+                      className="max-h-[70vh] w-auto"
                     />
                   </div>
                 </div>
