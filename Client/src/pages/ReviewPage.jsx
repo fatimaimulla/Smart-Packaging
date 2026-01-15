@@ -7,23 +7,73 @@ import { Layers, Box } from "lucide-react";
 import Footer from "../common/Footer";
 import Header from "../common/Header";
 
-const ReviewPage = () => {
+
+const ReviewPage = ({ coordinates }) =>
+
+{
+
+    const DummyData_TopView = {
+    reference_object: [
+      29.809776306152344,
+      379.90496826171875,
+      297.4126892089844,
+      645.424560546875,
+    ],
+    products: [
+      [
+        362.8848876953125,
+        247.4058074951172,
+        647.9251708984375,
+        692.9661865234375,
+      ],
+    ],
+    };
+  
+  
+  const DummyData_SideView = {
+    "reference_object":
+      [
+        605.0848388671875,
+        1744.1463623046875,
+        1053.12841796875,
+        2194.981689453125
+      ],
+    "products": [
+      [
+        1372.510498046875,
+        1660.1568603515625,
+        2490.907470703125,
+        2771.56884765625
+      ]
+    ]
+  }
+  
+  const convertXYXYtoXYWH = ([x1, y1, x2, y2]) => ({
+  x: x1,
+  y: y1,
+  w: x2 - x1,
+  h: y2 - y1,
+});
+
+
+  
   const [activeView, setActiveView] = useState("top"); // 'top' | 'side'
+
 
   // Mock Data State
   // In a real app, these coords would come from the ML backend
   const [topViewData, setTopViewData] = useState({
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/800x600/f3f4f6/a1a1aa?text=Top+View+Photo",
-    productBox: { x: 150, y: 100, w: 300, h: 400 },
-    referenceBox: { x: 50, y: 50, w: 80, h: 80 }, // e.g., 80px = 25mm (Coin)
+    image:"/Test10.png",
+    productBox: convertXYXYtoXYWH(DummyData_TopView.products[0]),
+    referenceBox: convertXYXYtoXYWH(DummyData_TopView.reference_object), // e.g., 80px = 25mm (Coin)
   });
+
 
   const [sideViewData, setSideViewData] = useState({
     image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/800x600/f3f4f6/a1a1aa?text=Side+View+Photo",
-    productBox: { x: 200, y: 200, w: 300, h: 150 },
-    referenceBox: { x: 50, y: 450, w: 80, h: 80 },
+      "/Test1.jpg",
+    productBox: convertXYXYtoXYWH(DummyData_SideView.products[0]),
+    referenceBox: convertXYXYtoXYWH(DummyData_SideView.reference_object),
   });
 
   const [dimensions, setDimensions] = useState({ l: 0, w: 0, h: 0 });

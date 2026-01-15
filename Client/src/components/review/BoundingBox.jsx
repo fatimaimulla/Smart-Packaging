@@ -16,6 +16,8 @@ const BoundingBox = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
+  
+
   // Colors
   const colors = {
     blue: {
