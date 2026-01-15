@@ -69,6 +69,7 @@ const MobileCapturePage = () => {
   };
 
   const handleAcceptTop = (croppedFile) => {
+    console.log("top", croppedFile);
     dispatch(setTopImage(croppedFile));
     setTempImage(null);
     setStep("capture-side");
@@ -86,6 +87,8 @@ const MobileCapturePage = () => {
   };
 
   const handleAcceptSide = (croppedFile) => {
+    console.log("side", croppedFile);
+
     dispatch(setSideImage(croppedFile));
     setTempImage(null);
     setStep("final-review");
@@ -106,7 +109,7 @@ const MobileCapturePage = () => {
         sideImage,
         referenceType: referenceObject,
       });
-      console.log(res)
+      console.log(res);
 
       if (res.data.success) {
         socket.emit("mobile-upload-complete", sessionId);
@@ -309,7 +312,7 @@ const MobileCapturePage = () => {
                     <img
                       src={topImage ? URL.createObjectURL(topImage) : ""}
                       alt="Top View"
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain"
                     />
                   </div>
                 </div>
@@ -338,7 +341,7 @@ const MobileCapturePage = () => {
               </SwiperSlide> */}
               <SwiperSlide>
                 <div className="px-2">
-                  <div className="relative w-full h-[70vh] rounded-xl overflow-hidden bg-black">
+                  <div className="relative w-full h-[70vh] rounded-xl overflow-hidden bg-black flex items-center justify-center">
                     {/* Top gradient for readability */}
                     <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10" />
 
@@ -356,7 +359,7 @@ const MobileCapturePage = () => {
                     <img
                       src={sideImage ? URL.createObjectURL(sideImage) : ""}
                       alt="Side View"
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain"
                     />
                   </div>
                 </div>
