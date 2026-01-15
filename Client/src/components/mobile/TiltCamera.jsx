@@ -2,13 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Camera, RotateCcw, Edit2 } from "lucide-react";
 import { clsx } from "clsx";
 import { motion } from "framer-motion";
+import MobileFlashToggle from "./MobileFlashToggle";
 
-const TiltCamera = ({
-  label,
-  referenceObject,
-  onCapture,
-  onEditReference,
-}) => {
+const TiltCamera = ({ label, referenceObject, onCapture, onEditReference }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [stream, setStream] = useState(null);
@@ -70,7 +66,8 @@ const TiltCamera = ({
     reqPermission();
 
     window.addEventListener("deviceorientation", handleOrientation);
-    return () => window.removeEventListener("deviceorientation", handleOrientation);
+    return () =>
+      window.removeEventListener("deviceorientation", handleOrientation);
   }, []);
 
   // 3. Tilt Logic & Debounce
@@ -106,27 +103,35 @@ const TiltCamera = ({
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
+
     // Set canvas to video dimensions
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0);
-    
-    canvas.toBlob((blob) => {
-      if (blob) {
-        // Flash effect
-        const flash = document.getElementById("camera-flash");
-        if (flash) {
+
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          // Flash effect
+          const flash = document.getElementById("camera-flash");
+          if (flash) {
             flash.style.opacity = "1";
-            setTimeout(() => flash.style.opacity = "0", 100);
+            setTimeout(() => (flash.style.opacity = "0"), 100);
+          }
+
+          const file = new File(
+            [blob],
+            `${label.toLowerCase().replace(" ", "_")}.jpg`,
+            { type: "image/jpeg" }
+          );
+          onCapture(file);
         }
-        
-        const file = new File([blob], `${label.toLowerCase().replace(" ", "_")}.jpg`, { type: "image/jpeg" });
-        onCapture(file);
-      }
-    }, "image/jpeg", 0.9);
+      },
+      "image/jpeg",
+      0.9
+    );
   };
 
   // Visual Helpers
@@ -155,7 +160,6 @@ const TiltCamera = ({
     }
   };
 
-
   return (
     <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
       {/* Flash Overlay */}
@@ -181,23 +185,26 @@ const TiltCamera = ({
               {label}
             </span>
           </div>
+          <div className="flex flex-col gap-4">
+            <MobileFlashToggle videoTrack={stream?.getVideoTracks()[0]} />
 
-          {/* Reference Pill */}
-          <button
-            onClick={onEditReference}
-            className="flex flex-col items-center bg-white/90 backdrop-blur-md rounded-full py-3 px-2 shadow-lg active:scale-95 transition-transform w-12"
-          >
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-2 text-gray-800">
-              {/* Icon based on selection */}
-              <Edit2 size={14} />
-            </div>
-            <span
-              className="text-[10px] font-bold text-gray-800 vertical-lr uppercase tracking-widest"
-              style={{ writingMode: "vertical-lr" }}
+            {/* Reference Pill */}
+            <button
+              onClick={onEditReference}
+              className="flex flex-col items-center bg-white/90 backdrop-blur-md rounded-full py-3 px-2 shadow-lg active:scale-95 transition-transform w-12"
             >
-              {referenceObject || "REF"}
-            </span>
-          </button>
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-2 text-gray-800">
+                {/* Icon based on selection */}
+                <Edit2 size={14} />
+              </div>
+              <span
+                className="text-[10px] font-bold text-gray-800 vertical-lr uppercase tracking-widest"
+                style={{ writingMode: "vertical-lr" }}
+              >
+                {referenceObject || "REF"}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Tilt Guidance Overlay */}
