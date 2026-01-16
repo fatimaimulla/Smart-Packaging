@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Form } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setSessionId,
@@ -22,7 +22,9 @@ import { Pagination } from "swiper/modules";
 import Footer from "@/common/Footer";
 import Header from "@/common/Header";
 import { io } from "socket.io-client";
+// import axios from "axios";
 const MobileCapturePage = () => {
+  // const [croppedTop, setCroppedTop] = useState(null);
   const { sessionId } = useParams();
   const socket = io(import.meta.env.VITE_API_BASE_URL);
 
@@ -70,6 +72,7 @@ const MobileCapturePage = () => {
 
   const handleAcceptTop = (croppedFile) => {
     console.log("top", croppedFile);
+    // setCroppedTop(croppedFile);
     dispatch(setTopImage(croppedFile));
     setTempImage(null);
     setStep("capture-side");
@@ -100,6 +103,24 @@ const MobileCapturePage = () => {
   };
 
   // 4. Final Upload
+  
+
+  // const handleTest = async () => {
+  //   try {
+      
+  //     const formData1 = new FormData();
+  //     formData1.append("file", croppedTop);
+
+  //     const res = await axios.post(`${umair}`, formData1, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+  //     console.log(res);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
   const handleUpload = async () => {
     setStep("uploading");
     try {

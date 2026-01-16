@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
 import { useCropMath } from "../../hooks/useCropMath";
 import { useTouchHandlers } from "../../hooks/useTouchHandlers";
+import { imageProcessing } from "@/api/imageProcessing";
+import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setTopViewProductDimension, setTopViewReferenceDimension } from "@/redux/slice/dimensionSlice";
 
 const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
   const containerRef = useRef(null);
@@ -10,7 +14,7 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
     () => URL.createObjectURL(imageFile),
     [imageFile]
   );
-
+  const dispatch=useDispatch();
   const [imgData, setImgData] = useState(null);
   const [displayRect, setDisplayRect] = useState(null);
   const [cropRect, setCropRect] = useState(null);
@@ -161,11 +165,33 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
     );
 
     canvas.toBlob(
-      (blob) => {
+      async (blob) => {
         const file = new File([blob], "cropped.jpg", {
           type: "image/jpeg",
         });
         onAccept(file);
+        try {
+          const res = await imageProcessing({ croppedImage: file });
+          console.log(res);
+          console.log(res.data.success);
+          if (res.data.success) {
+            // if(res.data.reference_object)
+            dispatch(setTopViewReferenceDimension(res.data.reference_object));
+            dispatch(setTopViewProductDimension(res.data.products));
+            toast.success(res.data.message);
+          } else if (res.data.success == false) {
+            //  dispatch(setTopViewReferenceDimension(res.data.reference_object));
+            //  dispatch(setTopViewProductDimension(res.data.products));
+            toast.error(res.data.message);
+            onRetake();
+          }
+        } catch (error) {
+          if (error.response?.data?.message) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error(error.message);
+          }
+        }
       },
       "image/jpeg",
       0.95
