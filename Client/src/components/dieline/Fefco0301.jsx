@@ -1,4 +1,4 @@
-export default function Fefco0301(props) {
+export default function Fefco0301Dieline(props) {
   const x = props.x || 140;
   const y = props.y || 120;
   const length = props.length || 300;
@@ -161,3 +161,9 @@ export default function Fefco0301(props) {
     </svg>
   );
 }
+
+Fefco0301Dieline.defaultDimensions = {
+  l: 300,
+  w: 200,
+  h: 60,
+};

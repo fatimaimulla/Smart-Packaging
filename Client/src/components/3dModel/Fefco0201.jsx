@@ -1,4 +1,4 @@
-// Clean FEFCO 0201 – Production-ready 3D Dieline Optimized one From your code
+// Clean FEFCO 0201 – Production-ready 3D Dieline
 import React, { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
@@ -38,7 +38,7 @@ function Hinge({ refObj, pos, axis, angle = 0, children }) {
 }
 
 /* ------------------ FEFCO 0201 ------------------ */
-function FEFCO0201({
+function Fefco0201_3D({
   length = 500,
   width = 200,
   sideWidth = 150,
@@ -102,7 +102,6 @@ function FEFCO0201({
 
     flap_front_top.current.rotation.x = -foldTopFront;
     flap_right_top.current.rotation.x = -foldTopSide;
-
     flap_back_top.current.rotation.x = -foldTopFront;
     flap_left_top.current.rotation.x = -foldTopSide;
 
@@ -202,37 +201,4 @@ function FEFCO0201({
   );
 }
 
-/* ------------------ wrapper ------------------ */
-export default function Fefco0201_3D() {
-  const [slider, setSlider] = useState(0);
-
-  return (
-    <div style={{ background: "white", padding: 20 }}>
-      <Canvas
-        style={{ background: "white" }}
-        camera={{ position: [0, 8, 2], fov: 40 }}
-      >
-        <ambientLight intensity={0.5} />
-        <hemisphereLight
-        skyColor={0xffffff}
-        groundColor={0x44403b}
-        intensity={0.3}
-        />
-        <directionalLight position={[2, 4, 3]} intensity={0.8} />
-<directionalLight position={[-2, 1.6, -1]} intensity={0.25} />
-        <FEFCO0201 slider={slider} />
-        <OrbitControls />
-      </Canvas>
-
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.001}
-        value={slider}
-        onChange={(e) => setSlider(+e.target.value)}
-        style={{ width: "100%", marginTop: 12 }}
-      />
-    </div>
-  );
-}
+export default Fefco0201_3D;

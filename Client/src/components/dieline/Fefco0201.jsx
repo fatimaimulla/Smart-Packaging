@@ -183,4 +183,11 @@ export default function Fefco0201Dieline(props) {
       />
     </svg>
   );
+
 }
+
+Fefco0201Dieline.defaultDimensions = {
+  l: 191,
+  w: 383,
+  h: 245,
+};

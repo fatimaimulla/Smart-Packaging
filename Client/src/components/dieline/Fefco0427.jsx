@@ -209,3 +209,9 @@ d={`M${leftEdgeX} ${midY}
 
   );
 }
+
+Fefco0427Dieline.defaultDimensions = {
+  l: 368, 
+  w: 236,
+  h: 72,
+};

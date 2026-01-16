@@ -1,4 +1,4 @@
-export default function Fefco0401(props) {
+export default function Fefco0401Dieline(props) {
     //Parameters 
     const x = props.x || 541.5;
     const y = props.y || 469.5;
@@ -112,3 +112,9 @@ export default function Fefco0401(props) {
         </div>
     )
 }
+
+Fefco0401Dieline.defaultDimensions = {
+  l: 400,
+  w: 250,
+  h: 150,
+};

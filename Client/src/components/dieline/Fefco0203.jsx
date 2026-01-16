@@ -243,3 +243,9 @@ V${rightSideBottomFlapY + bleedOffset}
     </svg>
   );
 }
+
+Fefco0203Dieline.defaultDimensions = {
+  l: 150,
+  w: 180,
+  h: 210,
+};
