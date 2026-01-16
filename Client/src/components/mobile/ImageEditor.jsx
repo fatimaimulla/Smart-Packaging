@@ -180,8 +180,8 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
             dispatch(setTopViewProductDimension(res.data.products));
             toast.success(res.data.message);
           } else if (res.data.success == false) {
-            //  dispatch(setTopViewReferenceDimension(res.data.reference_object));
-            //  dispatch(setTopViewProductDimension(res.data.products));
+             dispatch(setTopViewReferenceDimension(res.data.reference_object));
+             dispatch(setTopViewProductDimension(res.data.products));
             toast.error(res.data.message);
             onRetake();
           }
