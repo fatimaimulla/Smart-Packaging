@@ -4,7 +4,7 @@ import { useCropMath } from "../../hooks/useCropMath";
 import { useTouchHandlers } from "../../hooks/useTouchHandlers";
 import { imageProcessing } from "@/api/imageProcessing";
 import { toast } from "sonner";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   setSideViewProductDimension,
   setSideViewReferenceDimension,

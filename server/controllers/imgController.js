@@ -13,27 +13,59 @@ export const imgUpload = async (req, res) => {
       });
     }
 
-    const base64Image1 = `data:${
-      img1.mimetype
-    };base64,${img1.buffer.toString("base64")}`;
+    const base64Image1 = `data:${img1.mimetype};base64,${img1.buffer.toString(
+      "base64"
+    )}`;
 
-    const base64Image2 = `data:${
-      img2.mimetype
-    };base64,${img2.buffer.toString("base64")}`;
+    const base64Image2 = `data:${img2.mimetype};base64,${img2.buffer.toString(
+      "base64"
+    )}`;
 
     const upload1 = await cloudinary.uploader.upload(base64Image1);
     const upload2 = await cloudinary.uploader.upload(base64Image2);
 
-    await Img.create({
+    const session = await Img.create({
       referenceObject: referenceObject,
       image1: upload1.secure_url,
       image2: upload2.secure_url,
     });
 
-    return res
-      .status(200)
-      .json({ message: "Image uploaded successfully.", success: true });
+    return res.status(200).json({
+      message: "Image uploaded successfully.",
+      success: true,
+      sessionId: session._id,
+    });
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const getImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const session = await Img.findById(id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        referenceObject: session.referenceObject,
+        topImageUrl: session.image1,
+        sideImageUrl: session.image2,
+      },
+    });
+  } catch (error) {
+    console.error("Get session error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

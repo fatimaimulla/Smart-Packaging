@@ -8,6 +8,7 @@ import {
   setSideImage,
   clearTopImage,
   clearSideImage,
+  setImageId,
 } from "@/redux/slice/mobileUploadSlice";
 import ReferenceSheet from "@/components/mobile/ReferenceSheet";
 import TiltCamera from "@/components/mobile/TiltCamera";
@@ -133,6 +134,7 @@ const MobileCapturePage = () => {
       console.log(res);
 
       if (res.data.success) {
+        dispatch(setImageId(res.data.sessionId));
         socket.emit("mobile-upload-complete", sessionId);
         setStep("success");
       } else {

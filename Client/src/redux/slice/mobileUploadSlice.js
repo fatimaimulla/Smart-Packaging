@@ -5,7 +5,7 @@ const MOBILE_UPLOAD_SLICE = createSlice({
   initialState: {
     sessionId: null,
     referenceObject: null, // 'coin', 'card', 'marker'
-
+    imageId: null,
     topImage: null,
     sideImage: null,
     uploadStatus: "idle", // 'idle', 'uploading', 'success', 'error'
@@ -13,6 +13,9 @@ const MOBILE_UPLOAD_SLICE = createSlice({
   reducers: {
     setSessionId: (state, action) => {
       state.sessionId = action.payload;
+    },
+    setImageId: (state, action) => {
+      state.imageId = action.payload;
     },
     setReferenceObject: (state, action) => {
       state.referenceObject = action.payload;
@@ -43,6 +46,7 @@ const MOBILE_UPLOAD_SLICE = createSlice({
 
 export const {
   setSessionId,
+  setImageId,
   setReferenceObject,
   setTopImage,
   setSideImage,

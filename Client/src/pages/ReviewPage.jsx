@@ -6,72 +6,79 @@ import { clsx } from "clsx";
 import { Layers, Box } from "lucide-react";
 import Footer from "../common/Footer";
 import Header from "../common/Header";
+import { useSelector } from "react-redux";
+import getImageId from "@/api/imageId";
 
+const ReviewPage = ({ coordinates }) => {
+  const Id = useSelector((state) => state.mobileUpload.imageId);
+  const [topUrl, setTopUrl] = useState(null);
+  const [sideUrl, setSideUrl] = useState(null);
+  useEffect(() => {
+    if (!Id) return;
+    console.log(Id);
 
-const ReviewPage = ({ coordinates }) =>
+    const fetchImages = async () => {
+      try {
+        const res = await getImageId({ sessionId: Id });
+        if (res.data.success) {
+          setTopUrl(res.data.data.topImageUrl);
+          setSideUrl(res.data.data.sideImageUrl);
+        }
+        console.log(res);
+      } catch (error) {
+        console.error("Failed to fetch images:", error);
+      }
+    };
 
-{
+    fetchImages();
+  }, [Id]);
 
-    const DummyData_TopView = {
+  const DummyData_TopView = {
     reference_object: [
-      29.809776306152344,
-      379.90496826171875,
-      297.4126892089844,
+      29.809776306152344, 379.90496826171875, 297.4126892089844,
       645.424560546875,
     ],
     products: [
       [
-        362.8848876953125,
-        247.4058074951172,
-        647.9251708984375,
+        362.8848876953125, 247.4058074951172, 647.9251708984375,
         692.9661865234375,
       ],
     ],
-    };
-  
-  
+  };
+
   const DummyData_SideView = {
-    "reference_object":
+    reference_object: [
+      605.0848388671875, 1744.1463623046875, 1053.12841796875,
+      2194.981689453125,
+    ],
+    products: [
       [
-        605.0848388671875,
-        1744.1463623046875,
-        1053.12841796875,
-        2194.981689453125
+        1372.510498046875, 1660.1568603515625, 2490.907470703125,
+        2771.56884765625,
       ],
-    "products": [
-      [
-        1372.510498046875,
-        1660.1568603515625,
-        2490.907470703125,
-        2771.56884765625
-      ]
-    ]
-  }
-  
+    ],
+  };
+
   const convertXYXYtoXYWH = ([x1, y1, x2, y2]) => ({
-  x: x1,
-  y: y1,
-  w: x2 - x1,
-  h: y2 - y1,
-});
+    x: x1,
+    y: y1,
+    w: x2 - x1,
+    h: y2 - y1,
+  });
 
-
-  
   const [activeView, setActiveView] = useState("top"); // 'top' | 'side'
-
 
   // Mock Data State
   // In a real app, these coords would come from the ML backend
   const [topViewData, setTopViewData] = useState({
-    image:"https://res.cloudinary.com/daapqn6vz/image/upload/v1764744687/user_uploads/qnmzzymyve5j12b20rfo.jpg",
+    image:
+      "https://res.cloudinary.com/daapqn6vz/image/upload/v1764744687/user_uploads/qnmzzymyve5j12b20rfo.jpg",
     productBox: convertXYXYtoXYWH(DummyData_TopView.products[0]),
     referenceBox: convertXYXYtoXYWH(DummyData_TopView.reference_object), // e.g., 80px = 25mm (Coin)
   });
 
-
   const [sideViewData, setSideViewData] = useState({
-    image:
-      "/Test1.jpg",
+    image: "/Test1.jpg",
     productBox: convertXYXYtoXYWH(DummyData_SideView.products[0]),
     referenceBox: convertXYXYtoXYWH(DummyData_SideView.reference_object),
   });
@@ -148,7 +155,7 @@ const ReviewPage = ({ coordinates }) =>
               {activeView === "top" ? (
                 <ImageViewer
                   view="Top"
-                  imageUrl={topViewData.image}
+                  imageUrl={topUrl}
                   productBox={topViewData.productBox}
                   referenceBox={topViewData.referenceBox}
                   onProductBoxChange={(newBox) =>
@@ -164,7 +171,7 @@ const ReviewPage = ({ coordinates }) =>
               ) : (
                 <ImageViewer
                   view="Side"
-                  imageUrl={sideViewData.image}
+                  imageUrl={sideUrl}
                   productBox={sideViewData.productBox}
                   referenceBox={sideViewData.referenceBox}
                   onProductBoxChange={(newBox) =>
