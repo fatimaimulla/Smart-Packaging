@@ -1,25 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { clsx } from "clsx";
 import { Move } from "lucide-react";
 
 const BoundingBox = ({
   box,
-  imageSize,
   onChange,
   color = "blue",
   isResizable = true,
-  isDragable=true,
+  isDragable = true,
+  zoom = 1, // ✅ NEW
   label,
   confidence,
 }) => {
-  const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
-  
-
-  // Colors
   const colors = {
     blue: {
       border: "border-blue-500",
@@ -34,14 +30,13 @@ const BoundingBox = ({
       text: "bg-emerald-500",
     },
   };
+
   const theme = colors[color];
 
-  // Handle Drag Move
   const handleDrag = (event, info) => {
-    const newX = box.x + info.delta.x;
-    const newY = box.y + info.delta.y;
+    const newX = box.x + info.delta.x / zoom; // ✅ zoom fix
+    const newY = box.y + info.delta.y / zoom; // ✅ zoom fix
 
-    // Simple boundary check (can be improved)
     onChange({
       ...box,
       x: newX,
@@ -49,57 +44,58 @@ const BoundingBox = ({
     });
   };
 
-  // Handle Resize (Simplified for this demo)
-  // In a production app, we'd attach global mouse listeners on mousedown of handles
-const handleResizeStart = (e, direction) => {
-  e.preventDefault();
-  e.stopPropagation();
+  const handleResizeStart = (e, direction) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  setIsResizing(true);
+    setIsResizing(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
 
-  // ✅ capture pointer so resize keeps working smoothly
-  e.currentTarget.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startBox = { ...box };
 
-  const startX = e.clientX;
-  const startY = e.clientY;
-  const startBox = { ...box };
+    const handlePointerMove = (moveEvent) => {
+      const rawDeltaX = moveEvent.clientX - startX;
+      const rawDeltaY = moveEvent.clientY - startY;
 
-  const handlePointerMove = (moveEvent) => {
-    const deltaX = moveEvent.clientX - startX;
-    const deltaY = moveEvent.clientY - startY;
+      // ✅ compensate zoom
+      const deltaX = rawDeltaX / zoom;
+      const deltaY = rawDeltaY / zoom;
 
-    let newBox = { ...startBox };
+      let newBox = { ...startBox };
 
-    if (direction.includes("e"))
-      newBox.w = Math.max(20, startBox.w + deltaX);
+      if (direction.includes("e")) {
+        newBox.w = Math.max(20, startBox.w + deltaX);
+      }
 
-    if (direction.includes("s"))
-      newBox.h = Math.max(20, startBox.h + deltaY);
+      if (direction.includes("s")) {
+        newBox.h = Math.max(20, startBox.h + deltaY);
+      }
 
-    onChange(newBox);
+      onChange(newBox);
+    };
+
+    const handlePointerUp = () => {
+      setIsResizing(false);
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
+    };
+
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", handlePointerUp);
   };
-
-  const handlePointerUp = () => {
-    setIsResizing(false);
-
-    document.removeEventListener("pointermove", handlePointerMove);
-    document.removeEventListener("pointerup", handlePointerUp);
-  };
-
-  document.addEventListener("pointermove", handlePointerMove);
-  document.addEventListener("pointerup", handlePointerUp);
-};
-
 
   return (
     <motion.div
       drag={isDragable && !isResizing}
       dragMomentum={false}
-      onDragStart={() => setIsDragging(true)}
-      onDragEnd={() => setIsDragging(false)}
+      onDragStart={() => isDragable && setIsDragging(true)}
+      onDragEnd={() => isDragable && setIsDragging(false)}
       onDrag={isDragable && !isResizing ? handleDrag : undefined}
       className={clsx(
-        "absolute cursor-move group",
+        "absolute group",
+        isDragable ? "cursor-move" : "cursor-default",
         isDragging ? "z-50" : "z-10"
       )}
       style={{
@@ -109,7 +105,6 @@ const handleResizeStart = (e, direction) => {
         height: box.h,
       }}
     >
-      {/* Box Outline & Fill */}
       <div
         className={clsx(
           "w-full h-full border-2 transition-colors duration-200 relative",
@@ -118,7 +113,6 @@ const handleResizeStart = (e, direction) => {
           (isDragging || isResizing) && "opacity-80"
         )}
       >
-        {/* Label Badge */}
         <div
           className={clsx(
             "absolute -top-7 left-0 px-2 py-0.5 text-xs font-bold text-white rounded-t-md flex items-center gap-2 whitespace-nowrap shadow-sm",
@@ -131,56 +125,44 @@ const handleResizeStart = (e, direction) => {
           )}
         </div>
 
-        {/* Resize Handles (Only if resizable) */}
-        {isResizable &&  (
+        {isResizable && (
           <>
-            {/* Corner Handle (SE) */}
             <div
-              onMouseDown={(e) => handleResizeStart(e, "se")}
+              onPointerDown={(e) => handleResizeStart(e, "se")}
               className={clsx(
                 "absolute -bottom-1.5 -right-1.5 w-4 h-4 rounded-full border-2 border-white cursor-se-resize shadow-sm z-20 transition-transform hover:scale-125",
                 theme.handle
               )}
             />
 
-            {/* Edge Handle (E) */}
             <div
-              onMouseDown={(e) => handleResizeStart(e, "e")}
+              onPointerDown={(e) => handleResizeStart(e, "e")}
               className={clsx(
-                "absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-6 rounded-full border border-white cursor-e-resize shadow-sm",
+                "absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-6 rounded-full border border-white cursor-e-resize shadow-sm z-20",
                 theme.handle
               )}
             />
 
-            {/* Edge Handle (S) */}
             <div
-              onMouseDown={(e) => handleResizeStart(e, "s")}
+              onPointerDown={(e) => handleResizeStart(e, "s")}
               className={clsx(
-                "absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1.5 rounded-full border border-white cursor-s-resize shadow-sm",
+                "absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1.5 rounded-full border border-white cursor-s-resize shadow-sm z-20",
                 theme.handle
               )}
             />
           </>
         )}
 
-
-        {/* Move Icon (Center, visible on hover) */}
-        {isDragable ? (
-        
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <div className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm">
-            <Move
-              size={16}
-              className={
-                color === "blue" ? "text-blue-600" : "text-emerald-600"
-              }
-            />
+        {isDragable && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <div className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm">
+              <Move
+                size={16}
+                className={color === "blue" ? "text-blue-600" : "text-emerald-600"}
+              />
+            </div>
           </div>
-        </div>
-
-        ) :
-        <></>}
-        
+        )}
       </div>
     </motion.div>
   );

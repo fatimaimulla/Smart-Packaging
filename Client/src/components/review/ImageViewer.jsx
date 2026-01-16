@@ -3,7 +3,6 @@ import { ZoomIn, ZoomOut, RefreshCw, Grid } from "lucide-react";
 import { clsx } from "clsx";
 import BoundingBox from "./BoundingBox";
 
-
 const ImageViewer = ({
   view,
   imageUrl,
@@ -22,8 +21,9 @@ const ImageViewer = ({
   const handleZoomOut = () => setZoom((p) => Math.max(p - 0.25, 0.5));
   const handleReset = () => setZoom(1);
 
+  // ✅ Convert from natural coords -> rendered coords
   const scaleBox = (box) => {
-    if (!imgMeta) return box;
+    if (!imgMeta || !box) return box;
 
     const scaleX = imgMeta.renderW / imgMeta.naturalW;
     const scaleY = imgMeta.renderH / imgMeta.naturalH;
@@ -33,6 +33,21 @@ const ImageViewer = ({
       y: box.y * scaleY,
       w: box.w * scaleX,
       h: box.h * scaleY,
+    };
+  };
+
+  // ✅ Convert from rendered coords -> natural coords (IMPORTANT FOR RESIZE/DRAG)
+  const unscaleBox = (box) => {
+    if (!imgMeta || !box) return box;
+
+    const scaleX = imgMeta.renderW / imgMeta.naturalW;
+    const scaleY = imgMeta.renderH / imgMeta.naturalH;
+
+    return {
+      x: box.x / scaleX,
+      y: box.y / scaleY,
+      w: box.w / scaleX,
+      h: box.h / scaleY,
     };
   };
 
@@ -77,7 +92,10 @@ const ImageViewer = ({
 
         <div
           className="w-full h-full flex items-center justify-center"
-          style={{ transform: `scale(${zoom})` }}
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: "top left", // ✅ important for correct resize math
+          }}
         >
           <div className="relative">
             <img
@@ -88,6 +106,8 @@ const ImageViewer = ({
               draggable={false}
               onLoad={() => {
                 const img = imgRef.current;
+                if (!img) return;
+
                 setImgMeta({
                   naturalW: img.naturalWidth,
                   naturalH: img.naturalHeight,
@@ -101,20 +121,32 @@ const ImageViewer = ({
             <div className="absolute inset-0">
               {imgMeta && (
                 <>
+                  {/* ✅ PRODUCT BOX (Resizable + Draggable) */}
                   <BoundingBox
                     box={scaleBox(productBox)}
-                    onChange={() => {}}
+                    zoom={zoom}
+                    onChange={(updatedScaledBox) => {
+                      const updatedRealBox = unscaleBox(updatedScaledBox);
+                      onProductBoxChange(updatedRealBox);
+                      console.log(updatedRealBox);
+                    }}
                     color="blue"
                     label="Product"
                     isResizable={true}
+                    isDragable={true}
                   />
 
+                  {/* ✅ REFERENCE BOX (Fixed) */}
                   <BoundingBox
                     box={scaleBox(referenceBox)}
-                    onChange={() => {}}
+                    zoom={zoom}
+                    onChange={(updatedScaledBox) => {
+                      // if you want reference draggable/resizable later, enable below
+                      const updatedRealBox = unscaleBox(updatedScaledBox);
+                      onReferenceBoxChange(updatedRealBox);
+                    }}
                     color="green"
                     label="Reference"
-                    
                     isDragable={false}
                     isResizable={false}
                   />
@@ -130,9 +162,11 @@ const ImageViewer = ({
         <button onClick={handleZoomOut}>
           <ZoomOut size={18} />
         </button>
+
         <span className="text-xs w-12 text-center">
           {Math.round(zoom * 100)}%
         </span>
+
         <button onClick={handleZoomIn}>
           <ZoomIn size={18} />
         </button>
