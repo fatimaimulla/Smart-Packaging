@@ -193,6 +193,7 @@ const MobileCapturePage = () => {
   if (step === "review-top") {
     return (
       <ImageEditor
+        viewType="top"
         imageFile={tempImage}
         onAccept={handleAcceptTop}
         onRetake={handleRetakeTop}
@@ -214,6 +215,7 @@ const MobileCapturePage = () => {
   if (step === "review-side") {
     return (
       <ImageEditor
+        viewType="side"
         imageFile={tempImage}
         onAccept={handleAcceptSide}
         onRetake={handleRetakeSide}
