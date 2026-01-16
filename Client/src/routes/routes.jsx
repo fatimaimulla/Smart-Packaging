@@ -8,6 +8,7 @@ import ReportPage from "../pages/ReportPage";
 import MobileCapturePage from "../pages/MobileCapturePage";
 import MobileReviewPage from "@/pages/MobileReviewPage";
 import DielineLibraryPage from "@/pages/DielineLibraryPage";
+import TemplateViewPage from "@/pages/TemplateViewPage";
 
 const AppRouter = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ const AppRouter = createBrowserRouter([
   {
     path: "/mobile-review/:sessionId",
     element: <MobileReviewPage></MobileReviewPage>,
+  },
+  {
+    path: "/template-view",
+    element: <TemplateViewPage></TemplateViewPage>,
   },
 ]);
 
