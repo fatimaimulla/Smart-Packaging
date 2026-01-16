@@ -20,8 +20,11 @@ const DIMENSION_SLICE = createSlice({
     setTopViewProductDimension: (state, action) => {
       state.topView.product = action.payload;
     },
-    setSideViewDimension: (state, action) => {
-      state.SideView = action.payload;
+    setSideViewReferenceDimension: (state, action) => {
+      state.SideView.referenceObject = action.payload;
+    },
+    setSideViewProductDimension: (state, action) => {
+      state.SideView.product = action.payload;
     },
     clearTopViewDimension: (state) => {
       state.topView = [];
@@ -35,6 +38,8 @@ const DIMENSION_SLICE = createSlice({
 export const {
   setTopViewReferenceDimension,
   setTopViewProductDimension,
+  setSideViewReferenceDimension,
+  setSideViewProductDimension,
   clearTopViewDimension,
   clearSideViewDimension,
 } = DIMENSION_SLICE.actions;

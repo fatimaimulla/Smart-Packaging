@@ -5,16 +5,21 @@ import { useTouchHandlers } from "../../hooks/useTouchHandlers";
 import { imageProcessing } from "@/api/imageProcessing";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
-import { setTopViewProductDimension, setTopViewReferenceDimension } from "@/redux/slice/dimensionSlice";
+import {
+  setSideViewProductDimension,
+  setSideViewReferenceDimension,
+  setTopViewProductDimension,
+  setTopViewReferenceDimension,
+} from "@/redux/slice/dimensionSlice";
 
-const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
+const ImageEditor = ({ imageFile, viewType, onAccept, onRetake }) => {
   const containerRef = useRef(null);
-
+  const [step, setStep] = useState(1);
   const imageUrl = React.useMemo(
     () => URL.createObjectURL(imageFile),
     [imageFile]
   );
-  const dispatch=useDispatch();
+  const dispatch = useDispatch();
   const [imgData, setImgData] = useState(null);
   const [displayRect, setDisplayRect] = useState(null);
   const [cropRect, setCropRect] = useState(null);
@@ -175,13 +180,20 @@ const ImageEditor = ({ imageFile, onAccept, onRetake }) => {
           console.log(res);
           console.log(res.data.success);
           if (res.data.success) {
+            if (viewType == "top") {
+              dispatch(setTopViewReferenceDimension(res.data.reference_object));
+              dispatch(setTopViewProductDimension(res.data.products));
+            } else {
+              dispatch(
+                setSideViewReferenceDimension(res.data.reference_object)
+              );
+              dispatch(setSideViewProductDimension(res.data.products));
+            }
             // if(res.data.reference_object)
-            dispatch(setTopViewReferenceDimension(res.data.reference_object));
-            dispatch(setTopViewProductDimension(res.data.products));
             toast.success(res.data.message);
           } else if (res.data.success == false) {
-             dispatch(setTopViewReferenceDimension(res.data.reference_object));
-             dispatch(setTopViewProductDimension(res.data.products));
+            // dispatch(setTopViewReferenceDimension(res.data.reference_object));
+            // dispatch(setTopViewProductDimension(res.data.products));
             toast.error(res.data.message);
             onRetake();
           }
