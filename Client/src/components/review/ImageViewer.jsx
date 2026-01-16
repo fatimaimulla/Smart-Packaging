@@ -3,6 +3,7 @@ import { ZoomIn, ZoomOut, RefreshCw, Grid } from "lucide-react";
 import { clsx } from "clsx";
 import BoundingBox from "./BoundingBox";
 
+
 const ImageViewer = ({
   view,
   imageUrl,
@@ -105,7 +106,7 @@ const ImageViewer = ({
                     onChange={() => {}}
                     color="blue"
                     label="Product"
-                    isResizable
+                    isResizable={true}
                   />
 
                   <BoundingBox
@@ -113,7 +114,8 @@ const ImageViewer = ({
                     onChange={() => {}}
                     color="green"
                     label="Reference"
-                    confidence={92}
+                    
+                    isDragable={false}
                     isResizable={false}
                   />
                 </>

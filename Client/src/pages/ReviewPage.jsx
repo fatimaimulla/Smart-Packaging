@@ -63,7 +63,7 @@ const ReviewPage = ({ coordinates }) =>
   // Mock Data State
   // In a real app, these coords would come from the ML backend
   const [topViewData, setTopViewData] = useState({
-    image:"/Test10.png",
+    image:"https://res.cloudinary.com/daapqn6vz/image/upload/v1764744687/user_uploads/qnmzzymyve5j12b20rfo.jpg",
     productBox: convertXYXYtoXYWH(DummyData_TopView.products[0]),
     referenceBox: convertXYXYtoXYWH(DummyData_TopView.reference_object), // e.g., 80px = 25mm (Coin)
   });
