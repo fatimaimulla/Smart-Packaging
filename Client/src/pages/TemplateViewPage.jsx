@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
-
+import { useLocation } from "react-router-dom";
 import TemplateCanvas from "@/components/template/TemplateCanvas";
 import TemplateRightPanel from "../components/template/TemplateRightPanel";
 
 import { TEMPLATE_CONFIG } from "@/constants/template";
+
+
 
 const TemplateViewPage = () => {
   /**
@@ -13,6 +15,12 @@ const TemplateViewPage = () => {
    * - route param (/template/:id)
    * - or state (clicked from library)
    */
+
+  const location = useLocation();
+
+  const { dimensions } = location.state || {
+    dimensions: { l: 400, w: 300, h: 200 }, // fallback
+  };
   const selectedTemplateId = "0301";
 
   /** 🔑 single source of truth */
@@ -25,16 +33,12 @@ const TemplateViewPage = () => {
       </div>
     );
   }
+  
 
   const { Dieline2D, defaultDimensions } = template;
 
   /** dimensions come from dieline metadata */
-  const dimensions =
-    defaultDimensions ?? {
-      l: 0,
-      w: 0,
-      h: 0,
-    };
+ 
 
   /** 🔁 ref to control 2D canvas imperatively */
   const canvasRef = useRef(null);
@@ -46,6 +50,8 @@ const TemplateViewPage = () => {
   useEffect(() => {
     canvasRef.current?.resetView();
   }, [selectedTemplateId]);
+
+  
 
   return (
     <div className="min-h-screen bg-[#F0F4FA] font-sans flex flex-col">
@@ -84,6 +90,7 @@ const TemplateViewPage = () => {
               <TemplateCanvas
                 ref={canvasRef}
                 Dieline={Dieline2D}
+                
                 dimensions={dimensions}
               />
             </div>

@@ -45,7 +45,7 @@ function Fefco0201_3D({
   thickness = 1.5,
   slider = 0
 }) {
-  const S = 0.01;
+  const S = 0.1;
   const L = length * S;
   const W = width * S;
   const SW = sideWidth * S;

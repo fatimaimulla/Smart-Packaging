@@ -9,6 +9,7 @@ const TemplateCanvas = ({ Dieline, dimensions }, ref) => {
 
   const isPanning = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
+  console.log("From template canvas",dimensions)
 
   /* ------------------ PAN HANDLERS ------------------ */
   const onMouseDown = (e) => {

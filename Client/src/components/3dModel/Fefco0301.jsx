@@ -61,7 +61,7 @@ function Panel({
 
 function Fefco0301_3D({ slider,length,width,height })
 {
-    const S = 0.01;
+    const S = 0.1;
     const WIDTH = width * S;
     const LENGTH = length * S;
     const THICKNESS = 0.5 * S;

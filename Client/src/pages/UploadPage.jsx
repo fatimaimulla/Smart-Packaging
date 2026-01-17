@@ -11,9 +11,15 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import  uploadFromSystemHandler  from "@/api/uploadFromSystemHandler.js";
+import wake from "@/api/wakeServer";
 
-
-const UploadPage = () => {
+const UploadPage = () =>
+{
+  useEffect(() =>
+  {
+    wake().then(console.log("success"));
+    
+  })
   const navigate = useNavigate();
   const [referenceType, setReferenceType] = useState("coin");
   const [images, setImages] = useState([]);
@@ -21,6 +27,7 @@ const UploadPage = () => {
 
   // Mock function to handle file upload
   const handleUpload = (files) => {
+    
     const newImages = Array.from(files).map((file, index) => ({
       id: Date.now() + index,
       file,

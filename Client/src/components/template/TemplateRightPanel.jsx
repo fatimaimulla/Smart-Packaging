@@ -10,7 +10,7 @@ const TemplateRightPanel = ({
 }) => {
   const { l = 0, w = 0, h = 0 } = dimensions || {};
 
-  const Memoized3DViewer = memo(Dieline3DViewer);
+  const s = 1;
 
   const [sliderValue, setSliderValue] = useState(0);
   const [unit, setUnit] = useState("mm");
@@ -72,7 +72,7 @@ const TemplateRightPanel = ({
                 </div>
               }
             >
-              <Memoized3DViewer
+              <Dieline3DViewer
                 fefcoCode={fefcoCode}
                 slider={sliderValue}
                 width={w}

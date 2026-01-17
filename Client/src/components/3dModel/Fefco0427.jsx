@@ -91,7 +91,7 @@ function BasePanelWithHoles({
   color = "#CBAE91",
   holeWidth,
 }) {
-  const S = 0.01; // mm → world units
+  const S = 0.1; // mm → world units
 
   const W = width ;
   const L = length ;
