@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import mobileUploadReducer from "./slice/mobileUploadSlice";
 import dimensionReducer from "./slice/dimensionSlice";
 import {
-  persistStore,
+  // persistStore,
   persistReducer,
   FLUSH,
   REHYDRATE,

@@ -32,6 +32,16 @@ const DIMENSION_SLICE = createSlice({
     clearSideViewDimension: (state) => {
       state.SideView = [];
     },
+    resetDimensionState: (state) => {
+      state.topView = {
+        referenceObject: [],
+        product: [],
+      };
+      state.SideView = {
+        referenceObject: [],
+        product: [],
+      };
+    },
   },
 });
 
@@ -42,5 +52,6 @@ export const {
   setSideViewProductDimension,
   clearTopViewDimension,
   clearSideViewDimension,
+  resetDimensionState
 } = DIMENSION_SLICE.actions;
 export default DIMENSION_SLICE.reducer;

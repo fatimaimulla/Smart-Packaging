@@ -1,13 +1,13 @@
 import axios from "axios";
 // const umair = "http://127.0.0.1:8000/detect";
-const imageApi ="https://confinable-agamogenetically-jacoby.ngrok-free.dev/detect";
+// const imageApi ="https://confinable-agamogenetically-jacoby.ngrok-free.dev/detect";
 const umair = "http://127.0.0.1:8000/detect";
 // const imageApi = "https://imageprocessing-43em.onrender.com/detect";
 
 export const imageProcessing = async ({ croppedImage }) => {
   const formData = new FormData();
   formData.append("file", croppedImage);
-  const res = await axios.post(`${imageApi}`, formData, {
+  const res = await axios.post(`${umair}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

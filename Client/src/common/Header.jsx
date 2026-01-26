@@ -3,11 +3,16 @@ import { Link } from "react-router-dom";
 import { Menu, X, Box } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { clsx } from "clsx";
+import { useDispatch } from "react-redux";
+import { resetDimensionState } from "@/redux/slice/dimensionSlice";
+import { resetUploadState } from "@/redux/slice/mobileUploadSlice";
+
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
+  const dispatch=useDispatch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,11 +22,17 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleReset=()=>{
+    dispatch(resetDimensionState());
+    dispatch(resetUploadState());
+  }
   return (
     <motion.header
       className={clsx(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 md:px-12 py-4",
-        isScrolled ? "bg-white/70 backdrop-blur-md shadow-sm" : "bg-transparent"
+        isScrolled
+          ? "bg-white/70 backdrop-blur-md shadow-sm"
+          : "bg-transparent",
       )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -68,6 +79,9 @@ const Header = () => {
           >
             Sign Up
           </Link>
+          <button onClick={handleReset} className="bg-[#0D1B2A] text-white px-5 py-2.5 rounded-full font-medium hover:bg-emerald-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+            Log Out
+          </button>
         </div>
 
         {/* Mobile Menu Toggle */}

@@ -3,7 +3,7 @@ import Img from "../model/imgSchema.js";
 
 export const imgUpload = async (req, res) => {
   try {
-    const { referenceObject } = req.body;
+    const { referenceObject, sessionId } = req.body;
     const img1 = req.files?.img1?.[0];
     const img2 = req.files?.img2?.[0];
     if (!img1 || !img2 || !referenceObject) {
@@ -14,17 +14,24 @@ export const imgUpload = async (req, res) => {
     }
 
     const base64Image1 = `data:${img1.mimetype};base64,${img1.buffer.toString(
-      "base64"
+      "base64",
     )}`;
 
     const base64Image2 = `data:${img2.mimetype};base64,${img2.buffer.toString(
-      "base64"
+      "base64",
     )}`;
 
-    const upload1 = await cloudinary.uploader.upload(base64Image1);
-    const upload2 = await cloudinary.uploader.upload(base64Image2);
+    const upload1 = await cloudinary.uploader.upload(base64Image1, {
+      access_mode: "public",
+      type: "upload",
+    });
+    const upload2 = await cloudinary.uploader.upload(base64Image2, {
+      access_mode: "public",
+      type: "upload",
+    });
 
     const session = await Img.create({
+      sessionId: sessionId,
       referenceObject: referenceObject,
       image1: upload1.secure_url,
       image2: upload2.secure_url,
@@ -42,9 +49,9 @@ export const imgUpload = async (req, res) => {
 
 export const getImage = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { sessionId } = req.params;
 
-    const session = await Img.findById(id);
+    const session = await Img.findOne({ sessionId: sessionId }).sort({ createdAt: -1 });
 
     if (!session) {
       return res.status(404).json({

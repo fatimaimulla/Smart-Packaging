@@ -8,16 +8,13 @@ import Footer from "../common/Footer";
 import Header from "../common/Header";
 import { useSelector } from "react-redux";
 import getImageId from "@/api/imageId";
+import { useParams } from "react-router-dom";
 
 const ReviewPage = () => {
-  const Id = useSelector((state) => state.mobileUpload.imageId);
-
-  const TopViewDimentions = useSelector(
-    (state) => state.dimension.topView
-  );
-  const SideViewDimentions = useSelector(
-    (state) => state.dimension.SideView
-  );
+  const params = useParams();
+  const sessionId = params.sessionId;
+  const TopViewDimentions = useSelector((state) => state.dimension.topView);
+  const SideViewDimentions = useSelector((state) => state.dimension.SideView);
 
   const [topUrl, setTopUrl] = useState(null);
   const [sideUrl, setSideUrl] = useState(null);
@@ -42,22 +39,22 @@ const ReviewPage = () => {
   // Fetch images
   // -----------------------------
   useEffect(() => {
-    if (!Id) return;
-
+    console.log(sessionId)
     const fetchImages = async () => {
       try {
-        const res = await getImageId({ sessionId: Id });
+        const res = await getImageId({ sessionId: sessionId });
         if (res.data.success) {
           setTopUrl(res.data.data.topImageUrl);
           setSideUrl(res.data.data.sideImageUrl);
         }
+        console.log(res);
       } catch (error) {
         console.error("Failed to fetch images:", error);
       }
     };
 
     fetchImages();
-  }, [Id]);
+  }, [sessionId]);
 
   // -----------------------------
   // Map Redux → Viewer State
@@ -144,7 +141,7 @@ const ReviewPage = () => {
                     "px-6 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2",
                     activeView === "top"
                       ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      : "text-gray-500 hover:text-gray-700",
                   )}
                 >
                   <Layers size={16} />
@@ -157,7 +154,7 @@ const ReviewPage = () => {
                     "px-6 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2",
                     activeView === "side"
                       ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      : "text-gray-500 hover:text-gray-700",
                   )}
                 >
                   <Box size={16} />

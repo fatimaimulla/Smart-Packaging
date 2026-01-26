@@ -8,6 +8,6 @@ imgRouter
   .route("/upload")
   .post(upload.fields([{ name: "img1" }, { name: "img2" }]), imgUpload);
 
-imgRouter.route("/image/:id").get(getImage);
+imgRouter.route("/image/:sessionId").get(getImage);
 
 export default imgRouter;

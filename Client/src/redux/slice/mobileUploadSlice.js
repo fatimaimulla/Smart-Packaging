@@ -35,8 +35,10 @@ const MOBILE_UPLOAD_SLICE = createSlice({
     setUploadStatus: (state, action) => {
       state.uploadStatus = action.payload;
     },
-    resetState: (state) => {
+    resetUploadState: (state) => {
+      state.sessionId = null;
       state.referenceObject = null;
+      state.imageId = null;
       state.topImage = null;
       state.sideImage = null;
       state.uploadStatus = "idle";
@@ -50,7 +52,7 @@ export const {
   setReferenceObject,
   setTopImage,
   setSideImage,
-  resetState,
+  resetUploadState,
   clearTopImage,
   clearSideImage,
   setUploadStatus,

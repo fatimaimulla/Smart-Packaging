@@ -4,6 +4,7 @@ import { Smartphone, Copy, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const QRPanel = ({ onSimulateMobile }) => {
   const sessionId = "session-123";

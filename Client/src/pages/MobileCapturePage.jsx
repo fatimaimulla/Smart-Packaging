@@ -35,7 +35,7 @@ const MobileCapturePage = () => {
 
   // Redux State
   const { referenceObject, topImage, sideImage } = useSelector(
-    (state) => state.mobileUpload
+    (state) => state.mobileUpload,
   );
 
   // Local Flow State
@@ -104,11 +104,10 @@ const MobileCapturePage = () => {
   };
 
   // 4. Final Upload
-  
 
   // const handleTest = async () => {
   //   try {
-      
+
   //     const formData1 = new FormData();
   //     formData1.append("file", croppedTop);
 
@@ -130,6 +129,7 @@ const MobileCapturePage = () => {
         topImage,
         sideImage,
         referenceType: referenceObject,
+        sessionId: sessionId,
       });
       console.log(res);
 

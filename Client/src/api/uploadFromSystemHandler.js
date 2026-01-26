@@ -9,11 +9,13 @@ const uploadFromSystemHandler = async ({
   topImage,
   sideImage,
   referenceType,
+  sessionId,
 }) => {
   const formData = new FormData();
   formData.append("img1", topImage);
   formData.append("img2", sideImage);
   formData.append("referenceObject", referenceType);
+  formData.append("sessionId", sessionId);
 
   const res = await axios.post(`${baseURL}/api/img/upload`, formData, {
     headers: {
