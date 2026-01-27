@@ -14,18 +14,30 @@ const DIMENSION_SLICE = createSlice({
   },
 
   reducers: {
-    setTopViewReferenceDimension: (state, action) => {
-      state.topView.referenceObject = action.payload;
+    // setTopViewReferenceDimension: (state, action) => {
+    //   state.topView.referenceObject = action.payload;
+    // },
+    // setTopViewProductDimension: (state, action) => {
+    //   state.topView.product = action.payload;
+    // },
+    // setSideViewReferenceDimension: (state, action) => {
+    //   state.SideView.referenceObject = action.payload;
+    // },
+    setTopViewDimension: (state, action) => {
+      state.topView = {
+        referenceObject: action.payload.referenceObject,
+        product: action.payload.product,
+      };
     },
-    setTopViewProductDimension: (state, action) => {
-      state.topView.product = action.payload;
+    setSideViewDimension: (state, action) => {
+      state.SideView = {
+        referenceObject: action.payload.referenceObject,
+        product: action.payload.product,
+      };
     },
-    setSideViewReferenceDimension: (state, action) => {
-      state.SideView.referenceObject = action.payload;
-    },
-    setSideViewProductDimension: (state, action) => {
-      state.SideView.product = action.payload;
-    },
+    // setSideViewProductDimension: (state, action) => {
+    //   state.SideView.product = action.payload;
+    // },
     clearTopViewDimension: (state) => {
       state.topView = [];
     },
@@ -46,12 +58,14 @@ const DIMENSION_SLICE = createSlice({
 });
 
 export const {
-  setTopViewReferenceDimension,
-  setTopViewProductDimension,
-  setSideViewReferenceDimension,
-  setSideViewProductDimension,
+  // setTopViewReferenceDimension,
+  // setTopViewProductDimension,
+  // setSideViewReferenceDimension,
+  // setSideViewProductDimension,
+  setTopViewDimension,
+  setSideViewDimension,
   clearTopViewDimension,
   clearSideViewDimension,
-  resetDimensionState
+  resetDimensionState,
 } = DIMENSION_SLICE.actions;
 export default DIMENSION_SLICE.reducer;
