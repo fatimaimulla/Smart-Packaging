@@ -20,12 +20,12 @@ const imgSchema = new Schema(
       required: true,
     },
     topView: {
-      product: [Number],
-      referenceObject: [Number],
+      product: [[Number]],
+      referenceObject: [[Number]],
     },
     sideView: {
-      product: [Number],
-      referenceObject: [Number],
+      product: [[Number]],
+      referenceObject: [[Number]],
     },
   },
   {
