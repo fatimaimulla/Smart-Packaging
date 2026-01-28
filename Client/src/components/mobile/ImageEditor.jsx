@@ -11,13 +11,22 @@ import {
   setTopViewProductDimension,
   setTopViewReferenceDimension,
 } from "@/redux/slice/dimensionSlice";
+import axios from "axios";
+import { updateTopDimension } from "@/api/updateTopDimension";
+import { updateSideDimension } from "@/api/updateSideDimension";
 
-const ImageEditor = ({ imageFile, viewType, onAccept, onRetake }) => {
+const ImageEditor = ({
+  imageFile,
+  sessionId,
+  viewType,
+  onAccept,
+  onRetake,
+}) => {
   const containerRef = useRef(null);
   const [step, setStep] = useState(1);
   const imageUrl = React.useMemo(
     () => URL.createObjectURL(imageFile),
-    [imageFile]
+    [imageFile],
   );
   const dispatch = useDispatch();
   const [imgData, setImgData] = useState(null);
@@ -166,7 +175,7 @@ const ImageEditor = ({ imageFile, viewType, onAccept, onRetake }) => {
       0,
       0,
       relativeCrop.width,
-      relativeCrop.height
+      relativeCrop.height,
     );
 
     canvas.toBlob(
@@ -181,13 +190,40 @@ const ImageEditor = ({ imageFile, viewType, onAccept, onRetake }) => {
           console.log(res.data.success);
           if (res.data.success) {
             if (viewType == "top") {
-              dispatch(setTopViewReferenceDimension(res.data.reference_object));
-              dispatch(setTopViewProductDimension(res.data.products));
+              try {
+                const res = await updateTopDimension({
+                  topView: res.data,
+                  sessionId: sessionId,
+                });
+                console.log(res);
+              } catch (error) {
+                console.log(error);
+                if (error.response?.data?.message) {
+                  toast.error(error.response.data.message);
+                } else {
+                  toast.error(error.message);
+                }
+              }
+              // dispatch(setTopViewReferenceDimension(res.data.reference_object));
+              // dispatch(setTopViewProductDimension(res.data.products));
             } else {
-              dispatch(
-                setSideViewReferenceDimension(res.data.reference_object)
-              );
-              dispatch(setSideViewProductDimension(res.data.products));
+              try {
+                const res = await updateSideDimension({
+                  sideView: res.data,
+                  sessionId: sessionId,
+                });
+              } catch (error) {
+                console.log(error);
+                if (error.response?.data?.message) {
+                  toast.error(error.response.data.message);
+                } else {
+                  toast.error(error.message);
+                }
+              }
+              // dispatch(
+              //   setSideViewReferenceDimension(res.data.reference_object),
+              // );
+              // dispatch(setSideViewProductDimension(res.data.products));
             }
             // if(res.data.reference_object)
             toast.success(res.data.message);
@@ -206,7 +242,7 @@ const ImageEditor = ({ imageFile, viewType, onAccept, onRetake }) => {
         }
       },
       "image/jpeg",
-      0.95
+      0.95,
     );
   };
 
