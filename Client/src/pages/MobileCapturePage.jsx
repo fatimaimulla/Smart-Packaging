@@ -219,6 +219,7 @@ const MobileCapturePage = () => {
     return (
       <ImageEditor
         viewType="side"
+        sessionId={sessionId}
         imageFile={tempImage}
         onAccept={handleAcceptSide}
         onRetake={handleRetakeSide}
