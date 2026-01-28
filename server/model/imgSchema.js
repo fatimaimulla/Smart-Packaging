@@ -19,6 +19,14 @@ const imgSchema = new Schema(
       type: String,
       required: true,
     },
+    topView: {
+      product: [Number],
+      referenceObject: [Number],
+    },
+    sideView: {
+      product: [Number],
+      referenceObject: [Number],
+    },
   },
   {
     timestamps: true,
