@@ -14,30 +14,30 @@ const DIMENSION_SLICE = createSlice({
   },
 
   reducers: {
-    // setTopViewReferenceDimension: (state, action) => {
-    //   state.topView.referenceObject = action.payload;
-    // },
-    // setTopViewProductDimension: (state, action) => {
-    //   state.topView.product = action.payload;
-    // },
-    // setSideViewReferenceDimension: (state, action) => {
-    //   state.SideView.referenceObject = action.payload;
-    // },
-    setTopViewDimension: (state, action) => {
-      state.topView = {
-        referenceObject: action.payload.referenceObject,
-        product: action.payload.product,
-      };
+    setTopViewReferenceDimension: (state, action) => {
+      state.topView.referenceObject = action.payload;
     },
-    setSideViewDimension: (state, action) => {
-      state.SideView = {
-        referenceObject: action.payload.referenceObject,
-        product: action.payload.product,
-      };
+    setTopViewProductDimension: (state, action) => {
+      state.topView.product = action.payload;
     },
-    // setSideViewProductDimension: (state, action) => {
-    //   state.SideView.product = action.payload;
+    setSideViewReferenceDimension: (state, action) => {
+      state.SideView.referenceObject = action.payload;
+    },
+    // setTopViewDimension: (state, action) => {
+    //   state.topView = {
+    //     referenceObject: action.payload.referenceObject,
+    //     product: action.payload.product,
+    //   };
     // },
+    // setSideViewDimension: (state, action) => {
+    //   state.SideView = {
+    //     referenceObject: action.payload.referenceObject,
+    //     product: action.payload.product,
+    //   };
+    // },
+    setSideViewProductDimension: (state, action) => {
+      state.SideView.product = action.payload;
+    },
     clearTopViewDimension: (state) => {
       state.topView = [];
     },
@@ -58,12 +58,12 @@ const DIMENSION_SLICE = createSlice({
 });
 
 export const {
-  // setTopViewReferenceDimension,
-  // setTopViewProductDimension,
-  // setSideViewReferenceDimension,
-  // setSideViewProductDimension,
-  setTopViewDimension,
-  setSideViewDimension,
+  setTopViewReferenceDimension,
+  setTopViewProductDimension,
+  setSideViewReferenceDimension,
+  setSideViewProductDimension,
+  // setTopViewDimension,
+  // setSideViewDimension,
   clearTopViewDimension,
   clearSideViewDimension,
   resetDimensionState,
