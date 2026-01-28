@@ -191,11 +191,11 @@ const ImageEditor = ({
           if (res.data.success) {
             if (viewType == "top") {
               try {
-                const res = await updateTopDimension({
+                const res1 = await updateTopDimension({
                   topView: res.data,
                   sessionId: sessionId,
                 });
-                console.log(res);
+                console.log(res1);
               } catch (error) {
                 console.log(error);
                 if (error.response?.data?.message) {
@@ -208,10 +208,11 @@ const ImageEditor = ({
               // dispatch(setTopViewProductDimension(res.data.products));
             } else {
               try {
-                const res = await updateSideDimension({
+                const res2 = await updateSideDimension({
                   sideView: res.data,
                   sessionId: sessionId,
                 });
+                 console.log(res2);
               } catch (error) {
                 console.log(error);
                 if (error.response?.data?.message) {
