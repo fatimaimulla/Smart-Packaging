@@ -6,28 +6,21 @@ import { clsx } from "clsx";
 import { Layers, Box } from "lucide-react";
 import Footer from "../common/Footer";
 import Header from "../common/Header";
-import { useSelector } from "react-redux";
 import getImageId from "@/api/imageId";
 import { useParams } from "react-router-dom";
+import { getDimensions } from "@/api/getDimensions";
 
 const ReviewPage = () => {
-  const params = useParams();
-  const sessionId = params.sessionId;
-  const TopViewDimentions = useSelector((state) => state.dimension.topView);
-  const SideViewDimentions = useSelector((state) => state.dimension.SideView);
-
   const [topUrl, setTopUrl] = useState(null);
   const [sideUrl, setSideUrl] = useState(null);
-
+  const params = useParams();
+  const [topDimensions, setTopDimensions] = useState(null);
+  const [sideDimensions, setSideDimensions] = useState(null);
   const [topViewData, setTopViewData] = useState(null);
   const [sideViewData, setSideViewData] = useState(null);
 
-  const [activeView, setActiveView] = useState("top");
-  const [dimensions, setDimensions] = useState({ l: 0, w: 0, h: 0 });
+  const sessionId = params.sessionId;
 
-  // -----------------------------
-  // Utils
-  // -----------------------------
   const convertXYXYtoXYWH = ([x1, y1, x2, y2]) => ({
     x: x1,
     y: y1,
@@ -35,11 +28,8 @@ const ReviewPage = () => {
     h: y2 - y1,
   });
 
-  // -----------------------------
-  // Fetch images
-  // -----------------------------
   useEffect(() => {
-    console.log(sessionId)
+    console.log(sessionId);
     const fetchImages = async () => {
       try {
         const res = await getImageId({ sessionId: sessionId });
@@ -56,63 +46,88 @@ const ReviewPage = () => {
     fetchImages();
   }, [sessionId]);
 
-  // -----------------------------
-  // Map Redux → Viewer State
-  // -----------------------------
   useEffect(() => {
-    if (!TopViewDimentions?.referenceObject?.length) return;
-    if (!SideViewDimentions?.referenceObject?.length) return;
-
-    try {
-      // TOP VIEW
-      const topProduct = TopViewDimentions.product?.[0];
-      const topReference = TopViewDimentions.referenceObject;
-
-      if (topProduct && topReference && topUrl) {
-        setTopViewData({
-          image: topUrl,
-          productBox: convertXYXYtoXYWH(topProduct),
-          referenceBox: convertXYXYtoXYWH(topReference),
-        });
+    const fetchDimensions = async () => {
+      try {
+        const res = await getDimensions({ sessionId: sessionId });
+        if (res.data.success) {
+          console.log(res.data.data);
+          const topView = res.data.data.topView;
+          setTopDimensions(topView);
+          const sideView = res.data.data.sideView;
+          setSideDimensions(sideView);
+        }
+      } catch (error) {
+        console.log(error);
       }
+    };
+    fetchDimensions();
+  }, [sessionId]);
+useEffect(() => {
+  if (!topDimensions || !topUrl) return;
 
-      // SIDE VIEW
-      const sideProduct = SideViewDimentions.product?.[0];
-      const sideReference = SideViewDimentions.referenceObject;
+  const topProduct = topDimensions.product?.[0];
+  const topReferenceObject = topDimensions.referenceObject?.[0];
 
-      if (sideProduct && sideReference && sideUrl) {
-        setSideViewData({
-          image: sideUrl,
-          productBox: convertXYXYtoXYWH(sideProduct),
-          referenceBox: convertXYXYtoXYWH(sideReference),
-        });
-      }
-    } catch (err) {
-      console.error("Failed to map detection data:", err);
-    }
-  }, [TopViewDimentions, SideViewDimentions, topUrl, sideUrl]);
+  if (!topProduct || !topReferenceObject) return;
 
-  // -----------------------------
-  // Dimension calculation
-  // -----------------------------
+  setTopViewData({
+    image: topUrl,
+    productBox: convertXYXYtoXYWH(topProduct),
+    referenceBox: convertXYXYtoXYWH(topReferenceObject),
+  });
+}, [topDimensions, topUrl]);
+
+useEffect(() => {
+  if (!sideDimensions || !sideUrl) return;
+
+  const sideProduct = sideDimensions.product?.[0];
+  const sideReferenceObject = sideDimensions.referenceObject?.[0];
+
+  if (!sideProduct || !sideReferenceObject) return;
+
+  setSideViewData({              // ✅ CORRECT STATE
+    image: sideUrl,              // ✅ CORRECT IMAGE
+    productBox: convertXYXYtoXYWH(sideProduct),
+    referenceBox: convertXYXYtoXYWH(sideReferenceObject),
+  });
+}, [sideDimensions, sideUrl]);
+
+
+
+
+  const [activeView, setActiveView] = useState("top"); // 'top' | 'side'
+
+  
+
+  const [dimensions, setDimensions] = useState({ l: 0, w: 0, h: 0 });
+
+  // Mock Calculation Logic
+  // 1. Determine pixel-to-mm ratio from reference box (assuming reference is 25mm coin)
+  // 2. Apply ratio to product box dimensions
   useEffect(() => {
-    if (!topViewData || !sideViewData) return;
+  if (
+    !topViewData?.productBox ||
+    !topViewData?.referenceBox ||
+    !sideViewData?.productBox ||
+    !sideViewData?.referenceBox
+  ) {
+    return;
+  }
 
-    const REFERENCE_SIZE_MM = 25;
+  const REFERENCE_SIZE_MM = 25;
 
-    const topRatio = REFERENCE_SIZE_MM / topViewData.referenceBox.w;
-    const length = Math.round(topViewData.productBox.h * topRatio);
-    const width = Math.round(topViewData.productBox.w * topRatio);
+  const topRatio = REFERENCE_SIZE_MM / topViewData.referenceBox.w;
+  const length = Math.round(topViewData.productBox.h * topRatio);
+  const width = Math.round(topViewData.productBox.w * topRatio);
 
-    const sideRatio = REFERENCE_SIZE_MM / sideViewData.referenceBox.w;
-    const height = Math.round(sideViewData.productBox.w * sideRatio);
+  const sideRatio = REFERENCE_SIZE_MM / sideViewData.referenceBox.w;
+  const height = Math.round(sideViewData.productBox.h * sideRatio);
 
-    setDimensions({ l: length, w: width, h: height });
-  }, [topViewData, sideViewData]);
+  setDimensions({ l: length, w: width, h: height });
+}, [topViewData, sideViewData]);
 
-  // -----------------------------
-  // Render
-  // -----------------------------
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
       <Header />
@@ -131,9 +146,9 @@ const ReviewPage = () => {
           </div>
 
           <div className="grid lg:grid-cols-12 gap-8">
-            {/* LEFT PANEL */}
+            {/* LEFT PANEL: Image Review (8 cols) */}
             <div className="lg:col-span-8 flex flex-col gap-6">
-              {/* Tabs */}
+              {/* View Switcher Tabs */}
               <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-full inline-flex w-fit border border-white/60 shadow-sm">
                 <button
                   onClick={() => setActiveView("top")}
@@ -147,7 +162,6 @@ const ReviewPage = () => {
                   <Layers size={16} />
                   Top View
                 </button>
-
                 <button
                   onClick={() => setActiveView("side")}
                   className={clsx(
@@ -163,7 +177,41 @@ const ReviewPage = () => {
               </div>
 
               {/* Image Viewer */}
-              {activeView === "top" && topViewData ? (
+              {/* {activeView === "top" && topViewData ? (
+                <ImageViewer
+                  view="Top"
+                  imageUrl={topUrl}
+                  productBox={topViewData.productBox}
+                  referenceBox={topViewData.referenceBox}
+                  onProductBoxChange={(newBox) =>
+                    setTopViewData((prev) => ({ ...prev, productBox: newBox }))
+                  }
+                  onReferenceBoxChange={(newBox) =>
+                    setTopViewData((prev) => ({
+                      ...prev,
+                      referenceBox: newBox,
+                    }))
+                  }
+                />
+              ) :  activeView === "side" && sideViewData ? (
+                <ImageViewer
+                  view="Side"
+                  imageUrl={sideUrl}
+                  productBox={sideViewData.productBox}
+                  referenceBox={sideViewData.referenceBox}
+                  onProductBoxChange={(newBox) =>
+                    setSideViewData((prev) => ({ ...prev, productBox: newBox }))
+                  }
+                  onReferenceBoxChange={(newBox) =>
+                    setSideViewData((prev) => ({
+                      ...prev,
+                      referenceBox: newBox,
+                    }))
+                  }
+                />
+              )} */}
+
+             {activeView === "top" && topViewData ? (
                 <ImageViewer
                   view="Top"
                   imageUrl={topUrl}
@@ -206,8 +254,7 @@ const ReviewPage = () => {
                   Waiting for detection data...
                 </div>
               )}
-
-              {/* Legend */}
+              {/* Instructions / Legend */}
               <div className="flex flex-wrap gap-6 px-2">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-sm bg-blue-500/20 border border-blue-500"></div>
@@ -224,7 +271,7 @@ const ReviewPage = () => {
               </div>
             </div>
 
-            {/* RIGHT PANEL */}
+            {/* RIGHT PANEL: Dimensions (4 cols) */}
             <div className="lg:col-span-4">
               <DimensionsPanel
                 dimensions={dimensions}

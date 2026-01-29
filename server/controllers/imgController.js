@@ -29,13 +29,23 @@ export const imgUpload = async (req, res) => {
       access_mode: "public",
       type: "upload",
     });
-
-    const session = await Img.create({
-      sessionId: sessionId,
-      referenceObject: referenceObject,
-      image1: upload1.secure_url,
-      image2: upload2.secure_url,
+    const session = await Img.findOne({ sessionId: sessionId }).sort({
+      createdAt: -1,
     });
+
+    if (session) {
+      session.referenceObject = referenceObject;
+      session.image1 = upload1.secure_url;
+      session.image2 = upload2.secure_url;
+    }
+    await session.save();
+
+    // const session1 = await Img.create({
+    //   sessionId: sessionId,
+    //   referenceObject: referenceObject,
+    //   image1: upload1.secure_url,
+    //   image2: upload2.secure_url,
+    // });
 
     return res.status(200).json({
       message: "Image uploaded successfully.",
@@ -90,8 +100,12 @@ export const updateDimensionTop = async (req, res) => {
       });
     }
 
-    const session = await Img.findOne({ sessionId: sessionId }).sort({
-      createdAt: -1,
+    const session = await Img.create({
+      sessionId: sessionId,
+      topView: {
+        product: topView.products || [],
+        referenceObject: topView.reference_object || [],
+      },
     });
 
     if (!session) {
@@ -101,12 +115,12 @@ export const updateDimensionTop = async (req, res) => {
       });
     }
 
-    if (topView) {
-      session.topView = {
-        product: topView.products || [],
-        referenceObject: topView.reference_object || [],
-      };
-    }
+    // if (topView) {
+    //   session.topView = {
+    //     product: topView.products || [],
+    //     referenceObject: topView.reference_object || [],
+    //   };
+    // }
 
     await session.save();
 
@@ -169,7 +183,7 @@ export const updateDimensionSide = async (req, res) => {
   }
 };
 
-export const getTopDimension = async (req, res) => {
+export const getDimensions = async (req, res) => {
   try {
     const { sessionId } = req.params;
 
@@ -191,7 +205,10 @@ export const getTopDimension = async (req, res) => {
     }
     return res.status(200).json({
       success: true,
-      data: session.topView,
+      data: {
+        topView: session.topView,
+        sideView: session.sideView,
+      },
     });
   } catch (error) {
     console.error("Get session error:", error);

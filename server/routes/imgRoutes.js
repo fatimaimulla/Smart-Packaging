@@ -3,7 +3,7 @@ import upload from "../middleware/multer.js";
 import {
   getImage,
   getSideDimension,
-  getTopDimension,
+  getDimensions,
   imgUpload,
   updateDimensionSide,
   updateDimensionTop,
@@ -19,7 +19,7 @@ imgRouter.route("/image/:sessionId").get(getImage);
 
 imgRouter.route("/updatetop").post(updateDimensionTop);
 imgRouter.route("/updateside").post(updateDimensionSide);
-imgRouter.route("/gettop/:sessionId").get(getTopDimension);
+imgRouter.route("/getdimensions/:sessionId").get(getDimensions);
 imgRouter.route("/getside/:sessionId").get(getSideDimension);
 
 export default imgRouter;

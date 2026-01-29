@@ -4,20 +4,20 @@ const imgSchema = new Schema(
   {
     sessionId: {
       type: String,
-      required: true,
+      // required: true,
     },
     referenceObject: {
       type: String,
       enum: ["coin", "ATM card", "2x2 box"],
-      required: true,
+      // required: true,
     },
     image1: {
       type: String,
-      required: true,
+      // required: true,
     },
     image2: {
       type: String,
-      required: true,
+      // required: true,
     },
     topView: {
       product: [[Number]],

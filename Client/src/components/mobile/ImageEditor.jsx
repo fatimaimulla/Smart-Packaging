@@ -195,7 +195,7 @@ const ImageEditor = ({
                   topView: res.data,
                   sessionId: sessionId,
                 });
-                console.log(res1);
+                console.log("this is from the top dimension",res1);
               } catch (error) {
                 console.log(error);
                 if (error.response?.data?.message) {
@@ -212,7 +212,7 @@ const ImageEditor = ({
                   sideView: res.data,
                   sessionId: sessionId,
                 });
-                 console.log(res2);
+                 console.log("this is from the side dimension",res2);
               } catch (error) {
                 console.log(error);
                 if (error.response?.data?.message) {
