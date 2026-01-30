@@ -10,38 +10,142 @@ import Header from "../common/Header";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
-import  uploadFromSystemHandler  from "@/api/uploadFromSystemHandler.js";
+import uploadFromSystemHandler from "@/api/uploadFromSystemHandler.js";
+import { imageProcessing } from "@/api/imageProcessing";
+import { updateSideDimension } from "@/api/updateSideDimension";
+import { updateTopDimension } from "@/api/updateTopDimension";
 import wake from "@/api/wakeServer";
 
 const UploadPage = () =>
 {
-  useEffect(() =>
-  {
-    wake().then(console.log("success"));
-    
-  })
+ useEffect(() => {
+   wake();
+ }, []);
+  
   const navigate = useNavigate();
   const [referenceType, setReferenceType] = useState("coin");
+  const sessionId ="123";
+
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
 
+  const processImage = async (imageId, file,type) => {
+    try {
+      const res = await imageProcessing({ croppedImage: file });
+      
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId
+            ? {
+                ...img,
+
+                processing: false,
+
+                success: res.data.success,
+
+                apiResult: res.data,
+              }
+            : img,
+        ),
+      );
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        console.log(type);
+
+        if (type == "Top View") {
+          try {
+            const res1 = await updateTopDimension({
+              topView: res.data,
+              sessionId: sessionId,
+            });
+            console.log("this is from the top dimension", res1);
+          } catch (error) {
+            console.log(error);
+            if (error.response?.data?.message) {
+              toast.error(error.response.data.message);
+            } else {
+              toast.error(error.message);
+            }
+          }
+        }
+        else if (type == "Side View") {
+          try {
+            const res2 = await updateSideDimension({
+              sideView: res.data,
+              sessionId: sessionId,
+            });
+            console.log("this is from the side dimension", res2);
+          } catch (error) {
+            console.log(error);
+            if (error.response?.data?.message) {
+              toast.error(error.response.data.message);
+            } else {
+              toast.error(error.message);
+            }
+          }
+        }
+        
+      } else {
+        toast.error(res.data.message);
+      }
+
+      
+    } catch (error) {
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId
+            ? { ...img, processing: false, success: false }
+            : img,
+        ),
+      );
+
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
+
   // Mock function to handle file upload
-  const handleUpload = (files) => {
-    
-    const newImages = Array.from(files).map((file, index) => ({
-      id: Date.now() + index,
+const handleUpload = (files) => {
+  let tempImages = [...images]; // ✅ moved OUTSIDE map
+
+  const newImages = Array.from(files).map((file, index) => {
+    const id = Date.now() + index;
+
+    const hasTopView = tempImages.some((img) => img.type === "Top View");
+
+    const type = hasTopView ? "Side View" : "Top View";
+
+    const newImage = {
+      id,
       file,
       name: file.name,
       preview: URL.createObjectURL(file),
-      type: images.length === 0 ? "Top View" : "Side View", // Simple auto-assign logic
-      validation: {
-        referenceDetected: Math.random() > 0.2, // Mock random validation
-        tilt: Math.random() * 8, // Mock random tilt
-      },
-    }));
+      type,
 
-    setImages((prev) => [...prev, ...newImages].slice(0, 2));
-  };
+      // backend-driven state
+      processing: true,
+      success: false,
+      apiResult: null,
+    };
+
+    // ✅ THIS is the key line
+    tempImages.push(newImage);
+
+    return newImage;
+  });
+
+  setImages((prev) => {
+    const updated = [...prev, ...newImages].slice(0, 2);
+
+    newImages.forEach((img) => {
+      processImage(img.id, img.file,img.type);
+    });
+
+    return updated;
+  });
+};
+
+
 
   const handleDelete = (id) => {
     setImages((prev) => prev.filter((img) => img.id !== id));
@@ -49,39 +153,52 @@ const UploadPage = () =>
 
     
 
-    const uploadToBackend = async (  ) => {
-      if (images.length != 2) {
+  const uploadToBackend = async () =>
+  {
+    console.log("1st step----->")
+      
+    if (images.length !== 2)
+    {
+        console.log("2nd step--------->");
         toast.error("Please upload 2 images");
         return;
       }
+    
 
       const topView = images.find((img) => img.type === "Top View")?.file;
-      const sideView = images.find((img) => img.type === "Side View")?.file;
+    const sideView = images.find((img) => img.type === "Side View")?.file;
+    console.log("2nd step--------->");
+    
+
       if (!topView || !sideView) {
         toast.error("Both Top View and Side View are required");
         return;
       }
-      try {
+
+    try
+    {
+        console.log("3rd step------------->");
         const res = await uploadFromSystemHandler({
           topImage: topView,
           sideImage: sideView,
-          referenceType,
+          referenceType: referenceType,
+          sessionId: sessionId, // ✅ THIS IS THE KEY
         });
-        console.log(res);
-        if(res.data.success) {
+        console.log("this is from current chutiya",res);
+        if (res.data.success) {
           toast.success(res.data.message);
-          navigate("/review")
+          navigate(`/review/sessionId=${sessionId}`);
+
         } else {
           toast.error(res.data.message);
         }
       } catch (error) {
-        if (error.response?.data?.message) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error(error.message);
-        }
+        toast.error(
+          error.response?.data?.message || "Network error. Please try again.",
+        );
       }
     };
+
 
     
   // const handleMobileCapture = () => {
@@ -97,12 +214,33 @@ const UploadPage = () =>
   };
 
   // Validation Logic
+
   const isComplete = images.length === 2;
-  const allReferencesDetected = images.every(
-    (img) => img.validation.referenceDetected
-  );
+  const allProcessed = images.every((img) => img.processing === false);
+  const allSuccess = images.every((img) => img.success === true);
+  const canContinue1 = isComplete && allProcessed && allSuccess;
+
+
+  let statusText = "Waiting";
+  let allReferencesDetected = false;
+
+  if (images.length === 2) {
+    const topOk = images[0].success === true;
+    const sideOk = images[1].success === true;
+
+    allReferencesDetected = topOk && sideOk;
+
+    if (allReferencesDetected) {
+      statusText = "Top View Done • Side View Done";
+    } else {
+      statusText = `${topOk ? "Top View Done" : "Top View Error"} • ${
+        sideOk ? "Side View Done" : "Side View Error"
+      }`;
+    }
+  }
+
   const fatalErrors = !allReferencesDetected;
-  const canContinue = isComplete && !fatalErrors;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
@@ -166,7 +304,7 @@ const UploadPage = () =>
                       "px-3 py-1 rounded-full",
                       isComplete
                         ? "bg-emerald-100 text-emerald-700"
-                        : "bg-gray-100 text-gray-500"
+                        : "bg-gray-100 text-gray-500",
                     )}
                   >
                     Images: {images.length}/2
@@ -176,21 +314,19 @@ const UploadPage = () =>
                       "px-3 py-1 rounded-full",
                       allReferencesDetected && images.length > 0
                         ? "bg-emerald-100 text-emerald-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        : "bg-yellow-100 text-yellow-700",
                     )}
                   >
                     Reference Check:{" "}
-                    {images.length === 0
+                    {(images.length === 1 || images.length===0)
                       ? "Waiting"
-                      : allReferencesDetected
-                      ? "Passed"
-                      : "Issues Found"}
+                      : statusText}
                   </span>
                 </div>
 
                 <button
                   onClick={uploadToBackend}
-                  disabled={!canContinue}
+                  disabled={!canContinue1}
                   className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold"
                 >
                   Continue to Review

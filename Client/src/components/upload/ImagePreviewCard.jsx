@@ -25,7 +25,7 @@ const StatusBadge = ({ type, text }) => {
     <span
       className={clsx(
         "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
-        styles[type]
+        styles[type],
       )}
     >
       {icons[type]}
@@ -35,9 +35,9 @@ const StatusBadge = ({ type, text }) => {
 };
 
 const ImagePreviewCard = ({ image, onDelete, onReplace }) => {
-  // Mock validation logic based on props (in a real app, this comes from the backend/AI)
-  const isReferenceDetected = image.validation?.referenceDetected;
-  const isTiltOk = image.validation?.tilt < 5;
+  const isProcessing = image.processing;
+  const isSuccess = image.success;
+  const apiMessage = image.apiResult?.message;
 
   return (
     <div className="bg-white rounded-xl shadow-md p-4 flex gap-4 transition hover:shadow-lg border border-gray-100">
@@ -60,6 +60,7 @@ const ImagePreviewCard = ({ image, onDelete, onReplace }) => {
             <h4 className="font-semibold text-gray-800 text-sm">
               {image.name}
             </h4>
+
             <div className="flex gap-1">
               <button
                 onClick={onReplace}
@@ -78,26 +79,34 @@ const ImagePreviewCard = ({ image, onDelete, onReplace }) => {
             </div>
           </div>
 
+          {/* STATUS BADGES */}
           <div className="flex flex-wrap gap-2">
-            {isReferenceDetected ? (
-              <StatusBadge type="success" text={`Ref: Coin (92%)`} />
-            ) : (
-              <StatusBadge type="error" text="Ref not detected" />
+            {isProcessing && <StatusBadge type="warning" text="Detecting…" />}
+
+            {!isProcessing && isSuccess && (
+              <StatusBadge type="success" text="Detection Passed" />
             )}
 
-            {isTiltOk ? (
-              <StatusBadge type="success" text="Tilt OK" />
-            ) : (
-              <StatusBadge type="warning" text="High Tilt detected" />
+            {!isProcessing && !isSuccess && (
+              <StatusBadge type="error" text="Detection failed" />
             )}
           </div>
         </div>
 
-        {/* Warnings */}
-        {!isTiltOk && (
-          <p className="text-xs text-yellow-600 mt-2 flex items-center gap-1">
-            <AlertTriangle size={10} />
-            Try taking the photo directly from above.
+        {/* BACKEND MESSAGE */}
+        {!isProcessing && apiMessage && (
+          <p
+            className={clsx(
+              "text-xs mt-2 flex items-center gap-1",
+              isSuccess ? "text-emerald-600" : "text-red-600",
+            )}
+          >
+            {isSuccess ? (
+              <CheckCircle size={10} />
+            ) : (
+              <AlertTriangle size={10} />
+            )}
+            {apiMessage}
           </p>
         )}
       </div>

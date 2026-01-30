@@ -27,6 +27,7 @@ import { io } from "socket.io-client";
 const MobileCapturePage = () => {
   // const [croppedTop, setCroppedTop] = useState(null);
   const { sessionId } = useParams();
+  console.log(sessionId);
   const socket = io(import.meta.env.VITE_API_BASE_URL);
 
   const navigate = useNavigate();

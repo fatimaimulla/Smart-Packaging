@@ -2,7 +2,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-// axios.defaults.baseURL = process.env.VITE_API_BASE_URL;
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const uploadFromSystemHandler = async ({
@@ -10,7 +10,9 @@ const uploadFromSystemHandler = async ({
   sideImage,
   referenceType,
   sessionId,
-}) => {
+}) =>
+{
+  
   const formData = new FormData();
   formData.append("img1", topImage);
   formData.append("img2", sideImage);
@@ -23,7 +25,8 @@ const uploadFromSystemHandler = async ({
     },
   });
 
-  console.log(res);
+  // console.log(res);
+  console.log("Iam into the api this is not")
 
   return res;
 };
