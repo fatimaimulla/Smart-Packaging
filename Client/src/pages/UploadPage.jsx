@@ -24,7 +24,7 @@ const UploadPage = () =>
   
   const navigate = useNavigate();
   const [referenceType, setReferenceType] = useState("coin");
-  const sessionId ="123";
+  const sessionId ="1235";
 
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
@@ -187,7 +187,7 @@ const handleUpload = (files) => {
         console.log("this is from current chutiya",res);
         if (res.data.success) {
           toast.success(res.data.message);
-          navigate(`/review/sessionId=${sessionId}`);
+          navigate(`/review/${sessionId}`);
 
         } else {
           toast.error(res.data.message);
