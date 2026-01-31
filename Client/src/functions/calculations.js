@@ -3,15 +3,13 @@ const CREDIT_CARD_HEIGHT_MM = 53.98;
 const COIN_DIAMETER_MM = 27.0;
 
 function computeMmPerPixel(referenceBox, referenceType) {
-  const [x1, y1, x2, y2] = referenceBox;
-
-  const refWpx = x2 - x1;
-  const refHpx = y2 - y1;
+  const { w: refWpx, h: refHpx } = referenceBox;
 
   let refRealMm;
   let refPixel;
 
-  if (referenceType === "credit_card") {
+  if (referenceType === "ATM card") {
+    // choose longer side automatically
     if (refWpx >= refHpx) {
       refRealMm = CREDIT_CARD_WIDTH_MM;
       refPixel = refWpx;
@@ -20,6 +18,7 @@ function computeMmPerPixel(referenceBox, referenceType) {
       refPixel = refHpx;
     }
   } else if (referenceType === "coin") {
+    // coin uses diameter → max side
     refRealMm = COIN_DIAMETER_MM;
     refPixel = Math.max(refWpx, refHpx);
   } else {
@@ -34,10 +33,7 @@ function computeMmPerPixel(referenceBox, referenceType) {
 }
 
 function calculateSingleProductDimension(productBox, mmPerPixel) {
-  const [x1, y1, x2, y2] = productBox;
-
-  const widthPx = x2 - x1;
-  const heightPx = y2 - y1;
+  const { w: widthPx, h: heightPx } = productBox;
 
   return {
     width_mm: Number((widthPx * mmPerPixel).toFixed(2)),
@@ -48,16 +44,16 @@ function calculateSingleProductDimension(productBox, mmPerPixel) {
 export default function CalculateDimension(
   reference_type,
   reference_dimension,
-  product_dimension
+  product_dimension,
 ) {
   const mmPerPixel = computeMmPerPixel(reference_dimension, reference_type);
 
   const product = calculateSingleProductDimension(
     product_dimension,
-    mmPerPixel
+    mmPerPixel,
   );
 
   return {
-    ...product, // 👈 flatten result
+    ...product,
   };
 }

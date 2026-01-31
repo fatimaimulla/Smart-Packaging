@@ -4,8 +4,8 @@ import { clsx } from "clsx";
 
 const references = [
   { id: "coin", label: "Coin" },
-  { id: "card", label: "ATM Card" },
-  { id: "marker", label: "2x2 Marker", hasDownload: true },
+  { id: "ATM card", label: "ATM Card" },
+  { id: "2x2 box", label: "2x2 Marker", hasDownload: true },
 ];
 
 const ReferenceSelector = ({ selected, onSelect }) => {

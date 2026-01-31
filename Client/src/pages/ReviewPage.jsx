@@ -9,6 +9,8 @@ import Header from "../common/Header";
 import getImageId from "@/api/imageId";
 import { useParams } from "react-router-dom";
 import { getDimensions } from "@/api/getDimensions";
+import CalculateDimension from "@/functions/calculations";
+import pickHeightFromSide from "@/functions/pickheight";
 
 const ReviewPage = () => {
   const [topUrl, setTopUrl] = useState(null);
@@ -18,6 +20,8 @@ const ReviewPage = () => {
   const [sideDimensions, setSideDimensions] = useState(null);
   const [topViewData, setTopViewData] = useState(null);
   const [sideViewData, setSideViewData] = useState(null);
+  const [dimensions, setDimensions] = useState({ l: 0, w: 0, h: 0 });
+  const [referenceObject, setReferenceObject] = useState("coin");
 
   const sessionId = params.sessionId;
 
@@ -33,11 +37,14 @@ const ReviewPage = () => {
     const fetchImages = async () => {
       try {
         const res = await getImageId({ sessionId: sessionId });
+        console.log(res.data);
         if (res.data.success) {
           setTopUrl(res.data.data.topImageUrl);
           setSideUrl(res.data.data.sideImageUrl);
         }
-        console.log(res);
+        
+        const refObj = res.data.data.referenceObject;
+        setReferenceObject(refObj);
       } catch (error) {
         console.error("Failed to fetch images:", error);
       }
@@ -50,12 +57,16 @@ const ReviewPage = () => {
     const fetchDimensions = async () => {
       try {
         const res = await getDimensions({ sessionId: sessionId });
-        if (res.data.success) {
-          console.log(res.data.data);
+        if (res.data.success)
+        {
+          
+          console.log("Hellooooooooo",res.data);
           const topView = res.data.data.topView;
           setTopDimensions(topView);
           const sideView = res.data.data.sideView;
           setSideDimensions(sideView);
+          
+          
         }
       } catch (error) {
         console.log(error);
@@ -70,6 +81,11 @@ useEffect(() => {
   const topReferenceObject = topDimensions.referenceObject?.[0];
 
   if (!topProduct || !topReferenceObject) return;
+
+  
+  
+  
+  
 
   setTopViewData({
     image: topUrl,
@@ -100,7 +116,7 @@ useEffect(() => {
 
   
 
-  const [dimensions, setDimensions] = useState({ l: 0, w: 0, h: 0 });
+  
 
   // Mock Calculation Logic
   // 1. Determine pixel-to-mm ratio from reference box (assuming reference is 25mm coin)
@@ -114,15 +130,27 @@ useEffect(() => {
   ) {
     return;
   }
+ 
+    
+    const TopViewLengthWidth = CalculateDimension(
+      referenceObject,
+      topViewData.referenceBox,
+      topViewData.productBox,
+    );
+    console.log("Helppppppppppppp", TopViewLengthWidth);
+    
+    const SideViewLengthWidth = CalculateDimension(
+      referenceObject,
+      sideViewData.referenceBox,
+      sideViewData.productBox,
+    );
+    console.log("-------------------------", SideViewLengthWidth);
 
-  const REFERENCE_SIZE_MM = 25;
+    const length = TopViewLengthWidth.height_mm;
+    const width = TopViewLengthWidth.width_mm;
 
-  const topRatio = REFERENCE_SIZE_MM / topViewData.referenceBox.w;
-  const length = Math.round(topViewData.productBox.h * topRatio);
-  const width = Math.round(topViewData.productBox.w * topRatio);
-
-  const sideRatio = REFERENCE_SIZE_MM / sideViewData.referenceBox.w;
-  const height = Math.round(sideViewData.productBox.h * sideRatio);
+    const height = pickHeightFromSide(TopViewLengthWidth, SideViewLengthWidth);
+    
 
   setDimensions({ l: length, w: width, h: height });
 }, [topViewData, sideViewData]);
