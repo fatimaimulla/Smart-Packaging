@@ -99,7 +99,7 @@ Respond ONLY in valid JSON:
 {
   "productName": "",
   "fragilityLevel": "",
-  "estimatedWeightKg": "xunit",
+  "estimatedWeight": "xunit",
   "recommendedFefcoBox": ""
 }
 `,
