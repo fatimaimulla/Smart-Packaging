@@ -28,11 +28,13 @@ const UploadPage = () =>
 
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const processImage = async (imageId, file,type) => {
     try {
+     
       const res = await imageProcessing({ croppedImage: file });
-      
+
       setImages((prev) =>
         prev.map((img) =>
           img.id === imageId
@@ -68,8 +70,7 @@ const UploadPage = () =>
               toast.error(error.message);
             }
           }
-        }
-        else if (type == "Side View") {
+        } else if (type == "Side View") {
           try {
             const res2 = await updateSideDimension({
               sideView: res.data,
@@ -85,12 +86,9 @@ const UploadPage = () =>
             }
           }
         }
-        
       } else {
         toast.error(res.data.message);
       }
-
-      
     } catch (error) {
       setImages((prev) =>
         prev.map((img) =>
@@ -101,7 +99,7 @@ const UploadPage = () =>
       );
 
       toast.error(error.response?.data?.message || error.message);
-    }
+    } 
   };
 
   // Mock function to handle file upload
@@ -155,48 +153,50 @@ const handleUpload = (files) => {
 
   const uploadToBackend = async () =>
   {
-    console.log("1st step----->")
+     setIsSubmitting(true);
+   
+    console.log("Helloo")
       
-    if (images.length !== 2)
-    {
-        console.log("2nd step--------->");
-        toast.error("Please upload 2 images");
-        return;
-      }
+    // if (images.length !== 2)
+    // {
+    //     console.log("2nd step--------->");
+    //     toast.error("Please upload 2 images");
+    //     return;
+    //   }
     
 
-      const topView = images.find((img) => img.type === "Top View")?.file;
-    const sideView = images.find((img) => img.type === "Side View")?.file;
-    console.log("2nd step--------->");
+    //   const topView = images.find((img) => img.type === "Top View")?.file;
+    // const sideView = images.find((img) => img.type === "Side View")?.file;
+    // console.log("2nd step--------->");
     
 
-      if (!topView || !sideView) {
-        toast.error("Both Top View and Side View are required");
-        return;
-      }
+    //   if (!topView || !sideView) {
+    //     toast.error("Both Top View and Side View are required");
+    //     return;
+    //   }
 
-    try
-    {
-        console.log("3rd step------------->");
-        const res = await uploadFromSystemHandler({
-          topImage: topView,
-          sideImage: sideView,
-          referenceType: referenceType,
-          sessionId: sessionId, // ✅ THIS IS THE KEY
-        });
-        console.log("this is from current chutiya",res);
-        if (res.data.success) {
-          toast.success(res.data.message);
-          navigate(`/review/${sessionId}`);
-
-        } else {
-          toast.error(res.data.message);
-        }
-      } catch (error) {
-        toast.error(
-          error.response?.data?.message || "Network error. Please try again.",
-        );
-      }
+    // try {
+    //   console.log("3rd step------------->");
+    //   const res = await uploadFromSystemHandler({
+    //     topImage: topView,
+    //     sideImage: sideView,
+    //     referenceType: referenceType,
+    //     sessionId: sessionId, // ✅ THIS IS THE KEY
+    //   });
+    //   console.log("this is from current chutiya", res);
+    //   if (res.data.success) {
+    //     toast.success(res.data.message);
+    //     navigate(`/review/${sessionId}`);
+    //   } else {
+    //     toast.error(res.data.message);
+    //   }
+    // } catch (error) {
+    //   toast.error(
+    //     error.response?.data?.message || "Network error. Please try again.",
+    //   );
+    // } finally {
+    //   setIsSubmitting(false); // ⭐ STOP LOADER (safety)
+    // }
     };
 
 
@@ -318,7 +318,7 @@ const handleUpload = (files) => {
                     )}
                   >
                     Reference Check:{" "}
-                    {(images.length === 1 || images.length===0)
+                    {images.length === 1 || images.length === 0
                       ? "Waiting"
                       : statusText}
                   </span>
@@ -326,11 +326,21 @@ const handleUpload = (files) => {
 
                 <button
                   onClick={uploadToBackend}
-                  disabled={!canContinue1}
+                  disabled={!canContinue1 ||isSubmitting}
                   className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold"
                 >
-                  Continue to Review
-                  <ArrowRight size={18} />
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Continue to Review
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                 
                 </button>
               </div>
             </div>

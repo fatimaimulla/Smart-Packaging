@@ -9,87 +9,72 @@ import LibrarySidebar from "@/components/library/LibrarySideBar";
 import DielineCard from "@/components/library/DielineCard";
 import clsx from "clsx";
 
-// --- Mock Data ---
+// --- Dielines (5 ready FEFCO templates) ---
 const MOCK_DIELINES = [
   {
-    id: 1,
+    id: "0201",
+    code: "FEFCO 0201",
     name: "Standard RSC Box",
     category: "folding",
     source: "system",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/f3f4f6/a1a1aa?text=RSC+Box",
+    image2d: "/thumbnails/0201_2D.png",
+    image3d: "/thumbnails/0201_3D.png",
     description:
       "Regular Slotted Container (FEFCO 0201). The most common shipping box type.",
     tags: ["Shipping", "Corrugated"],
     isNew: false,
   },
   {
-    id: 2,
-    name: "Tuck Top Snap Lock Bottom",
-    category: "tuck",
+    id: "0203",
+    code: "FEFCO 0203",
+    name: "Full Overlap Slotted Box",
+    category: "folding",
     source: "system",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/f3f4f6/a1a1aa?text=Snap+Lock",
+    image2d: "/thumbnails/0203_2D.png",
+    image3d: "/thumbnails/0203_3D.png",
     description:
-      "Secure bottom closure for heavier retail items. No glue required for bottom.",
-    tags: ["Retail", "Secure"],
+      "Full overlap flaps for extra stacking strength and protection.",
+    tags: ["Heavy Duty", "Shipping"],
+    isNew: false,
+  },
+  {
+    id: "0301",
+    code: "FEFCO 0301",
+    name: "Telescope Box",
+    category: "folding",
+    source: "system",
+    image2d: "/thumbnails/0301_2D.png",
+    image3d: "/thumbnails/0301_3D.png",
+    description:
+      "Two-piece box with a separate lid and base for premium packaging.",
+    tags: ["Retail", "Premium"],
     isNew: true,
   },
   {
-    id: 3,
-    name: "Mailer Box (E-commerce)",
+    id: "0401",
+    code: "FEFCO 0401",
+    name: "Folder Type Box",
     category: "mailer",
     source: "system",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/f3f4f6/a1a1aa?text=Mailer+Box",
+    image2d: "/thumbnails/0401_2D.png",
+    image3d: "/thumbnails/0401_3D.png",
     description:
-      "Self-locking mailer box perfect for subscription boxes and e-commerce.",
+      "One-piece folder-style box that’s fast to assemble and ship.",
+    tags: ["Mailer", "Lightweight"],
+    isNew: false,
+  },
+  {
+    id: "0427",
+    code: "FEFCO 0427",
+    name: "Double Wall Tuck Front",
+    category: "mailer",
+    source: "system",
+    image2d: "/thumbnails/0427_2D.png",
+    image3d: "/thumbnails/0427_3D.png",
+    description:
+      "Tuck-front mailer with double wall for stronger presentation.",
     tags: ["E-commerce", "Premium"],
     isNew: false,
-  },
-  {
-    id: 4,
-    name: "Custom Gift Box 2024",
-    category: "folding",
-    source: "user",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/e0f2fe/3b82f6?text=My+Gift+Box",
-    description: "Modified RSC with custom cutout window for holiday season.",
-    tags: ["Custom", "Gift"],
-    isNew: false,
-  },
-  {
-    id: 5,
-    name: "Tray with Sleeve",
-    category: "tray",
-    source: "system",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/f3f4f6/a1a1aa?text=Tray+Sleeve",
-    description: "Two-piece box consisting of a sliding tray and a sleeve.",
-    tags: ["Luxury", "Retail"],
-    isNew: false,
-  },
-  {
-    id: 6,
-    name: "Paper Shopping Bag",
-    category: "bag",
-    source: "system",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/f3f4f6/a1a1aa?text=Paper+Bag",
-    description: "Standard paper bag with twisted handles template.",
-    tags: ["Retail", "Eco"],
-    isNew: false,
-  },
-  {
-    id: 7,
-    name: "Prototype V2",
-    category: "mailer",
-    source: "user",
-    image:
-      "https://img-wrapper.vercel.app/image?url=https://placehold.co/400x300/e0f2fe/3b82f6?text=Proto+V2",
-    description: "Experimental mailer with extra padding flaps.",
-    tags: ["Draft", "Test"],
-    isNew: true,
   },
 ];
 

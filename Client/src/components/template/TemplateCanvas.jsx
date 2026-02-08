@@ -43,10 +43,8 @@ const TemplateCanvas = ({ Dieline, dimensions }, ref) => {
 
   return (
     <div className="relative flex-1 bg-[#F9FAFB] overflow-hidden rounded-3xl">
-
       {/* ================= TOOLBAR (BOTTOM) ================= */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow border border-gray-200 flex items-center gap-1 px-2 py-1">
-        
         {/* Arrow (Select) */}
         <button
           onClick={() => setTool("select")}
@@ -110,7 +108,11 @@ const TemplateCanvas = ({ Dieline, dimensions }, ref) => {
             transformOrigin: "center",
           }}
         >
-          <Dieline {...dimensions} />
+          <Dieline
+            length={dimensions.l}
+            width={dimensions.w}
+            height={dimensions.h}
+          />
         </div>
       </div>
     </div>

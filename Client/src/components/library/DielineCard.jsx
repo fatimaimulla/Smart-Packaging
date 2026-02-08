@@ -8,7 +8,7 @@ const DielineCard = ({ dieline, onUse, onPreview }) => {
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full">
       {/* Preview Area */}
-      <div className="relative h-48 bg-gray-50 p-6 flex items-center justify-center overflow-hidden">
+      <div className="relative h-48 bg-gray-50 p-4 flex items-center justify-center overflow-hidden">
         {/* Grid Pattern Background */}
         <div
           className="absolute inset-0 opacity-[0.4]"
@@ -18,13 +18,34 @@ const DielineCard = ({ dieline, onUse, onPreview }) => {
           }}
         />
 
-        {/* Dieline Image Placeholder (Using SVG logic or Image) */}
-        {dieline.image ? (
-          <img
-            src={dieline.image}
-            alt={dieline.name}
-            className="w-full h-full object-contain relative z-10 drop-shadow-sm group-hover:scale-105 transition-transform duration-500"
-          />
+        {/* Dieline Preview (2D + 3D) */}
+        {dieline.image2d || dieline.image3d ? (
+          <div className="relative z-10 w-full h-full rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm overflow-hidden">
+            <div className="grid grid-cols-2 w-full h-full">
+              <div className="flex items-center justify-center bg-[#EAF2FF]/60">
+                {dieline.image2d ? (
+                  <img
+                    src={dieline.image2d}
+                    alt={`${dieline.name} 2D`}
+                    className="w-full h-full object-contain p-2"
+                  />
+                ) : (
+                  <Box className="text-gray-300 w-16 h-16" strokeWidth={1} />
+                )}
+              </div>
+              <div className="flex items-center justify-center bg-white">
+                {dieline.image3d ? (
+                  <img
+                    src={dieline.image3d}
+                    alt={`${dieline.name} 3D`}
+                    className="w-full h-full object-contain p-2"
+                  />
+                ) : (
+                  <Box className="text-gray-300 w-16 h-16" strokeWidth={1} />
+                )}
+              </div>
+            </div>
+          </div>
         ) : (
           <Box className="text-gray-300 w-20 h-20" strokeWidth={1} />
         )}
@@ -58,9 +79,16 @@ const DielineCard = ({ dieline, onUse, onPreview }) => {
       {/* Content Area */}
       <div className="p-5 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-[#0D1B2A] text-lg leading-tight group-hover:text-blue-600 transition-colors">
-            {dieline.name}
-          </h3>
+          <div>
+            <h3 className="font-bold text-[#0D1B2A] text-lg leading-tight group-hover:text-blue-600 transition-colors">
+              {dieline.name}
+            </h3>
+            {dieline.code && (
+              <p className="text-[11px] font-semibold text-gray-500">
+                {dieline.code}
+              </p>
+            )}
+          </div>
         </div>
 
         <p className="text-xs text-gray-500 mb-4 line-clamp-2">
