@@ -2,26 +2,30 @@ import { GoogleGenAI } from "@google/genai";
 import { definedBoxes } from "../config/fefco.js";
 import axios from "axios";
 
-
-
 export const productAnalyze = async (req, res) => {
   try {
-    const { imageUrl } = req.body;
+    const { imageUrl1, imageUrl2, dimension } = req.body;
 
-    if (!imageUrl) {
+    if (!imageUrl1 || !imageUrl2) {
       return res.status(400).json({
-        message: "Image url is required",
+        message: "",
         success: false,
       });
     }
 
     const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
-    const imageResponse = await axios.get(imageUrl, {
+    const imageResponse1 = await axios.get(imageUrl1, {
       responseType: "arraybuffer",
     });
-    const imageBuffer = imageResponse.data;
-    const base64Image = Buffer.from(imageBuffer).toString("base64");
+    const imageResponse2 = await axios.get(imageUrl2, {
+      responseType: "arraybuffer",
+    });
+    const imageBuffer1 = imageResponse1.data;
+    const base64Image1 = Buffer.from(imageBuffer1).toString("base64");
+
+    const imageBuffer2=imageResponse2.data;
+    const base64Image2 = Buffer.from(imageBuffer2).toString("base64");
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -30,34 +34,56 @@ export const productAnalyze = async (req, res) => {
           parts: [
             {
               inlineData: {
-                data: base64Image,
+                data: base64Image1,
                 mimeType: "image/jpeg",
               },
             },
             {
-              text: `You are a packaging expert analyzing a product image.
+              inlineData: {
+                data: base64Image2,
+                mimeType: "image/jpeg",
+              },
+            },
+            {
+              text: `You are a packaging expert analyzing a product using TWO images and physical dimensions.
 
-IMAGE COMPOSITION RULE (VERY IMPORTANT):
-- The image ALWAYS contains exactly TWO objects:
-  1. ONE main product intended for packaging
-  2. ONE reference object used ONLY for size comparison
+IMAGE INPUT RULES (VERY IMPORTANT):
+- EXACTLY TWO images are provided:
+  1. Image 1: TOP VIEW of the product
+  2. Image 2: SIDE VIEW of the SAME product
+- Each image contains:
+  - ONE main product intended for packaging
+  - ONE reference object used ONLY for size comparison
 
 REFERENCE OBJECT RULE:
-- The reference object may be an ATM card, coin, ruler, or small 2×2 box
+- The reference object may be an ATM card, coin, or small 2×2 box
 - The reference object is NOT the product
-- IGNORE the reference object completely
+- IGNORE the reference object completely in BOTH images
 - Do NOT identify, describe, or mention the reference object
 
 PRODUCT IDENTIFICATION RULE:
-- The product is the object that is:
-  - Larger than the reference object
-  - The actual consumer item
-  - Intended to be packed and shipped
+- The product is the object that:
+  - Appears in BOTH images
+  - Is larger than the reference object
+  - Is the consumer item intended to be packed and shipped
+
+PHYSICAL DATA PROVIDED:
+- Product dimensions (in millimeters): ${dimension}
+  Format: Length × Width × Height (mm)
+
+WEIGHT ESTIMATION RULE:
+- Estimate product weight based on:
+  - Product category
+  - Typical material assumptions
+  - Given dimensions
+- Weight is an APPROXIMATION
+- Return weight in kilograms if it is gerater then 1 kg else return weight in grams
 
 TASKS:
-1. Identify ONLY the main product
-2. Estimate its fragility (Low / Medium / High)
-3. Recommend the best FEFCO box ONLY from this list: ${definedBoxes}
+1. Identify the main product using BOTH images
+2. Estimate fragility (Low / Medium / High)
+3. Estimate product weight
+4. Recommend the best FEFCO box ONLY from this list: ${definedBoxes}
 
 DECISION RULES:
 - Balance protection and cost
@@ -66,15 +92,15 @@ DECISION RULES:
 
 STRICT OUTPUT RULES:
 - No markdown
-- No explanations outside JSON
+- No extra text
 - No mention of reference objects
 
 Respond ONLY in valid JSON:
 {
   "productName": "",
   "fragilityLevel": "",
-  "recommendedFefcoBox": "",
-  "reasoning": ""
+  "estimatedWeightKg": "xunit",
+  "recommendedFefcoBox": ""
 }
 `,
             },
@@ -95,7 +121,7 @@ Respond ONLY in valid JSON:
       });
     }
 
-    let parsedData= JSON.parse(rawData);
+    let parsedData = JSON.parse(rawData);
     return res.status(200).json({
       data: parsedData,
       success: true,
