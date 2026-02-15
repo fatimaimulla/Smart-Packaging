@@ -125,6 +125,7 @@ Respond ONLY in valid JSON:
     return res.status(200).json({
       data: parsedData,
       success: true,
+      message:"Ai response found",
     });
   } catch (error) {
     return res.status(400).json({

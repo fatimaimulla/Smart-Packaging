@@ -6,10 +6,10 @@ export const getAiResponse = async ({ imageUrl1, imageUrl2, dimensions }) => {
   formData.append("imageUrl1", imageUrl1);
   formData.append("imageUrl2", imageUrl2);
   formData.append("dimensions", dimensions);
-  const res = await axios.post(`${baseURL}/api/ai/generatebox`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+  const res = await axios.post(`${baseURL}/api/ai/generatebox`, {
+    imageUrl1,
+    imageUrl2,
+    dimensions,
   });
   console.log(res);
   return res;

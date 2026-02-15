@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import { useDispatch } from "react-redux";
 import { resetDimensionState } from "@/redux/slice/dimensionSlice";
 import { resetUploadState } from "@/redux/slice/mobileUploadSlice";
+import { resetImageUrlState } from "@/redux/slice/imageSlice";
 
 
 const Header = () => {
@@ -25,6 +26,7 @@ const Header = () => {
   const handleReset=()=>{
     dispatch(resetDimensionState());
     dispatch(resetUploadState());
+    dispatch(resetImageUrlState());
   }
   return (
     <motion.header
