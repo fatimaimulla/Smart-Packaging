@@ -14,11 +14,15 @@ const segment = (t, a, b) => {
 };
 
 /* ------------------ primitives ------------------ */
-function Panel({ w, d, t, mat, pos }) {
+function Panel({ w, d, t,  pos }) {
   return (
-    <mesh position={pos} castShadow receiveShadow material={mat}>
+    <mesh position={pos} castShadow receiveShadow >
       <boxGeometry args={[w, t, d]} />
-      <meshStandardMaterial {...mat} />
+      <meshStandardMaterial
+        color={"#CBAE91"}
+        roughness={0.85}
+        metalness={0.0}
+      /> 
     </mesh>
   );
 }
@@ -40,22 +44,22 @@ function Hinge({ refObj, pos, axis, angle = 0, children }) {
 function Fefco0203_3D({
   length = 300,
   width = 200,
-  height,
-  Height = 150,
+  height=150,
+  
   thickness = 1.5,
   slider = 0,
 }) {
   const S = 0.01;
   const L = length * S;
-  const W = width * S;
-  const panelHeight = height ?? Height;
+  const W = height * S;
+  const panelHeight = width;
   const SW = panelHeight * S;
   const T = thickness * S;
   const H = (panelHeight / 2) * S;
   const H2 = (length / 2) * S; // correct FEFCO flap rule
 
   /* ---------- materials ---------- */
-  const texture = useTexture("/cardboard.svg");
+  const texture = null;
 
   const baseMat = useMemo(
     () => ({
@@ -148,7 +152,7 @@ function Fefco0203_3D({
   return (
     <group>
       {/* FRONT PANEL (reference) */}
-      <Panel w={L} d={W} t={T} mat={baseMat} pos={[0, -T / 2, 0]} />
+      <Panel w={L} d={W} t={T}  pos={[0, -T / 2, 0]} />
 
       {/* FRONT FLAPS */}
       <Hinge refObj={flap_front_top} pos={[0, 0, W / 2]} axis="x">
@@ -156,7 +160,7 @@ function Fefco0203_3D({
           w={L - 0.03}
           d={H}
           t={T}
-          mat={foldMat}
+          
           pos={[0, -T / 2, H / 2]}
         />
       </Hinge>
@@ -166,7 +170,7 @@ function Fefco0203_3D({
           w={L - 0.03}
           d={H}
           t={T}
-          mat={foldMat}
+          
           pos={[0, -T / 2, -H / 2]}
         />
       </Hinge>
@@ -185,14 +189,14 @@ function Fefco0203_3D({
 
       {/* RIGHT PANEL */}
       <Hinge refObj={panel_right} pos={[L / 2, 0, 0]} axis="z">
-        <Panel w={SW} d={W} t={T} mat={baseMat} pos={[SW / 2, -T / 2, 0]} />
+        <Panel w={SW} d={W} t={T}  pos={[SW / 2, -T / 2, 0]} />
 
         <Hinge refObj={flap_right_top} pos={[0, 0, W / 2]} axis="x">
           <Panel
             w={SW - 0.03}
             d={H2}
             t={T}
-            mat={foldMat}
+            
             pos={[SW / 2, -T / 2, H2 / 2]}
           />
         </Hinge>
@@ -202,21 +206,21 @@ function Fefco0203_3D({
             w={SW - 0.03}
             d={H2}
             t={T}
-            mat={foldMat}
+            
             pos={[SW / 2, -T / 2, -H2 / 2]}
           />
         </Hinge>
 
         {/* BACK PANEL */}
         <Hinge refObj={panel_back} pos={[SW, 0, 0]} axis="z">
-          <Panel w={L} d={W} t={T} mat={baseMat} pos={[L / 2, -T / 2, 0]} />
+          <Panel w={L} d={W} t={T}  pos={[L / 2, -T / 2, 0]} />
 
           <Hinge refObj={flap_back_top} pos={[0, 0, W / 2]} axis="x">
             <Panel
               w={L - 0.03}
               d={H}
               t={T}
-              mat={foldMat}
+              
               pos={[L / 2, -T / 2, H / 2]}
             />
           </Hinge>
@@ -226,21 +230,21 @@ function Fefco0203_3D({
               w={L - 0.03}
               d={H}
               t={T}
-              mat={foldMat}
+              
               pos={[L / 2, -T / 2, -H / 2]}
             />
           </Hinge>
 
           {/* LEFT PANEL */}
           <Hinge refObj={panel_left} pos={[L, 0, 0]} axis="z">
-            <Panel w={SW} d={W} t={T} mat={baseMat} pos={[SW / 2, -T / 2, 0]} />
+            <Panel w={SW} d={W} t={T}  pos={[SW / 2, -T / 2, 0]} />
 
             <Hinge refObj={flap_left_top} pos={[0, 0, W / 2]} axis="x">
               <Panel
                 w={SW - 0.03}
                 d={H2}
                 t={T}
-                mat={foldMat}
+                
                 pos={[SW / 2, -T / 2, H2 / 2]}
               />
             </Hinge>
@@ -250,7 +254,7 @@ function Fefco0203_3D({
                 w={SW - 0.03}
                 d={H2}
                 t={T}
-                mat={foldMat}
+                
                 pos={[SW / 2, -T / 2, -H2 / 2]}
               />
             </Hinge>

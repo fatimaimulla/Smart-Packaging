@@ -4,9 +4,9 @@ export default function Fefco0201Dieline(props) {
   // Parameters from your design
   const x = props.x || 100;
   const y = props.y || 200;
-  const length = props.length || 191;
+  const length = props.height || 191;
   const width = props.width || 383;
-  const height = props.height || 245;
+  const height = props.length || 245;
 
   // Fixed values from your SVG
   const glueFlapWidth = 40; // Based on 70.5 to 110.5
