@@ -1,116 +1,170 @@
 export default function Fefco0401Dieline(props) {
-    //Parameters 
-    const x = props.x || 541.5;
-    const y = props.y || 469.5;
-    const length = props.length || 400; // horizontal
-    const width = props.width || 250;   // vertical   
-    const height = props.height || 150; // straight up 
-    
-    //Base Panel Position
-    const baseX = x;
-    const baseY = y;
+  //Parameters
+  const x = props.x || 541.5;
+  const y = props.y || 469.5;
+  const length = props.length || 400; // horizontal
+  const width = props.width || 250; // vertical
+  const height = props.height || 150; // straight up
 
-    //Crease Line Dimension
-    const topCreaseY = baseY - height;
-    const bottomCreaseY = baseY + width + height;
-    const leftCreaseX = baseX - height;
-    const rightCreaseX = baseX + length + height;
+  //Base Panel Position
+  const baseX = x;
+  const baseY = y;
 
-    //Flap Dimension
-    const verticalFlap = height + width / 2;
-    const horizontalFlap = height + 0.4 * length;
+  //Crease Line Dimension
+  const topCreaseY = baseY - height;
+  const bottomCreaseY = baseY + width + height;
+  const leftCreaseX = baseX - height;
+  const rightCreaseX = baseX + length + height;
 
-    //Trim Boundaries
-    const trimTop = baseY - verticalFlap;
-    const trimBottom = baseY + width + verticalFlap;
-    const trimLeft = baseX - horizontalFlap;
-    const trimRight = baseX + length + horizontalFlap;
+  //Flap Dimension
+  const verticalFlap = height + width / 2;
+  const horizontalFlap = height + 0.4 * length;
 
-    //Bleed Offset
-    const bleedOffset = 5;
+  //Trim Boundaries
+  const trimTop = baseY - verticalFlap;
+  const trimBottom = baseY + width + verticalFlap;
+  const trimLeft = baseX - horizontalFlap;
+  const trimRight = baseX + length + horizontalFlap;
 
-    //Trim Path
-    const createTrimLine = () => {
-        const p = [];
+  //Bleed Offset
+  const bleedOffset = 5;
 
-        // Start at top-left of top flap
-        p.push(`M${baseX} ${trimTop}`);
+  //Trim Path
+  const createTrimLine = () => {
+    const p = [];
 
-        // Top flap
-        p.push(`H${baseX + length}`);
+    // Start at top-left of top flap
+    p.push(`M${baseX} ${trimTop}`);
 
-        // Right side
-        p.push(`V${baseY}`);
-        p.push(`H${trimRight}`);
-        p.push(`V${baseY + width}`);
+    // Top flap
+    p.push(`H${baseX + length}`);
 
-        // Bottom flap
-        p.push(`H${baseX + length}`);
-        p.push(`V${trimBottom}`);
-        p.push(`H${baseX}`);
+    // Right side
+    p.push(`V${baseY}`);
+    p.push(`H${trimRight}`);
+    p.push(`V${baseY + width}`);
 
-        // Left side
-        p.push(`V${baseY + width}`);
-        p.push(`H${trimLeft}`);
-        p.push(`V${baseY}`);
+    // Bottom flap
+    p.push(`H${baseX + length}`);
+    p.push(`V${trimBottom}`);
+    p.push(`H${baseX}`);
 
-        // Close
-        p.push(`H${baseX}`);
-        p.push("Z");
+    // Left side
+    p.push(`V${baseY + width}`);
+    p.push(`H${trimLeft}`);
+    p.push(`V${baseY}`);
 
-        return p.join("");
-    };
+    // Close
+    p.push(`H${baseX}`);
+    p.push("Z");
 
-    //Bleed Path
-    const createBleedLine = () => {
-        const p = [];
+    return p.join("");
+  };
 
-        p.push(`M${baseX - bleedOffset} ${trimTop - bleedOffset}`);
-        p.push(`H${baseX + length + bleedOffset}`);
-        p.push(`V${baseY - bleedOffset}`);
-        p.push(`H${trimRight + bleedOffset}`);
-        p.push(`V${baseY + width + bleedOffset}`);
-        p.push(`H${baseX + length + bleedOffset}`);
-        p.push(`V${trimBottom + bleedOffset}`);
-        p.push(`H${baseX - bleedOffset}`);
-        p.push(`V${baseY + width + bleedOffset}`);
-        p.push(`H${trimLeft - bleedOffset}`);
-        p.push(`V${baseY - bleedOffset}`);
-        p.push(`H${baseX - bleedOffset}`);
-        p.push("Z");
+  //Bleed Path
+  const createBleedLine = () => {
+    const p = [];
 
-        return p.join("");
-    };
+    p.push(`M${baseX - bleedOffset} ${trimTop - bleedOffset}`);
+    p.push(`H${baseX + length + bleedOffset}`);
+    p.push(`V${baseY - bleedOffset}`);
+    p.push(`H${trimRight + bleedOffset}`);
+    p.push(`V${baseY + width + bleedOffset}`);
+    p.push(`H${baseX + length + bleedOffset}`);
+    p.push(`V${trimBottom + bleedOffset}`);
+    p.push(`H${baseX - bleedOffset}`);
+    p.push(`V${baseY + width + bleedOffset}`);
+    p.push(`H${trimLeft - bleedOffset}`);
+    p.push(`V${baseY - bleedOffset}`);
+    p.push(`H${baseX - bleedOffset}`);
+    p.push("Z");
 
-    return (
-        <div>
-            <svg width="3000" height="2000" viewBox="0 0 3000 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+    return p.join("");
+  };
 
-                {/* Base Panel */}
-                <rect id="Base_crease_panel" x={baseX} y={baseY} width={length} height={width} stroke="#FF0000" stroke-dasharray="1 1"/>
-                
-                 {/* Top crease */}
-                <line
-                    id="top_crease_line" x1={baseX} y1={topCreaseY} x2={baseX + length} y2={topCreaseY} stroke="#FC0707" strokeDasharray="1 1"/>
+  return (
+    <div>
+      <svg
+        id="fefco-0401-dieline"
+        width="3000"
+        height="2000"
+        viewBox="0 0 3000 2000"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Base Panel */}
+        <rect
+          id="Base_crease_panel"
+          x={baseX}
+          y={baseY}
+          width={length}
+          height={width}
+          stroke="#FF0000"
+          stroke-dasharray="1 1"
+        />
 
-                {/* Bottom crease */}
-                <line
-                    id="bottom_crease_line" x1={baseX} y1={bottomCreaseY} x2={baseX + length} y2={bottomCreaseY} stroke="#FC0707" strokeDasharray="1 1"/>
+        {/* Top crease */}
+        <line
+          id="top_crease_line"
+          x1={baseX}
+          y1={topCreaseY}
+          x2={baseX + length}
+          y2={topCreaseY}
+          stroke="#FC0707"
+          strokeDasharray="1 1"
+        />
 
-                {/* Left crease */}
-                <line id="left_crease_line" x1={leftCreaseX} y1={baseY} x2={leftCreaseX} y2={baseY + width} stroke="#FC0707" strokeDasharray="1 1"/>
+        {/* Bottom crease */}
+        <line
+          id="bottom_crease_line"
+          x1={baseX}
+          y1={bottomCreaseY}
+          x2={baseX + length}
+          y2={bottomCreaseY}
+          stroke="#FC0707"
+          strokeDasharray="1 1"
+        />
 
-                {/* Right crease */}
-                <line id="right_crease_line" x1={rightCreaseX} y1={baseY} x2={rightCreaseX} y2={baseY + width} stroke="#FC0707" strokeDasharray="1 1"/>
+        {/* Left crease */}
+        <line
+          id="left_crease_line"
+          x1={leftCreaseX}
+          y1={baseY}
+          x2={leftCreaseX}
+          y2={baseY + width}
+          stroke="#FC0707"
+          strokeDasharray="1 1"
+        />
 
-                {/* Trim Line */}
-                <path id="trim_line" d={createTrimLine()} stroke="#343CB7" fill="none"/>
-                
-                {/* Bleed Line */}
-                <path id="bleed_line" d={createBleedLine()} stroke="#A2D68E" fill="none"/>
-            </svg>
-        </div>
-    )
+        {/* Right crease */}
+        <line
+          id="right_crease_line"
+          x1={rightCreaseX}
+          y1={baseY}
+          x2={rightCreaseX}
+          y2={baseY + width}
+          stroke="#FC0707"
+          strokeDasharray="1 1"
+        />
+
+        {/* Trim Line */}
+        <path
+          id="trim_line"
+          d={createTrimLine()}
+          stroke="#343CB7"
+          fill="none"
+        />
+
+        {/* Bleed Line */}
+        <path
+          id="bleed_line"
+          d={createBleedLine()}
+          stroke="#A2D68E"
+          fill="none"
+        />
+      </svg>
+    </div>
+  );
 }
 
 Fefco0401Dieline.defaultDimensions = {

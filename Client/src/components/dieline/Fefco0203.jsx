@@ -178,6 +178,8 @@ V${rightSideBottomFlapY + bleedOffset}
 
   return (
     <svg 
+          id="fefco-0203-dieline"
+
       width="1017" 
       height="736" 
       viewBox="0 0 1017 736" 

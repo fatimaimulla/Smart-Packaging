@@ -36,7 +36,7 @@ export default function Fefco0427Dieline(props)
     const flapYupper=y+hole_height-height;//
    // console.log(flapY - creaseOffset);
   return (
-   <svg width="1970" height="1432" viewBox="0 0 1970 1432" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <svg id="fefco-0427-dieline" width="1970" height="1432" viewBox="0 0 1970 1432" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="20_DieLine">
 
 {/* Crease rectangle  */}
