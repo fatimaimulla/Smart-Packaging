@@ -11,6 +11,12 @@ import { useParams } from "react-router-dom";
 import { getDimensions } from "@/api/getDimensions";
 import CalculateDimension from "@/functions/calculations";
 import pickHeightFromSide from "@/functions/pickheight";
+import { useDispatch } from "react-redux";
+import {
+  setImageDimensions,
+  setSideImageUrl,
+  setTopImageUrl,
+} from "@/redux/slice/imageSlice";
 
 const ReviewPage = () => {
   const [topUrl, setTopUrl] = useState(null);
@@ -22,6 +28,7 @@ const ReviewPage = () => {
   const [sideViewData, setSideViewData] = useState(null);
   const [dimensions, setDimensions] = useState({ l: 0, w: 0, h: 0 });
   const [referenceObject, setReferenceObject] = useState("coin");
+  const dispatch = useDispatch();
 
   const sessionId = params.sessionId;
 
@@ -40,9 +47,11 @@ const ReviewPage = () => {
         console.log(res.data);
         if (res.data.success) {
           setTopUrl(res.data.data.topImageUrl);
+          dispatch(setTopImageUrl(res.data.data.topImageUrl));
           setSideUrl(res.data.data.sideImageUrl);
+          dispatch(setSideImageUrl(res.data.data.sideImageUrl));
         }
-        
+
         const refObj = res.data.data.referenceObject;
         setReferenceObject(refObj);
       } catch (error) {
@@ -57,16 +66,12 @@ const ReviewPage = () => {
     const fetchDimensions = async () => {
       try {
         const res = await getDimensions({ sessionId: sessionId });
-        if (res.data.success)
-        {
-          
-          console.log("Hellooooooooo",res.data);
+        if (res.data.success) {
+          console.log("Hellooooooooo", res.data);
           const topView = res.data.data.topView;
           setTopDimensions(topView);
           const sideView = res.data.data.sideView;
           setSideDimensions(sideView);
-          
-          
         }
       } catch (error) {
         console.log(error);
@@ -74,71 +79,59 @@ const ReviewPage = () => {
     };
     fetchDimensions();
   }, [sessionId]);
-useEffect(() => {
-  if (!topDimensions || !topUrl) return;
+  useEffect(() => {
+    if (!topDimensions || !topUrl) return;
 
-  const topProduct = topDimensions.product?.[0];
-  const topReferenceObject = topDimensions.referenceObject?.[0];
+    const topProduct = topDimensions.product?.[0];
+    const topReferenceObject = topDimensions.referenceObject?.[0];
 
-  if (!topProduct || !topReferenceObject) return;
+    if (!topProduct || !topReferenceObject) return;
 
-  
-  
-  
-  
+    setTopViewData({
+      image: topUrl,
+      productBox: convertXYXYtoXYWH(topProduct),
+      referenceBox: convertXYXYtoXYWH(topReferenceObject),
+    });
+  }, [topDimensions, topUrl]);
 
-  setTopViewData({
-    image: topUrl,
-    productBox: convertXYXYtoXYWH(topProduct),
-    referenceBox: convertXYXYtoXYWH(topReferenceObject),
-  });
-}, [topDimensions, topUrl]);
+  useEffect(() => {
+    if (!sideDimensions || !sideUrl) return;
 
-useEffect(() => {
-  if (!sideDimensions || !sideUrl) return;
+    const sideProduct = sideDimensions.product?.[0];
+    const sideReferenceObject = sideDimensions.referenceObject?.[0];
 
-  const sideProduct = sideDimensions.product?.[0];
-  const sideReferenceObject = sideDimensions.referenceObject?.[0];
+    if (!sideProduct || !sideReferenceObject) return;
 
-  if (!sideProduct || !sideReferenceObject) return;
-
-  setSideViewData({              // ✅ CORRECT STATE
-    image: sideUrl,              // ✅ CORRECT IMAGE
-    productBox: convertXYXYtoXYWH(sideProduct),
-    referenceBox: convertXYXYtoXYWH(sideReferenceObject),
-  });
-}, [sideDimensions, sideUrl]);
-
-
-
+    setSideViewData({
+      // ✅ CORRECT STATE
+      image: sideUrl, // ✅ CORRECT IMAGE
+      productBox: convertXYXYtoXYWH(sideProduct),
+      referenceBox: convertXYXYtoXYWH(sideReferenceObject),
+    });
+  }, [sideDimensions, sideUrl]);
 
   const [activeView, setActiveView] = useState("top"); // 'top' | 'side'
-
-  
-
-  
 
   // Mock Calculation Logic
   // 1. Determine pixel-to-mm ratio from reference box (assuming reference is 25mm coin)
   // 2. Apply ratio to product box dimensions
   useEffect(() => {
-  if (
-    !topViewData?.productBox ||
-    !topViewData?.referenceBox ||
-    !sideViewData?.productBox ||
-    !sideViewData?.referenceBox
-  ) {
-    return;
-  }
- 
-    
+    if (
+      !topViewData?.productBox ||
+      !topViewData?.referenceBox ||
+      !sideViewData?.productBox ||
+      !sideViewData?.referenceBox
+    ) {
+      return;
+    }
+
     const TopViewLengthWidth = CalculateDimension(
       referenceObject,
       topViewData.referenceBox,
       topViewData.productBox,
     );
     console.log("Helppppppppppppp", TopViewLengthWidth);
-    
+
     const SideViewLengthWidth = CalculateDimension(
       referenceObject,
       sideViewData.referenceBox,
@@ -150,11 +143,11 @@ useEffect(() => {
     const width = TopViewLengthWidth.width_mm;
 
     const height = pickHeightFromSide(TopViewLengthWidth, SideViewLengthWidth);
-    
+    console.log(height,width,length);
 
-  setDimensions({ l: length, w: width, h: height });
-}, [topViewData, sideViewData]);
-
+    setDimensions({ l: length, w: width, h: height });
+    dispatch(setImageDimensions(dimensions))
+  }, [topViewData, sideViewData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
@@ -239,7 +232,7 @@ useEffect(() => {
                 />
               )} */}
 
-             {activeView === "top" && topViewData ? (
+              {activeView === "top" && topViewData ? (
                 <ImageViewer
                   view="Top"
                   imageUrl={topUrl}

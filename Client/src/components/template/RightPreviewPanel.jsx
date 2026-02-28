@@ -2,33 +2,151 @@ import React, { useState, Suspense } from "react";
 import Fefco0201_3D from "../3dModel/Fefco0201";
 import { Download, Loader2, MessageCircle } from "lucide-react";
 import { clsx } from "clsx";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { toast } from "sonner";
+
+import jsPDF from "jspdf";
+import "svg2pdf.js";
+import { generateFefco0201DXF } from "@/utils/generateFefco0201DXF";
+import { generateFefco0203DXF } from "@/utils/generateFefco0203DXF";
+import { generateFefco0301DXF } from "@/utils/generateFefco0301DXF";
+import { generateFefco0401DXF } from "@/utils/generateFefco0401DXF";
+import { generateFefco0427DXF } from "@/utils/generateFefco0427DXF";
+import Dieline3DViewer from "./DieLine3DViewer";
 
 const RightPreviewPanel = () => {
   const [sliderValue, setSliderValue] = useState(0);
-  const handleDownloadDieline = () => {
-    console.log("Download");
+  // const handleDownloadDieline = async () => {
+  //   // console.log("Download");
+  //   const svg = document.getElementById("fefco-0201-dieline");
+  //   if (!svg) {
+  //     toast.error("Dieline not found");
+  //   }
+  //   const viewBox = svg.viewBox.baseVal;
+  //   const vbWidth = viewBox.width;
+  //   const vbHeight = viewBox.height;
+  //   const bbox = svg.getBBox();
+
+  //   const pdf = new jsPDF({
+  //     orientation: vbWidth > vbHeight ? "landscape" : "portrait",
+  //     unit: "pt",
+  //     format: [vbWidth, vbHeight],
+  //   });
+
+  //   const offsetX = (vbWidth - bbox.width) / 2 - bbox.x;
+  //   const offsetY = (vbHeight - bbox.height) / 2 - bbox.y;
+
+  //   await pdf.svg(svg, {
+  //     x: offsetX,
+  //     y: offsetY,
+  //     width: vbWidth,
+  //     height: vbHeight,
+  //   });
+
+  //   pdf.save("FEFCO_0201_Dieline.pdf");
+  // };
+
+  const handleDownloadDieline = async () => {
+    const svg = document.getElementById("fefco-0201-dieline");
+    if (!svg) return;
+
+    // 1. Get actual drawn bounds
+    const bbox = svg.getBBox();
+
+    const pdfWidth = bbox.width;
+    const pdfHeight = bbox.height;
+
+    // 2. Create tightly-fitted PDF
+    const pdf = new jsPDF({
+      orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
+      unit: "pt",
+      format: [pdfWidth, pdfHeight],
+    });
+
+    // 3. Shift SVG so dieline starts at (0,0)
+    await pdf.svg(svg, {
+      x: -bbox.x,
+      y: -bbox.y,
+      width: svg.viewBox.baseVal.width,
+      height: svg.viewBox.baseVal.height,
+    });
+
+    pdf.save("FEFCO_0201_Dieline.pdf");
+  };
+
+  const handleDownloadDXF = () => {
+    try {
+      // Get dimensions from props or use defaults from Fefco0201Dieline
+      const dims = {
+        x: 100,
+        y: 200,
+        length: 191,
+        width: 383,
+        height: 245,
+      };
+
+      console.log("Generating DXF with dimensions:", dims);
+
+      // Generate DXF content
+      const dxfContent = generateFefco0201DXF(dims);
+      // Create blob and download
+      const blob = new Blob([dxfContent], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `FEFCO_0201_${dims.length}x${dims.width}x${dims.height}_Dieline.dxf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("DXF downloaded successfully!");
+    } catch (error) {
+      console.error("DXF generation error:", error);
+      toast.error("Failed to generate DXF file. Please try again.");
+    }
   };
 
   return (
     <div className="flex flex-col gap-6 h-full relative">
       {/* 1. 3D Preview Card */}
       <div className="bg-[#D1D5DB] rounded-2xl overflow-hidden relative h-[240px] shadow-inner">
-        {/* 3D Badge */}
         <div className="absolute top-3 right-3 z-10 bg-white/50 backdrop-blur-sm px-2 py-0.5 rounded-md">
           <span className="text-xs font-bold text-gray-800">3D</span>
         </div>
+        <div className="w-full h-full flex flex-col">
+          {/* 3D Viewer */}
+          <div className="flex-1 border border-gray">
+            <Suspense
+              fallback={
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader2 className="animate-spin text-gray-400" />
+                </div>
+              }
+            >
+              <Dieline3DViewer
+                fefcoCode="0201"
+                slider={sliderValue}
+                width={383}
+                length={191}
+                height={245}
+              />
+            </Suspense>
+          </div>
 
-        {/* Canvas */}
-        <div className="w-full h-full border rounded-2xl border-gray-200 border-2">
-          <Suspense
-            fallback={
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="animate-spin text-white" />
-              </div>
-            }
-          >
-            <Fefco0201_3D sliderValue={sliderValue}  />
-          </Suspense>
+          {/* SLIDER */}
+          <div className="px-3 pb-3 pt-2 bg-white/60 backdrop-blur-sm">
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.001}
+              value={sliderValue}
+              onChange={(e) => setSliderValue(+e.target.value)}
+              className="w-full accent-black cursor-pointer"
+            />
+          </div>
         </div>
 
         {/* Floating Slider */}
@@ -73,6 +191,12 @@ const RightPreviewPanel = () => {
       >
         <Download size={18} />
         <span>Download Dieline (PDF)</span>
+      </button>
+      <button
+        onClick={handleDownloadDXF}
+        className="w-full px-4 py-3 bg-black text-white rounded-lg"
+      >
+        Download Dieline (DXF)
       </button>
 
       {/* 3. You will get list */}

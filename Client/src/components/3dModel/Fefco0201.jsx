@@ -53,7 +53,8 @@ function Fefco0201_3D({
   const H = (sideWidth / 2) * S; // correct FEFCO flap rule
 
   /* ---------- materials ---------- */
-  const texture = useTexture("/cardboard.svg");
+  // const texture = useTexture("/cardboard.svg");
+  const texture=null;
 
    const baseMat = useMemo(() =>({
       map: texture || null,

@@ -55,6 +55,7 @@ function Fefco0203_3D({
 
   /* ---------- materials ---------- */
   const texture = useTexture("/cardboard.svg");
+  // const texture=null;
 
    const baseMat = useMemo(() =>({
       map: texture || null,

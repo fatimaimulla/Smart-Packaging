@@ -122,6 +122,7 @@ export default function Fefco0201Dieline(props) {
 
   return (
     <svg 
+    id="fefco-0201-dieline"
       width="3413" 
       height="2431" 
       viewBox="0 0 3413 2431" 
