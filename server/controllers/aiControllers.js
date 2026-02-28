@@ -28,7 +28,7 @@ export const productAnalyze = async (req, res) => {
     const base64Image2 = Buffer.from(imageBuffer2).toString("base64");
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       contents: [
         {
           parts: [
