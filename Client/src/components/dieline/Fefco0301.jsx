@@ -165,7 +165,7 @@ export default function Fefco0301Dieline(props) {
 }
 
 Fefco0301Dieline.defaultDimensions = {
-  l: 55,
-  w: 55,
-  h: 33,
+  l: 300,
+  w: 200,
+  h: 60,
 };

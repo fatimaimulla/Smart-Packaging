@@ -13,9 +13,35 @@ import { generateFefco0301DXF } from "@/utils/generateFefco0301DXF";
 import { generateFefco0401DXF } from "@/utils/generateFefco0401DXF";
 import { generateFefco0427DXF } from "@/utils/generateFefco0427DXF";
 import Dieline3DViewer from "./DieLine3DViewer";
+import { TEMPLATE_CONFIG } from "@/constants/template";
 
 const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
   const [sliderValue, setSliderValue] = useState(0);
+  const templateDefaults = TEMPLATE_CONFIG[fefcoCode]?.defaultDimensions ||
+    TEMPLATE_CONFIG["0201"]?.defaultDimensions || {
+      l: 191,
+      w: 383,
+      h: 245,
+  };
+  
+  const l =
+    dimensions?.l ??
+    dimensions?.length ??
+    templateDefaults?.l ??
+    templateDefaults?.length ??
+    191;
+  const w =
+    dimensions?.w ??
+    dimensions?.width ??
+    templateDefaults?.w ??
+    templateDefaults?.width ??
+    383;
+  const h =
+    dimensions?.h ??
+    dimensions?.height ??
+    templateDefaults?.h ??
+    templateDefaults?.height ??
+    245;
   // const handleDownloadDieline = async () => {
   //   // console.log("Download");
   //   const svg = document.getElementById("fefco-0201-dieline");
@@ -47,7 +73,7 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
   // };
 
   const handleDownloadDieline = async () => {
-    const svg = document.getElementById("fefco-0201-dieline");
+    const svg = document.getElementById(`fefco-${fefcoCode}-dieline`);
     if (!svg) return;
 
     // 1. Get actual drawn bounds
@@ -111,7 +137,7 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
   return (
     <div className="flex flex-col gap-6 h-full relative">
       {/* 1. 3D Preview Card */}
-      <div className="bg-[#D1D5DB] rounded-2xl overflow-hidden relative h-[240px] shadow-inner">
+      <div className="bg-[#D1D5DB] rounded-2xl overflow-hidden relative h-[288px] shadow-inner">
         <div className="absolute top-3 right-3 z-10 bg-white/50 backdrop-blur-sm px-2 py-0.5 rounded-md">
           <span className="text-xs font-bold text-gray-800">3D</span>
         </div>
@@ -126,11 +152,11 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
               }
             >
               <Dieline3DViewer
-                fefcoCode="0201"
+                fefcoCode={fefcoCode}
                 slider={sliderValue}
-                width={383}
-                length={191}
-                height={245}
+                width={w}
+                length={l}
+                height={h}
               />
             </Suspense>
           </div>

@@ -247,7 +247,7 @@ V${rightSideBottomFlapY + bleedOffset}
 }
 
 Fefco0203Dieline.defaultDimensions = {
-  l: 150,
-  w: 180,
-  h: 210,
+  l: 200,
+  w: 300,
+  h: 150,
 };

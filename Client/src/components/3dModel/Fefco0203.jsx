@@ -19,7 +19,6 @@ function Panel({ w, d, t, mat, pos }) {
     <mesh position={pos} castShadow receiveShadow material={mat}>
       <boxGeometry args={[w, t, d]} />
       <meshStandardMaterial {...mat} />
-      
     </mesh>
   );
 }
@@ -43,41 +42,52 @@ function Fefco0203_3D({
   width = 200,
   Height = 150,
   thickness = 1.5,
-  slider = 0
+  slider = 0,
 }) {
-  const S = 0.1;
+  const S = 0.01;
   const L = length * S;
   const W = width * S;
   const SW = Height * S;
   const T = thickness * S;
   const H = (Height / 2) * S;
-  const H2=(length/2)*S// correct FEFCO flap rule
+  const H2 = (length / 2) * S; // correct FEFCO flap rule
 
   /* ---------- materials ---------- */
   const texture = useTexture("/cardboard.svg");
-  // const texture=null;
 
-   const baseMat = useMemo(() =>({
+  const baseMat = useMemo(
+    () => ({
       map: texture || null,
-      color: texture ? 0xffffff : 0xCBAE91,
+      color: texture ? 0xffffff : 0xcbae91,
       roughness: 0.85,
       metalness: 0,
-   }), [texture]);
-  
-   const foldMat = useMemo(() => ({
+    }),
+    [texture],
+  );
+
+  const foldMat = useMemo(
+    () => ({
       map: texture || null,
-      color: texture ? 0xffffff : 0xB78B66,
+      color: texture ? 0xffffff : 0xb78b66,
       roughness: 0.86,
       metalness: 0,
-    }), [texture]);
+    }),
+    [texture],
+  );
 
   /* ---------- fold phases ---------- */
   const foldSide = THREE.MathUtils.degToRad(90 * segment(slider, 0.0, 0.33));
 
-  const foldTopSide = THREE.MathUtils.degToRad(90 * segment(slider, 0.33, 0.50));
-  const foldTopFront=THREE.MathUtils.degToRad(90 * segment(slider, 0.51, 0.66));
-  const foldBottomSide = THREE.MathUtils.degToRad(90 * segment(slider, 0.66, 0.82));
-  const foldBottomFont=THREE.MathUtils.degToRad(90 * segment(slider, 0.83, 1.0));
+  const foldTopSide = THREE.MathUtils.degToRad(90 * segment(slider, 0.33, 0.5));
+  const foldTopFront = THREE.MathUtils.degToRad(
+    90 * segment(slider, 0.51, 0.66),
+  );
+  const foldBottomSide = THREE.MathUtils.degToRad(
+    90 * segment(slider, 0.66, 0.82),
+  );
+  const foldBottomFont = THREE.MathUtils.degToRad(
+    90 * segment(slider, 0.83, 1.0),
+  );
 
   /* ---------- refs ---------- */
   const panel_right = useRef();
@@ -93,7 +103,6 @@ function Fefco0203_3D({
   const flap_left_top = useRef();
   const flap_left_bottom = useRef();
   const glue_flap = useRef();
-
 
   /* ---------- animate ---------- */
   useFrame(() => {
@@ -112,12 +121,10 @@ function Fefco0203_3D({
     flap_right_bottom.current.rotation.x = foldBottomSide;
     flap_back_bottom.current.rotation.x = foldBottomFont;
     flap_left_bottom.current.rotation.x = foldBottomSide;
-
-    
   });
 
   /* ---------- glue flap ---------- */
-  const glueWidth =0.25;
+  const glueWidth = 0.25;
   const lean = Math.tan(THREE.MathUtils.degToRad(30)) * glueWidth;
 
   const glueShape = useMemo(() => {
@@ -131,8 +138,9 @@ function Fefco0203_3D({
   }, [W, glueWidth, lean]);
 
   const glueGeom = useMemo(
-    () => new THREE.ExtrudeGeometry(glueShape, { depth: T, bevelEnabled: false }),
-    [glueShape, T]
+    () =>
+      new THREE.ExtrudeGeometry(glueShape, { depth: T, bevelEnabled: false }),
+    [glueShape, T],
   );
 
   return (
@@ -142,11 +150,23 @@ function Fefco0203_3D({
 
       {/* FRONT FLAPS */}
       <Hinge refObj={flap_front_top} pos={[0, 0, W / 2]} axis="x">
-        <Panel w={L-0.03} d={H} t={T} mat={foldMat} pos={[0, -T / 2, H / 2]} />
+        <Panel
+          w={L - 0.03}
+          d={H}
+          t={T}
+          mat={foldMat}
+          pos={[0, -T / 2, H / 2]}
+        />
       </Hinge>
 
       <Hinge refObj={flap_front_bottom} pos={[0, 0, -W / 2]} axis="x">
-        <Panel w={L-0.03} d={H} t={T} mat={foldMat} pos={[0, -T / 2, -H / 2]} />
+        <Panel
+          w={L - 0.03}
+          d={H}
+          t={T}
+          mat={foldMat}
+          pos={[0, -T / 2, -H / 2]}
+        />
       </Hinge>
 
       {/* GLUE FLAP */}
@@ -155,23 +175,34 @@ function Fefco0203_3D({
           geometry={glueGeom}
           material={new THREE.MeshStandardMaterial(baseMat)}
           rotation={[Math.PI / 2, 0, 0]}
-          position={[0, 0, -W /2]} // 🔥 offset from hinge
+          position={[0, 0, -W / 2]} // 🔥 offset from hinge
           castShadow
           receiveShadow
         />
       </Hinge>
-
 
       {/* RIGHT PANEL */}
       <Hinge refObj={panel_right} pos={[L / 2, 0, 0]} axis="z">
         <Panel w={SW} d={W} t={T} mat={baseMat} pos={[SW / 2, -T / 2, 0]} />
 
         <Hinge refObj={flap_right_top} pos={[0, 0, W / 2]} axis="x">
-          <Panel w={SW-0.03} d={H2} t={T} mat={foldMat} pos={[SW / 2, -T / 2, H2 / 2]} />
+          <Panel
+            w={SW - 0.03}
+            d={H2}
+            t={T}
+            mat={foldMat}
+            pos={[SW / 2, -T / 2, H2 / 2]}
+          />
         </Hinge>
 
         <Hinge refObj={flap_right_bottom} pos={[0, 0, -W / 2]} axis="x">
-          <Panel w={SW-0.03} d={H2} t={T} mat={foldMat} pos={[SW / 2, -T / 2, -H2 / 2]} />
+          <Panel
+            w={SW - 0.03}
+            d={H2}
+            t={T}
+            mat={foldMat}
+            pos={[SW / 2, -T / 2, -H2 / 2]}
+          />
         </Hinge>
 
         {/* BACK PANEL */}
@@ -179,11 +210,23 @@ function Fefco0203_3D({
           <Panel w={L} d={W} t={T} mat={baseMat} pos={[L / 2, -T / 2, 0]} />
 
           <Hinge refObj={flap_back_top} pos={[0, 0, W / 2]} axis="x">
-            <Panel w={L-0.03} d={H} t={T} mat={foldMat} pos={[L / 2, -T / 2, H / 2]} />
+            <Panel
+              w={L - 0.03}
+              d={H}
+              t={T}
+              mat={foldMat}
+              pos={[L / 2, -T / 2, H / 2]}
+            />
           </Hinge>
 
           <Hinge refObj={flap_back_bottom} pos={[0, 0, -W / 2]} axis="x">
-            <Panel w={L-0.03} d={H} t={T} mat={foldMat} pos={[L / 2, -T / 2, -H / 2]} />
+            <Panel
+              w={L - 0.03}
+              d={H}
+              t={T}
+              mat={foldMat}
+              pos={[L / 2, -T / 2, -H / 2]}
+            />
           </Hinge>
 
           {/* LEFT PANEL */}
@@ -191,11 +234,23 @@ function Fefco0203_3D({
             <Panel w={SW} d={W} t={T} mat={baseMat} pos={[SW / 2, -T / 2, 0]} />
 
             <Hinge refObj={flap_left_top} pos={[0, 0, W / 2]} axis="x">
-              <Panel w={SW-0.03} d={H2} t={T} mat={foldMat} pos={[SW / 2, -T / 2, H2 / 2]} />
+              <Panel
+                w={SW - 0.03}
+                d={H2}
+                t={T}
+                mat={foldMat}
+                pos={[SW / 2, -T / 2, H2 / 2]}
+              />
             </Hinge>
 
             <Hinge refObj={flap_left_bottom} pos={[0, 0, -W / 2]} axis="x">
-              <Panel w={SW-0.03} d={H2} t={T} mat={foldMat} pos={[SW / 2, -T / 2, -H2 / 2]} />
+              <Panel
+                w={SW - 0.03}
+                d={H2}
+                t={T}
+                mat={foldMat}
+                pos={[SW / 2, -T / 2, -H2 / 2]}
+              />
             </Hinge>
           </Hinge>
         </Hinge>

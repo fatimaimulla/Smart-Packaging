@@ -8,75 +8,7 @@ import { useNavigate } from "react-router-dom";
 import LibrarySidebar from "@/components/library/LibrarySideBar";
 import DielineCard from "@/components/library/DielineCard";
 import clsx from "clsx";
-
-// --- Dielines (5 ready FEFCO templates) ---
-const MOCK_DIELINES = [
-  {
-    id: "0201",
-    code: "FEFCO 0201",
-    name: "Standard RSC Box",
-    category: "folding",
-    source: "system",
-    image2d: "/thumbnails/0201_2D.png",
-    image3d: "/thumbnails/0201_3D.png",
-    description:
-      "Regular Slotted Container (FEFCO 0201). The most common shipping box type.",
-    tags: ["Shipping", "Corrugated"],
-    isNew: false,
-  },
-  {
-    id: "0203",
-    code: "FEFCO 0203",
-    name: "Full Overlap Slotted Box",
-    category: "folding",
-    source: "system",
-    image2d: "/thumbnails/0203_2D.png",
-    image3d: "/thumbnails/0203_3D.png",
-    description:
-      "Full overlap flaps for extra stacking strength and protection.",
-    tags: ["Heavy Duty", "Shipping"],
-    isNew: false,
-  },
-  {
-    id: "0301",
-    code: "FEFCO 0301",
-    name: "Telescope Box",
-    category: "folding",
-    source: "system",
-    image2d: "/thumbnails/0301_2D.png",
-    image3d: "/thumbnails/0301_3D.png",
-    description:
-      "Two-piece box with a separate lid and base for premium packaging.",
-    tags: ["Retail", "Premium"],
-    isNew: true,
-  },
-  {
-    id: "0401",
-    code: "FEFCO 0401",
-    name: "Folder Type Box",
-    category: "mailer",
-    source: "system",
-    image2d: "/thumbnails/0401_2D.png",
-    image3d: "/thumbnails/0401_3D.png",
-    description:
-      "One-piece folder-style box that’s fast to assemble and ship.",
-    tags: ["Mailer", "Lightweight"],
-    isNew: false,
-  },
-  {
-    id: "0427",
-    code: "FEFCO 0427",
-    name: "Double Wall Tuck Front",
-    category: "mailer",
-    source: "system",
-    image2d: "/thumbnails/0427_2D.png",
-    image3d: "/thumbnails/0427_3D.png",
-    description:
-      "Tuck-front mailer with double wall for stronger presentation.",
-    tags: ["E-commerce", "Premium"],
-    isNew: false,
-  },
-];
+import { DIELINE_LIBRARY_ITEMS } from "@/constants/dielineLibrary";
 
 const DielineLibraryPage = () => {
   const navigate = useNavigate();
@@ -86,7 +18,7 @@ const DielineLibraryPage = () => {
 
   // --- Filtering Logic ---
   const filteredDielines = useMemo(() => {
-    return MOCK_DIELINES.filter((item) => {
+    return DIELINE_LIBRARY_ITEMS.filter((item) => {
       // Category Filter
       if (activeCategory !== "all" && item.category !== activeCategory)
         return false;
@@ -110,8 +42,8 @@ const DielineLibraryPage = () => {
 
   // --- Counts Logic ---
   const counts = useMemo(() => {
-    const c = { all: MOCK_DIELINES.length };
-    MOCK_DIELINES.forEach((d) => {
+    const c = { all: DIELINE_LIBRARY_ITEMS.length };
+    DIELINE_LIBRARY_ITEMS.forEach((d) => {
       c[d.category] = (c[d.category] || 0) + 1;
     });
     return c;

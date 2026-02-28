@@ -12,7 +12,7 @@ import { TEMPLATE_CONFIG } from "@/constants/template";
 
 const DieLineGeneratorPage = () => {
   const location = useLocation();
-  const selectedTemplateId = location.state?.templateId || "0202";
+  const selectedTemplateId = location.state?.templateId || "0201";
   const templateDefaults =
     TEMPLATE_CONFIG[selectedTemplateId]?.defaultDimensions || {
       l: 191,
@@ -57,7 +57,7 @@ const DieLineGeneratorPage = () => {
         <SidebarNav />
 
         {/* 2. Settings Panel (Attached to Nav) */}
-        <div className="w-[320px] h-full bg-white border-r border-gray-200 z-20 flex-shrink-0 shadow-sm overflow-y-auto">
+        <div className="w-[288px] h-full bg-white border-r border-gray-200 z-20 flex-shrink-0 shadow-sm overflow-y-auto">
           <LeftSettingsPanel
             settings={settings}
             setSettings={setSettings}
@@ -84,7 +84,7 @@ const DieLineGeneratorPage = () => {
         </div>
 
         {/* 4. Right Panel (Fixed Width) */}
-        <div className="w-[340px] h-full bg-white border-l border-gray-200 z-20 flex-shrink-0 overflow-y-auto p-4 shadow-sm">
+        <div className="w-[408px] h-full bg-white border-l border-gray-200 z-20 flex-shrink-0 overflow-y-auto p-4 shadow-sm">
           <RightPreviewPanel
             fefcoCode={selectedTemplateId}
             dimensions={dimensions}
