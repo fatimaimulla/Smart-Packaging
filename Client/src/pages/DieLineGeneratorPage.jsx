@@ -7,17 +7,21 @@ import DieLineViewer from "../components/template/DieLineViewer";
 import SidebarNav from "@/components/template/SidebarNav";
 import LeftSettingsPanel from "@/components/template/LeftSettingsPanel";
 import RightPreviewPanel from "@/components/template/RightPreviewPanel";
+import { TEMPLATE_CONFIG } from "@/constants/template";
 // import SidebarNav from "../components/dieline/SidebarNav";
 
 const DieLineGeneratorPage = () => {
   const location = useLocation();
+  const selectedTemplateId = location.state?.templateId || "0202";
+  const templateDefaults =
+    TEMPLATE_CONFIG[selectedTemplateId]?.defaultDimensions || {
+      l: 191,
+      w: 383,
+      h: 245,
+    };
 
   // Get dimensions from previous step or use defaults
-  const initialDimensions = location.state?.dimensions || {
-    l: 191,
-    w: 383,
-    h: 245,
-  };
+  const initialDimensions = location.state?.dimensions || templateDefaults;
 
   // Centralized State
   const [settings, setSettings] = useState({
@@ -72,12 +76,19 @@ const DieLineGeneratorPage = () => {
               backgroundSize: "24px 24px",
             }}
           />
-          <DieLineViewer dimensions={dimensions} settings={settings} />
+          <DieLineViewer
+            fefcoCode={selectedTemplateId}
+            dimensions={dimensions}
+            settings={settings}
+          />
         </div>
 
         {/* 4. Right Panel (Fixed Width) */}
         <div className="w-[340px] h-full bg-white border-l border-gray-200 z-20 flex-shrink-0 overflow-y-auto p-4 shadow-sm">
-          <RightPreviewPanel />
+          <RightPreviewPanel
+            fefcoCode={selectedTemplateId}
+            dimensions={dimensions}
+          />
         </div>
       </main>
 

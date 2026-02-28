@@ -157,46 +157,46 @@ const handleUpload = (files) => {
    
     console.log("Helloo")
       
-    // if (images.length !== 2)
-    // {
-    //     console.log("2nd step--------->");
-    //     toast.error("Please upload 2 images");
-    //     return;
-    //   }
+    if (images.length !== 2)
+    {
+        console.log("2nd step--------->");
+        toast.error("Please upload 2 images");
+        return;
+      }
     
 
-    //   const topView = images.find((img) => img.type === "Top View")?.file;
-    // const sideView = images.find((img) => img.type === "Side View")?.file;
-    // console.log("2nd step--------->");
+      const topView = images.find((img) => img.type === "Top View")?.file;
+    const sideView = images.find((img) => img.type === "Side View")?.file;
+    console.log("2nd step--------->");
     
 
-    //   if (!topView || !sideView) {
-    //     toast.error("Both Top View and Side View are required");
-    //     return;
-    //   }
+      if (!topView || !sideView) {
+        toast.error("Both Top View and Side View are required");
+        return;
+      }
 
-    // try {
-    //   console.log("3rd step------------->");
-    //   const res = await uploadFromSystemHandler({
-    //     topImage: topView,
-    //     sideImage: sideView,
-    //     referenceType: referenceType,
-    //     sessionId: sessionId, // ✅ THIS IS THE KEY
-    //   });
-    //   console.log("this is from current chutiya", res);
-    //   if (res.data.success) {
-    //     toast.success(res.data.message);
-    //     navigate(`/review/${sessionId}`);
-    //   } else {
-    //     toast.error(res.data.message);
-    //   }
-    // } catch (error) {
-    //   toast.error(
-    //     error.response?.data?.message || "Network error. Please try again.",
-    //   );
-    // } finally {
-    //   setIsSubmitting(false); // ⭐ STOP LOADER (safety)
-    // }
+    try {
+      console.log("3rd step------------->");
+      const res = await uploadFromSystemHandler({
+        topImage: topView,
+        sideImage: sideView,
+        referenceType: referenceType,
+        sessionId: sessionId, // ✅ THIS IS THE KEY
+      });
+      console.log("this is from current chutiya", res);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        navigate(`/review/${sessionId}`);
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Network error. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false); // ⭐ STOP LOADER (safety)
+    }
     };
 
 

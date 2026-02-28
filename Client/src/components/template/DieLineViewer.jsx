@@ -11,8 +11,9 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import Fefco0201Dieline from "../dieline/Fefco0201";
+import { TEMPLATE_CONFIG } from "@/constants/template";
 
-const DieLineViewer = ({ dimensions, settings }) => {
+const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(0.9);
   const [position, setPosition] = useState({ x: 150, y: 150 });
@@ -23,6 +24,8 @@ const DieLineViewer = ({ dimensions, settings }) => {
   // Dimensions & Settings
   const { l, w, h } = dimensions;
   const thickness = settings.thickness || 0.5;
+  const template = TEMPLATE_CONFIG[fefcoCode];
+  const Dieline2D = template?.Dieline2D || Fefco0201Dieline;
 
   // Calculate Derived Dimensions for Display
   const innerL = (l - thickness * 2).toFixed(1);
@@ -248,12 +251,12 @@ const DieLineViewer = ({ dimensions, settings }) => {
         >
           {/* Removing extra padding to allow better fit */}
           <div className="w-full h-full flex items-center justify-center p-10">
-            <Fefco0201Dieline
+            <Dieline2D
               x={0}
               y={0}
-              length={w}
+              length={l}
               height={h}
-              width={l}
+              width={w}
               thickness={settings.thickness}
               glueFlap={settings.glueFlap}
               topFlap={settings.topFlap}

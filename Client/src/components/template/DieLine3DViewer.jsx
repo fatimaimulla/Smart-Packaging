@@ -29,7 +29,7 @@ const Dieline3DViewer = ({
   return (
     <Canvas
       shadows
-      style={{ height: "100%", width: "100%", background: "white" }}
+      style={{ height: "100%", width: "100%", background: "#D3D3D3" }}
       camera={{ position: [0, 8, 8], fov: 50 }}
     >
       {/* Lights (copied from friend, unchanged) */}
@@ -49,24 +49,12 @@ const Dieline3DViewer = ({
         shadow-mapSize-height={2048}
       />
 
-      <directionalLight
-        position={[-3, 2, 2]}
-        intensity={0.35}
-        castShadow
-      />
+      <directionalLight position={[-3, 2, 2]} intensity={0.35} castShadow />
 
-      <directionalLight
-        position={[0, 3, -3]}
-        intensity={0.25}
-      />
+      <directionalLight position={[0, 3, -3]} intensity={0.25} />
 
       {/* 3D Model */}
-      <Model
-        slider={slider}
-        width={width}
-        length={length}
-        height={height}
-      />
+      <Model slider={slider} width={width} length={length} height={height} />
 
       <OrbitControls />
     </Canvas>

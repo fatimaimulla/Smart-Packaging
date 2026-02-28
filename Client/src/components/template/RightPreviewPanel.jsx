@@ -1,5 +1,4 @@
 import React, { useState, Suspense } from "react";
-import Fefco0201_3D from "../3dModel/Fefco0201";
 import { Download, Loader2, MessageCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { Canvas } from "@react-three/fiber";
@@ -15,7 +14,7 @@ import { generateFefco0401DXF } from "@/utils/generateFefco0401DXF";
 import { generateFefco0427DXF } from "@/utils/generateFefco0427DXF";
 import Dieline3DViewer from "./DieLine3DViewer";
 
-const RightPreviewPanel = () => {
+const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
   const [sliderValue, setSliderValue] = useState(0);
   // const handleDownloadDieline = async () => {
   //   // console.log("Download");
@@ -107,6 +106,7 @@ const RightPreviewPanel = () => {
       toast.error("Failed to generate DXF file. Please try again.");
     }
   };
+  
 
   return (
     <div className="flex flex-col gap-6 h-full relative">
