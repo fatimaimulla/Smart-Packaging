@@ -46,6 +46,7 @@ const TemplateViewPage = () => {
   // AI State
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiData, setAiData] = useState(null);
+  const [showRecommendationModal, setShowRecommendationModal] = useState(false);
 
   useEffect(() => {
     canvasRef.current?.resetView();
@@ -54,19 +55,35 @@ const TemplateViewPage = () => {
 
   const hasCalledAI = useRef(false);
 
-useEffect(() => {
-  if (
-    !topImageUrl ||
-    !sideImageUrl ||
-    !imageDimensions?.l ||
-    hasCalledAI.current
-  ) {
-    return;
-  }
+  useEffect(() => {
+    if (
+      !topImageUrl ||
+      !sideImageUrl ||
+      !imageDimensions?.l ||
+      hasCalledAI.current
+    ) {
+      return;
+    }
 
-  hasCalledAI.current = true;
-  handleAskAI();
-}, [topImageUrl, sideImageUrl, imageDimensions]);
+    hasCalledAI.current = true;
+    handleAskAI();
+  }, [topImageUrl, sideImageUrl, imageDimensions]);
+
+  // Trigger Modal when AI recommends a different box
+  useEffect(() => {
+    if (
+      aiData &&
+      aiData.recommendedFefcoBox &&
+      aiData.recommendedFefcoBox !== selectedTemplateId &&
+      !aiData.recommendedFefcoBox.includes(selectedTemplateId) // basic check just in case it returns "Fefco0301"
+    ) {
+      setShowRecommendationModal(true);
+    }
+  }, [aiData, selectedTemplateId]);
+
+  const handleSwitchToAI = () => {
+    console.log("Switching to AI recommended FEFCO");
+  };
 
   if (!template) {
     return (
@@ -90,44 +107,6 @@ useEffect(() => {
           h: (h * MM_TO_IN).toFixed(2),
         };
 
-  // AI Handler
-  // const handleAskAI = async () => {
-  //   try {
-  //     setIsAiLoading(true);
-  //     const res = await getAiResponse({
-  //       imageUrl1: topImageUrl,
-  //       imageUrl2: topImageUrl,
-  //       dimensions: imageDimensions,
-  //     });
-  //     console.log(res);
-  //     if (res.data.success) {
-  //       setAiData({
-  //         productName: res.data.data.productName,
-  //         fragilityLevel: res.data.data.fragilityLevel,
-  //         estimatedWeight: res.data.data.estimatedWeight,
-  //         recommendedFefcoBox: res.data.data.recommendedFefcoBox,
-  //       })
-  //       toast.success(res.data.message);
-  //       setIsAiLoading(false);
-  //     }
-  //   } catch (error) {
-  //     console.log(error)
-  //     toast.error(error.response?.data?.message || error.message);
-  //   }finally{
-  //     setIsAiLoading(false);
-  //   }
-  //   // setIsAiLoading(true);
-  //   // // Simulate API call
-  //   // setTimeout(() => {
-  //   //   setAiData({
-  //   //     productName: "Hair Clip",
-  //   //     fragilityLevel: "Medium",
-  //   //     estimatedWeight: "35g",
-  //   //     recommendedFefcoBox: "Fefco0201",
-  //   //   });
-  //   //   setIsAiLoading(false);
-  //   // }, 2000);
-  // };
   const handleAskAI = async () => {
     try {
       setIsAiLoading(true);
@@ -182,6 +161,37 @@ useEffect(() => {
                 Dieline={Dieline2D}
                 dimensions={dimensions}
               />
+
+              {/* AI Recommendation Modal Overlay */}
+              {showRecommendationModal && (
+                <div className="absolute inset-0 z-50 bg-black/40 flex items-center justify-center p-4 transition-opacity duration-300">
+                  <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 max-w-sm w-full animate-in fade-in zoom-in-95 duration-300">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      AI Suggested a Better Box
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                      The AI recommends switching to <span className="font-semibold text-gray-800">{aiData?.recommendedFefcoBox}</span> instead of your current dieline for optimal packaging.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <button
+                        onClick={() => {
+                          handleSwitchToAI();
+                          setShowRecommendationModal(false);
+                        }}
+                        className="w-full py-3 bg-[#007AFF] hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
+                      >
+                        Switch to AI Recommendation
+                      </button>
+                      <button
+                        onClick={() => setShowRecommendationModal(false)}
+                        className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-semibold transition-colors"
+                      >
+                        Continue with Current
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* RIGHT COLUMN: RESTRUCTURED UI */}
@@ -256,16 +266,6 @@ useEffect(() => {
                     AI Assistant
                   </h3>
                 </div>
-
-                {/* {!aiData && !isAiLoading && (
-                  <button
-                    onClick={handleAskAI}
-                    className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2"
-                  >
-                    <Sparkles size={18} />
-                    Ask AI
-                  </button>
-                )} */}
 
                 {isAiLoading && (
                   <div className="flex flex-col items-center justify-center py-6 gap-3">
