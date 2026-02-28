@@ -15,7 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { clsx } from "clsx";
-import {  useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { getAiResponse } from "@/api/getAiResponse";
 import { toast } from "sonner";
 
@@ -27,7 +27,11 @@ const TemplateViewPage = () => {
   const imageDimensions = useSelector((state) => state.image.dimensions);
 
   const { dimensions } = location.state || {
-    dimensions: { l: imageDimensions.l, w: imageDimensions.w, h: imageDimensions.h },
+    dimensions: {
+      l: imageDimensions.l,
+      w: imageDimensions.w,
+      h: imageDimensions.h,
+    },
   };
   const selectedTemplateId = "0301";
   const template = TEMPLATE_CONFIG[selectedTemplateId];
@@ -47,6 +51,22 @@ const TemplateViewPage = () => {
     canvasRef.current?.resetView();
     setSliderValue(0);
   }, [selectedTemplateId]);
+
+  const hasCalledAI = useRef(false);
+
+useEffect(() => {
+  if (
+    !topImageUrl ||
+    !sideImageUrl ||
+    !imageDimensions?.l ||
+    hasCalledAI.current
+  ) {
+    return;
+  }
+
+  hasCalledAI.current = true;
+  handleAskAI();
+}, [topImageUrl, sideImageUrl, imageDimensions]);
 
   if (!template) {
     return (
@@ -71,42 +91,62 @@ const TemplateViewPage = () => {
         };
 
   // AI Handler
+  // const handleAskAI = async () => {
+  //   try {
+  //     setIsAiLoading(true);
+  //     const res = await getAiResponse({
+  //       imageUrl1: topImageUrl,
+  //       imageUrl2: topImageUrl,
+  //       dimensions: imageDimensions,
+  //     });
+  //     console.log(res);
+  //     if (res.data.success) {
+  //       setAiData({
+  //         productName: res.data.data.productName,
+  //         fragilityLevel: res.data.data.fragilityLevel,
+  //         estimatedWeight: res.data.data.estimatedWeight,
+  //         recommendedFefcoBox: res.data.data.recommendedFefcoBox,
+  //       })
+  //       toast.success(res.data.message);
+  //       setIsAiLoading(false);
+  //     }
+  //   } catch (error) {
+  //     console.log(error)
+  //     toast.error(error.response?.data?.message || error.message);
+  //   }finally{
+  //     setIsAiLoading(false);
+  //   }
+  //   // setIsAiLoading(true);
+  //   // // Simulate API call
+  //   // setTimeout(() => {
+  //   //   setAiData({
+  //   //     productName: "Hair Clip",
+  //   //     fragilityLevel: "Medium",
+  //   //     estimatedWeight: "35g",
+  //   //     recommendedFefcoBox: "Fefco0201",
+  //   //   });
+  //   //   setIsAiLoading(false);
+  //   // }, 2000);
+  // };
   const handleAskAI = async () => {
     try {
       setIsAiLoading(true);
+
       const res = await getAiResponse({
         imageUrl1: topImageUrl,
-        imageUrl2: topImageUrl,
+        imageUrl2: sideImageUrl, // FIXED
         dimensions: imageDimensions,
       });
-      console.log(res);
+
       if (res.data.success) {
-        setAiData({
-          productName: res.data.data.productName,
-          fragilityLevel: res.data.data.fragilityLevel,
-          estimatedWeight: res.data.data.estimatedWeight,
-          recommendedFefcoBox: res.data.data.recommendedFefcoBox,
-        })
+        setAiData(res.data.data);
         toast.success(res.data.message);
-        setIsAiLoading(false);
       }
     } catch (error) {
-      console.log(error)
       toast.error(error.response?.data?.message || error.message);
-    }finally{
+    } finally {
       setIsAiLoading(false);
     }
-    // setIsAiLoading(true);
-    // // Simulate API call
-    // setTimeout(() => {
-    //   setAiData({
-    //     productName: "Hair Clip",
-    //     fragilityLevel: "Medium",
-    //     estimatedWeight: "35g",
-    //     recommendedFefcoBox: "Fefco0201",
-    //   });
-    //   setIsAiLoading(false);
-    // }, 2000);
   };
 
   return (
@@ -217,7 +257,7 @@ const TemplateViewPage = () => {
                   </h3>
                 </div>
 
-                {!aiData && !isAiLoading && (
+                {/* {!aiData && !isAiLoading && (
                   <button
                     onClick={handleAskAI}
                     className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2"
@@ -225,7 +265,7 @@ const TemplateViewPage = () => {
                     <Sparkles size={18} />
                     Ask AI
                   </button>
-                )}
+                )} */}
 
                 {isAiLoading && (
                   <div className="flex flex-col items-center justify-center py-6 gap-3">
@@ -275,7 +315,6 @@ const TemplateViewPage = () => {
                         </span>
                       </div>
                     </div>
-                    
                   </div>
                 )}
               </div>
