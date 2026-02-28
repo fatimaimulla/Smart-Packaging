@@ -38,20 +38,18 @@ function Hinge({ refObj, pos, axis, angle = 0, children }) {
 
 /* ------------------ FEFCO 0201 ------------------ */
 function Fefco0201_3D({
-  length = 500,
-  width = 200,
+  length ,
+  width ,
   height,
-  sideWidth = 150,
   thickness = 1.5,
   slider = 0,
 }) {
   const S = 0.01;
   const L = length * S;
   const W = width * S;
-  const panelHeight = height ?? sideWidth;
-  const SW = panelHeight * S;
+  const SW = height * S;
   const T = thickness * S;
-  const H = (panelHeight / 2) * S; // correct FEFCO flap rule
+  const H = (height / 2) * S; // correct FEFCO flap rule
 
   /* ---------- materials ---------- */
   const texture = useTexture("/cardboard.svg");
