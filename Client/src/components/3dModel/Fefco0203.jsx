@@ -40,6 +40,7 @@ function Hinge({ refObj, pos, axis, angle = 0, children }) {
 function Fefco0203_3D({
   length = 300,
   width = 200,
+  height,
   Height = 150,
   thickness = 1.5,
   slider = 0,
@@ -47,9 +48,10 @@ function Fefco0203_3D({
   const S = 0.01;
   const L = length * S;
   const W = width * S;
-  const SW = Height * S;
+  const panelHeight = height ?? Height;
+  const SW = panelHeight * S;
   const T = thickness * S;
-  const H = (Height / 2) * S;
+  const H = (panelHeight / 2) * S;
   const H2 = (length / 2) * S; // correct FEFCO flap rule
 
   /* ---------- materials ---------- */
