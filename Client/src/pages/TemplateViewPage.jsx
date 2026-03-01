@@ -239,7 +239,7 @@ const TemplateViewPage = () => {
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#007AFF] hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
                 >
                   <Edit3 size={18} />
-                  <span>Open in editor</span>
+                  <span>Editor</span>
                 </button>
 
                 <button
@@ -270,9 +270,6 @@ const TemplateViewPage = () => {
               {/* 3d View */}
 
               <div>
-                <h3 className="text-base font-bold text-gray-900 mb-3">
-                  Preview
-                </h3>
                 <div className="bg-[#E5E5E5] rounded-2xl overflow-hidden relative h-[240px] shadow-inner border border-gray-300">
                   <div className="absolute top-3 right-3 z-10">
                     <Box size={22} className="text-black opacity-60" />

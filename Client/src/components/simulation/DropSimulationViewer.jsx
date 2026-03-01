@@ -50,7 +50,7 @@ const ORIENTATION_PROFILE = {
 };
 
 const WORLD_METER_SCALE = 2.4;
-const GROUND_CLEARANCE = 0.02;
+const GROUND_CLEARANCE = 0.001;
 const TOPPLE_SPEED_FACTOR = 0.7; // 30% faster than baseline
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -189,10 +189,7 @@ const SimulationAssembly = ({
   }, [weightGrams, worldDimensions.x, worldDimensions.y, worldDimensions.z]);
 
   const impactHalfHeight = getHalfHeightForRotation(worldDimensions, dropRotation);
-  const dynamicClearance =
-    orientation === "flat"
-      ? GROUND_CLEARANCE
-      : GROUND_CLEARANCE + Math.max(0.02, worldDimensions.y * 0.03);
+  const dynamicClearance = GROUND_CLEARANCE;
   const impactY = impactHalfHeight + dynamicClearance;
   const dropWorld = clamp((dropHeightCm / 100) * WORLD_METER_SCALE, 0.3, 12);
   const startY = impactY + dropWorld;
