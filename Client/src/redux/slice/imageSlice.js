@@ -6,6 +6,7 @@ const IMAGE_SLICE = createSlice({
     topImageUrl: null,
     sideImageUrl: null,
     dimensions: {},
+    aiResponse: {},
   },
   reducers: {
     setTopImageUrl: (state, action) => {
@@ -17,12 +18,15 @@ const IMAGE_SLICE = createSlice({
     setImageDimensions: (state, action) => {
       state.dimensions = action.payload;
     },
-    
+    setAiResponse: (state, action) => {
+      state.aiResponse = action.payload;
+    },
 
     resetImageUrlState: (state) => {
       state.topImageUrl = null;
       state.sideImageUrl = null;
       state.dimensions = {};
+      state.aiResponse = {};
     },
   },
 });
@@ -32,5 +36,6 @@ export const {
   setTopImageUrl,
   setImageDimensions,
   resetImageUrlState,
+  setAiResponse,
 } = IMAGE_SLICE.actions;
 export default IMAGE_SLICE.reducer;

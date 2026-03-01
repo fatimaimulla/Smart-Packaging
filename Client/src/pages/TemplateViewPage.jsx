@@ -17,7 +17,9 @@ import {
 import { clsx } from "clsx";
 import { useSelector } from "react-redux";
 import { getAiResponse } from "@/api/getAiResponse";
+import { useDispatch } from "react-redux";
 import { toast } from "sonner";
+import { setAiResponse } from "@/redux/slice/imageSlice";
 
 const TemplateViewPage = () => {
   const location = useLocation();
@@ -33,8 +35,7 @@ const TemplateViewPage = () => {
       h: imageDimensions.h,
     },
   };
-  const [selectedTemplateId, setSelectedTemplateId] = useState("0301");
-
+  const selectedTemplateId = "0301";
   const template = TEMPLATE_CONFIG[selectedTemplateId];
 
   // 2D Canvas Ref
@@ -55,6 +56,7 @@ const TemplateViewPage = () => {
   }, [selectedTemplateId]);
 
   const hasCalledAI = useRef(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (
@@ -83,12 +85,7 @@ const TemplateViewPage = () => {
   }, [aiData, selectedTemplateId]);
 
   const handleSwitchToAI = () => {
-    if (!aiData?.recommendedFefcoBox) return;
-
-    const numericCode = aiData.recommendedFefcoBox.replace(/\D/g, "");
-
-    setSelectedTemplateId(numericCode);
-    setShowRecommendationModal(false);
+    console.log("Switching to AI recommended FEFCO");
   };
 
   if (!template) {
@@ -122,9 +119,10 @@ const TemplateViewPage = () => {
         imageUrl2: sideImageUrl, // FIXED
         dimensions: imageDimensions,
       });
-      console.log(res.data);
+
       if (res.data.success) {
         setAiData(res.data.data);
+        dispatch(setAiResponse(res.data.data));
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -214,14 +212,7 @@ const TemplateViewPage = () => {
                 </button>
 
                 <button
-                  onClick={() =>
-                    navigate("/dieline", {
-                      state: {
-                        dimensions: dimensions,
-                        templateId: selectedTemplateId,
-                      },
-                    })
-                  }
+                  onClick={() => navigate("/dieline")}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#007AFF] hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
                 >
                   <Edit3 size={18} />
