@@ -27,6 +27,7 @@ const TemplateViewPage = () => {
   const topImageUrl = useSelector((state) => state.image.topImageUrl);
   const sideImageUrl = useSelector((state) => state.image.sideImageUrl);
   const imageDimensions = useSelector((state) => state.image.dimensions);
+  const cachedAiResponse = useSelector((state) => state.image.aiResponse);
 
   const { dimensions } = location.state || {
     dimensions: {
@@ -59,6 +60,15 @@ const TemplateViewPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    const hasCachedAIData =
+      cachedAiResponse && Object.keys(cachedAiResponse).length > 0;
+
+    if (hasCachedAIData) {
+      setAiData(cachedAiResponse);
+      hasCalledAI.current = true;
+      return;
+    }
+
     if (
       !topImageUrl ||
       !sideImageUrl ||
@@ -70,7 +80,7 @@ const TemplateViewPage = () => {
 
     hasCalledAI.current = true;
     handleAskAI();
-  }, [topImageUrl, sideImageUrl, imageDimensions]);
+  }, [topImageUrl, sideImageUrl, imageDimensions, cachedAiResponse]);
 
   // Trigger Modal when AI recommends a different box
   useEffect(() => {
