@@ -13,6 +13,7 @@ import {
   Box,
   FileText,
   Loader2,
+  Activity,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useSelector } from "react-redux";
@@ -73,7 +74,7 @@ const TemplateViewPage = () => {
       !topImageUrl ||
       !sideImageUrl ||
       !imageDimensions?.l ||
-      hasCalledAI.current
+      hasCalledAI.current 
     ) {
       return;
     }
@@ -239,6 +240,23 @@ const TemplateViewPage = () => {
                 >
                   <Edit3 size={18} />
                   <span>Open in editor</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    navigate("/drop-simulation", {
+                      state: {
+                        fefcoCode: selectedTemplateId,
+                        dimensions: { l, w, h },
+                        estimatedWeight: aiData?.estimatedWeight,
+                        fragilityLevel: aiData?.fragilityLevel,
+                      },
+                    })
+                  }
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
+                >
+                  <Activity size={18} />
+                  <span>Drop Sim</span>
                 </button>
 
                 <button

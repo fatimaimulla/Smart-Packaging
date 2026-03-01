@@ -9,6 +9,7 @@ import MobileCapturePage from "../pages/MobileCapturePage";
 import MobileReviewPage from "@/pages/MobileReviewPage";
 import DielineLibraryPage from "@/pages/DielineLibraryPage";
 import TemplateViewPage from "@/pages/TemplateViewPage";
+import DropSimulationPage from "@/pages/DropSimulationPage";
 
 const AppRouter = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ const AppRouter = createBrowserRouter([
   {
     path: "/template-view",
     element: <TemplateViewPage></TemplateViewPage>,
+  },
+  {
+    path: "/drop-simulation",
+    element: <DropSimulationPage></DropSimulationPage>,
   },
 ]);
 
