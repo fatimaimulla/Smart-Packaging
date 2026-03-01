@@ -33,7 +33,8 @@ const TemplateViewPage = () => {
       h: imageDimensions.h,
     },
   };
-  const selectedTemplateId = "0301";
+  const [selectedTemplateId, setSelectedTemplateId] = useState("0301");
+
   const template = TEMPLATE_CONFIG[selectedTemplateId];
 
   // 2D Canvas Ref
@@ -82,7 +83,12 @@ const TemplateViewPage = () => {
   }, [aiData, selectedTemplateId]);
 
   const handleSwitchToAI = () => {
-    console.log("Switching to AI recommended FEFCO");
+    if (!aiData?.recommendedFefcoBox) return;
+
+    const numericCode = aiData.recommendedFefcoBox.replace(/\D/g, "");
+
+    setSelectedTemplateId(numericCode);
+    setShowRecommendationModal(false);
   };
 
   if (!template) {
@@ -116,7 +122,7 @@ const TemplateViewPage = () => {
         imageUrl2: sideImageUrl, // FIXED
         dimensions: imageDimensions,
       });
-
+      console.log(res.data);
       if (res.data.success) {
         setAiData(res.data.data);
         toast.success(res.data.message);
@@ -170,7 +176,11 @@ const TemplateViewPage = () => {
                       AI Suggested a Better Box
                     </h3>
                     <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                      The AI recommends switching to <span className="font-semibold text-gray-800">{aiData?.recommendedFefcoBox}</span> instead of your current dieline for optimal packaging.
+                      The AI recommends switching to{" "}
+                      <span className="font-semibold text-gray-800">
+                        {aiData?.recommendedFefcoBox}
+                      </span>{" "}
+                      instead of your current dieline for optimal packaging.
                     </p>
                     <div className="flex flex-col gap-3">
                       <button
@@ -204,7 +214,14 @@ const TemplateViewPage = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate("/dieline")}
+                  onClick={() =>
+                    navigate("/dieline", {
+                      state: {
+                        dimensions: dimensions,
+                        templateId: selectedTemplateId,
+                      },
+                    })
+                  }
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#007AFF] hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
                 >
                   <Edit3 size={18} />
