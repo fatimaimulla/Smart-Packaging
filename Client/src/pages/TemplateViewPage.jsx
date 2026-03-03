@@ -246,6 +246,8 @@ const TemplateViewPage = () => {
                   onClick={() =>
                     navigate("/drop-simulation", {
                       state: {
+                        source: "template-view",
+                        lockSimulationInputs: true,
                         fefcoCode: selectedTemplateId,
                         dimensions: { l, w, h },
                         estimatedWeight: aiData?.estimatedWeight,

@@ -17,6 +17,10 @@ import {
 } from "@/utils/dropSimulation";
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const toLabel = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/^\w/, (c) => c.toUpperCase());
 
 const parseFefcoCode = (value) => {
   const match = String(value || "").match(/(0201|0203|0301|0401|0427)/);
@@ -64,6 +68,11 @@ const getInitialState = (state) => {
 const DropSimulationPage = () => {
   const { state } = useLocation();
   const initial = useMemo(() => getInitialState(state), [state]);
+  const isTemplateLockedMode = Boolean(
+    state?.lockSimulationInputs ||
+      state?.source === "template-view" ||
+      state?.from === "template-view",
+  );
 
   const [fefcoCode, setFefcoCode] = useState(initial.fefcoCode);
   const [dimensions, setDimensions] = useState(initial.dimensions);
@@ -99,6 +108,14 @@ const DropSimulationPage = () => {
   const runSimulation = () => setPlaySignal((v) => v + 1);
 
   const resetToTemplateDefaults = () => {
+    if (isTemplateLockedMode) {
+      setDropHeightCm(initial.dropHeightCm);
+      setPadding(initial.padding);
+      setOrientation(initial.orientation);
+      setPlaySignal(0);
+      return;
+    }
+
     const defaults = TEMPLATE_CONFIG[fefcoCode]?.defaultDimensions || DEFAULT_DROP_SIMULATION.dimensions;
     setDimensions(defaults);
     setWeightGrams(DEFAULT_DROP_SIMULATION.weightGrams);
@@ -134,100 +151,134 @@ const DropSimulationPage = () => {
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-2">FEFCO Model</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {DROP_FEFCO_OPTIONS.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => handleSelectFefco(option.id)}
-                      className={`px-3 py-2 rounded-lg border text-xs font-semibold transition ${
-                        fefcoCode === option.id
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                <label className="block text-sm font-semibold text-slate-800 mb-2">
+                  {isTemplateLockedMode ? "Selected FEFCO" : "FEFCO Model"}
+                </label>
+                {isTemplateLockedMode ? (
+                  <div className="rounded-lg border border-blue-300 bg-blue-50 text-blue-900 px-3 py-2 text-sm font-semibold">
+                    FEFCO {fefcoCode}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {DROP_FEFCO_OPTIONS.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleSelectFefco(option.id)}
+                        className={`px-3 py-2 rounded-lg border text-xs font-semibold transition ${
+                          fefcoCode === option.id
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-800 mb-2">Dimensions (mm)</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <input
-                    type="number"
-                    min={40}
-                    max={1200}
-                    value={dimensions.l}
-                    onChange={(e) =>
-                      setDimensions((prev) => ({
-                        ...prev,
-                        l: safeDimension(e.target.value, prev.l),
-                      }))
-                    }
-                    className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm"
-                    placeholder="L"
-                  />
-                  <input
-                    type="number"
-                    min={40}
-                    max={1200}
-                    value={dimensions.w}
-                    onChange={(e) =>
-                      setDimensions((prev) => ({
-                        ...prev,
-                        w: safeDimension(e.target.value, prev.w),
-                      }))
-                    }
-                    className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm"
-                    placeholder="W"
-                  />
-                  <input
-                    type="number"
-                    min={40}
-                    max={1200}
-                    value={dimensions.h}
-                    onChange={(e) =>
-                      setDimensions((prev) => ({
-                        ...prev,
-                        h: safeDimension(e.target.value, prev.h),
-                      }))
-                    }
-                    className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm"
-                    placeholder="H"
-                  />
-                </div>
+                {isTemplateLockedMode ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                      {dimensions.l}
+                    </div>
+                    <div className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                      {dimensions.w}
+                    </div>
+                    <div className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                      {dimensions.h}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      type="number"
+                      min={40}
+                      max={1200}
+                      value={dimensions.l}
+                      onChange={(e) =>
+                        setDimensions((prev) => ({
+                          ...prev,
+                          l: safeDimension(e.target.value, prev.l),
+                        }))
+                      }
+                      className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm"
+                      placeholder="L"
+                    />
+                    <input
+                      type="number"
+                      min={40}
+                      max={1200}
+                      value={dimensions.w}
+                      onChange={(e) =>
+                        setDimensions((prev) => ({
+                          ...prev,
+                          w: safeDimension(e.target.value, prev.w),
+                        }))
+                      }
+                      className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm"
+                      placeholder="W"
+                    />
+                    <input
+                      type="number"
+                      min={40}
+                      max={1200}
+                      value={dimensions.h}
+                      onChange={(e) =>
+                        setDimensions((prev) => ({
+                          ...prev,
+                          h: safeDimension(e.target.value, prev.h),
+                        }))
+                      }
+                      className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm"
+                      placeholder="H"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-semibold text-slate-800 mb-2">Product Weight (g)</label>
-                    <input
-                      type="number"
-                      min={10}
-                      max={50000}
-                      value={weightGrams}
-                      onChange={(e) => setWeightGrams(clamp(Number(e.target.value) || 10, 10, 50000))}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-                    />
+                    {isTemplateLockedMode ? (
+                      <div className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                        {weightGrams}
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        min={10}
+                        max={50000}
+                        value={weightGrams}
+                        onChange={(e) => setWeightGrams(clamp(Number(e.target.value) || 10, 10, 50000))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                      />
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-800 mb-2">Fragility</label>
-                    <select
-                      value={fragility}
-                      onChange={(e) => setFragility(normalizeFragility(e.target.value))}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-                    >
-                      {DROP_FRAGILITY_OPTIONS.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    {isTemplateLockedMode ? (
+                      <div className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                        {toLabel(fragility)}
+                      </div>
+                    ) : (
+                      <select
+                        value={fragility}
+                        onChange={(e) => setFragility(normalizeFragility(e.target.value))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+                      >
+                        {DROP_FRAGILITY_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
               </div>
@@ -236,28 +287,40 @@ const DropSimulationPage = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-semibold text-slate-800 mb-2">Thickness (mm)</label>
-                    <input
-                      type="number"
-                      min={0.5}
-                      max={6}
-                      step={0.1}
-                      value={thickness}
-                      onChange={(e) => setThickness(clamp(Number(e.target.value) || 0.5, 0.5, 6))}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-                    />
+                    {isTemplateLockedMode ? (
+                      <div className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                        {thickness}
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        min={0.5}
+                        max={6}
+                        step={0.1}
+                        value={thickness}
+                        onChange={(e) => setThickness(clamp(Number(e.target.value) || 0.5, 0.5, 6))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                      />
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-800 mb-2">Material</label>
-                    <select
-                      value={material}
-                      onChange={(e) => setMaterial(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-                    >
-                      <option>White card board</option>
-                      <option>Kraft paper</option>
-                      <option>Corrugated Board</option>
-                    </select>
+                    {isTemplateLockedMode ? (
+                      <div className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-700">
+                        {material}
+                      </div>
+                    ) : (
+                      <select
+                        value={material}
+                        onChange={(e) => setMaterial(e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+                      >
+                        <option>White card board</option>
+                        <option>Kraft paper</option>
+                        <option>Corrugated Board</option>
+                      </select>
+                    )}
                   </div>
                 </div>
               </div>
