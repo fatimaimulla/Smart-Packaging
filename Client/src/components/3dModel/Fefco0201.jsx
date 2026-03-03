@@ -1,264 +1,279 @@
-// Clean FEFCO 0201 – Production-ready 3D Dieline
 import React, { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
-/* ------------------ helpers ------------------ */
-const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+// Helper to create glue flap geometry (trapezoid with diagonal cuts)
+function createGlueFlapGeometry(glueWidth, panelHeight, slope, thickness, S) {
+  // Scale dimensions
+  const w = glueWidth * S;
+  const h = panelHeight * S;
+  const s = slope * S;
+  const t = thickness * S;
 
-const segment = (t, a, b) => {
-  if (t <= a) return 0;
-  if (t >= b) return 1;
-  return easeOutCubic((t - a) / (b - a));
-};
+  // Define the 2D shape (in XZ plane, with hinge along Z at X=0)
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0); // top-right corner (at hinge)
+  shape.lineTo(-w, s); // top-left (diagonal cut)
+  shape.lineTo(-w, h - s); // bottom-left (diagonal cut)
+  shape.lineTo(0, h); // bottom-right corner
+  shape.closePath();
 
-/* ------------------ primitives ------------------ */
-function Panel({ w, d, t, mat, pos }) {
+  const extrudeSettings = {
+    depth: t,
+    bevelEnabled: false,
+  };
+  const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  // Rotate so extrude goes along Y (thickness)
+  geom.rotateX(-Math.PI / 2);
+  geom.computeVertexNormals();
+  return geom;
+}
+
+// Panel component (simple box)
+function Panel({
+  w,
+  h,
+  t,
+  color,
+  position,
+  roughness = 0.85,
+  metalness = 0.0,
+}) {
   return (
-    <mesh position={pos} castShadow receiveShadow>
-      <boxGeometry args={[w, t, d]} />
+    <mesh position={position} castShadow receiveShadow>
+      <boxGeometry args={[w, t, h]} />
       <meshStandardMaterial
-        color={"#CBAE91"}
-        roughness={0.85}
-        metalness={0.0}
+        color={color}
+        roughness={roughness}
+        metalness={metalness}
       />
     </mesh>
   );
 }
 
-function Hinge({ refObj, pos, axis, angle = 0, children }) {
-  const r = [0, 0, 0];
-  if (axis === "x") r[0] = angle;
-  if (axis === "y") r[1] = angle;
-  if (axis === "z") r[2] = angle;
-
-  return (
-    <group ref={refObj} position={pos} rotation={r}>
-      {children}
-    </group>
-  );
-}
-
-/* ------------------ FEFCO 0201 ------------------ */
-function Fefco0201_3D({
-  length ,
-  width ,
-  height,
-  thickness = 1.5,
-  slider = 0,
-}) {
+function Fefco0201_3D({ slider, length, width, height }) {
   const S = 0.01;
-  const L = width * S;
-  const W = length * S;
-  const SW = height * S;
-  const T = thickness * S;
-  const H = (height / 2) * S; // correct FEFCO flap rule
+  const WIDTH = width * S;
+  const LENGTH = length * S;
+  const THICKNESS = 0.5 * S;
+  const HEIGHT = height * S;
+  const FLAP_HEIGHT = length > width ? WIDTH / 2 : LENGTH / 2;
+  const FOLD_OFFSET = 5 * S;
 
-  /* ---------- materials ---------- */
-  const texture = null;
+  // Glue flap dimensions (as per SVG)
+  const glueFlapWidth = width * 0.15 * S;
+  const glueFlapSlope = height * 0.1 * S; // slope = 10% of height
 
-  const baseMat = useMemo(
-    () => ({
-      map: texture || null,
-      color: texture ? 0xffffff : 0xcbae91,
-      roughness: 0.85,
-      metalness: 0,
-    }),
-    [texture],
-  );
+  // Refs for hinges
+  const leftHinge = useRef(); // for glue flap
+  const SecondBaseLeftHinge = useRef();
+  const SecondBaseRightHinge = useRef();
+  const RightHinge = useRef();
+  const baseTopHinge = useRef();
+  const baseBottomHinge = useRef();
+  const betweenTopHinge = useRef();
+  const betweenBottomHinge = useRef();
+  const topBaseTopHinge = useRef();
+  const topBaseBottomHinge = useRef();
+  const lastTopHinge = useRef();
+  const lastBottomHinge = useRef();
 
-  const foldMat = useMemo(
-    () => ({
-      map: texture || null,
-      color: texture ? 0xffffff : 0xb78b66,
-      roughness: 0.86,
-      metalness: 0,
-    }),
-    [texture],
-  );
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const segment = (t, a, b) => {
+    if (t <= a) return 0;
+    if (t >= b) return 1;
+    return easeOutCubic((t - a) / (b - a));
+  };
 
-  /* ---------- fold phases ---------- */
   const foldSide = THREE.MathUtils.degToRad(90 * segment(slider, 0.0, 0.33));
+  const foldTop = THREE.MathUtils.degToRad(90 * segment(slider, 0.34, 0.66));
+  const foldLast = THREE.MathUtils.degToRad(90 * segment(slider, 0.67, 1));
 
-  const foldTopSide = THREE.MathUtils.degToRad(90 * segment(slider, 0.33, 0.5));
-  const foldTopFront = THREE.MathUtils.degToRad(
-    90 * segment(slider, 0.51, 0.66),
-  );
-  const foldBottomSide = THREE.MathUtils.degToRad(
-    90 * segment(slider, 0.66, 0.82),
-  );
-  const foldBottomFont = THREE.MathUtils.degToRad(
-    90 * segment(slider, 0.83, 1.0),
+  // Create glue flap geometry once
+  const glueFlapGeo = useMemo(
+    () => createGlueFlapGeometry(width * 0.15, height, height * 0.1, 0.5, S),
+    [width, height, S],
   );
 
-  /* ---------- refs ---------- */
-  const panel_right = useRef();
-  const panel_back = useRef();
-  const panel_left = useRef();
-
-  const flap_front_top = useRef();
-  const flap_front_bottom = useRef();
-  const flap_right_top = useRef();
-  const flap_right_bottom = useRef();
-  const flap_back_top = useRef();
-  const flap_back_bottom = useRef();
-  const flap_left_top = useRef();
-  const flap_left_bottom = useRef();
-  const glue_flap = useRef();
-
-  /* ---------- animate ---------- */
   useFrame(() => {
-    panel_right.current.rotation.z = foldSide;
-    panel_back.current.rotation.z = foldSide;
-    panel_left.current.rotation.z = foldSide;
-    glue_flap.current.rotation.z = -foldSide;
+    // Side folds (including glue flap on left)
+    leftHinge.current.rotation.z = -foldSide; // inward fold
+    RightHinge.current.rotation.z = foldSide;
+    SecondBaseLeftHinge.current.rotation.z = foldSide;
+    SecondBaseRightHinge.current.rotation.z = foldSide;
 
-    flap_front_top.current.rotation.x = -foldTopFront;
-    flap_right_top.current.rotation.x = -foldTopSide;
-    flap_back_top.current.rotation.x = -foldTopFront;
-    flap_left_top.current.rotation.x = -foldTopSide;
+    const isLengthGreater = length > width;
 
-    flap_front_bottom.current.rotation.x = foldBottomFont;
-    flap_right_bottom.current.rotation.x = foldBottomSide;
-    flap_back_bottom.current.rotation.x = foldBottomFont;
-    flap_left_bottom.current.rotation.x = foldBottomSide;
+    const sideFold = isLengthGreater ? foldTop : foldLast;
+    const baseBottomFold = isLengthGreater ? foldLast : foldTop;
+    const topBaseFold = isLengthGreater ? foldLast : foldTop;
+
+    // Side flaps
+    betweenTopHinge.current.rotation.x = sideFold;
+    betweenBottomHinge.current.rotation.x = -sideFold;
+    lastTopHinge.current.rotation.x = sideFold;
+    lastBottomHinge.current.rotation.x = -sideFold;
+
+    // Base flaps
+    baseTopHinge.current.rotation.x = foldTop;
+    baseBottomHinge.current.rotation.x = -baseBottomFold;
+
+    // Top base flaps
+    topBaseTopHinge.current.rotation.x = topBaseFold;
+    topBaseBottomHinge.current.rotation.x = -topBaseFold;
   });
-
-  /* ---------- glue flap ---------- */
-  const glueWidth = 0.25;
-  const lean = Math.tan(THREE.MathUtils.degToRad(30)) * glueWidth;
-
-  const glueShape = useMemo(() => {
-    const s = new THREE.Shape();
-    s.moveTo(0, 0);
-    s.lineTo(0, W);
-    s.lineTo(-glueWidth, W - lean);
-    s.lineTo(-glueWidth, lean);
-    s.closePath();
-    return s;
-  }, [W, glueWidth, lean]);
-
-  const glueGeom = useMemo(
-    () =>
-      new THREE.ExtrudeGeometry(glueShape, { depth: T, bevelEnabled: false }),
-    [glueShape, T],
-  );
 
   return (
     <group>
-      {/* FRONT PANEL (reference) */}
-      <Panel w={L} d={W} t={T} mat={baseMat} pos={[0, -T / 2, 0]} />
+      {/* Base panel */}
+      <Panel
+        w={LENGTH}
+        h={HEIGHT}
+        t={THICKNESS}
+        color="#CBAE91"
+        position={[0, 0, 0]}
+      />
 
-      {/* FRONT FLAPS */}
-      <Hinge refObj={flap_front_top} pos={[0, 0, W / 2]} axis="x">
-        <Panel
-          w={L - 0.03}
-          d={H}
-          t={T}
-          
-          pos={[0, -T / 2, H / 2]}
-        />
-      </Hinge>
-
-      <Hinge refObj={flap_front_bottom} pos={[0, 0, -W / 2]} axis="x">
-        <Panel
-          w={L - 0.03}
-          d={H}
-          t={T}
-          
-          pos={[0, -T / 2, -H / 2]}
-        />
-      </Hinge>
-
-      {/* GLUE FLAP */}
-      <Hinge refObj={glue_flap} pos={[-L / 2, 0, 0]} axis="z">
+      {/* Glue flap hinge on left edge of base */}
+      <group ref={leftHinge} position={[-LENGTH / 2, 0, 0]}>
         <mesh
-          geometry={glueGeom}
-          material={new THREE.MeshStandardMaterial(baseMat)}
-          rotation={[Math.PI / 2, 0, 0]}
-          position={[0, 0, -W / 2]} // 🔥 offset from hinge
+          geometry={glueFlapGeo}
+          position={[0, 0, HEIGHT / 2]} // center thickness
           castShadow
           receiveShadow
+        >
+          <meshStandardMaterial
+            color="#CBAE91"
+            roughness={0.85}
+            metalness={0}
+          />
+        </mesh>
+      </group>
+
+      {/* Base top flap */}
+      <group ref={baseTopHinge} position={[0, 0, -HEIGHT / 2]}>
+        <Panel
+          w={LENGTH - FOLD_OFFSET}
+          h={FLAP_HEIGHT}
+          t={THICKNESS}
+          color="#CBAE91"
+          position={[0, 0, -FLAP_HEIGHT / 2]}
         />
-      </Hinge>
+      </group>
 
-      
+      {/* Base bottom flap */}
+      <group ref={baseBottomHinge} position={[0, 0, HEIGHT / 2]}>
+        <Panel
+          w={LENGTH - FOLD_OFFSET}
+          h={FLAP_HEIGHT}
+          t={THICKNESS}
+          color="#CBAE91"
+          position={[0, 0, FLAP_HEIGHT / 2]}
+        />
+      </group>
 
-      {/* RIGHT PANEL */}
-      <Hinge refObj={panel_right} pos={[L / 2, 0, 0]} axis="z">
-        <Panel w={SW} d={W} t={T} mat={baseMat} pos={[SW / 2, -T / 2, 0]} />
+      {/* Right hinge (between base and between panel) */}
+      <group ref={RightHinge} position={[LENGTH / 2, 0, 0]}>
+        {/* Between panel */}
+        <Panel
+          w={WIDTH}
+          h={HEIGHT}
+          t={THICKNESS}
+          color="#CBAE91"
+          position={[WIDTH / 2, 0, 0]}
+        />
 
-        <Hinge refObj={flap_right_top} pos={[0, 0, W / 2]} axis="x">
+        {/* Between panel top flap */}
+        <group ref={betweenTopHinge} position={[0, 0, -HEIGHT / 2]}>
           <Panel
-            w={SW - 0.03}
-            d={H}
-            t={T}
-          
-            pos={[SW / 2, -T / 2, H / 2]}
+            w={WIDTH - FOLD_OFFSET}
+            h={FLAP_HEIGHT}
+            t={THICKNESS}
+            color="#CBAE91"
+            position={[(WIDTH - FOLD_OFFSET) / 2, 0, -FLAP_HEIGHT / 2]}
           />
-        </Hinge>
+        </group>
 
-        <Hinge refObj={flap_right_bottom} pos={[0, 0, -W / 2]} axis="x">
+        {/* Between panel bottom flap */}
+        <group ref={betweenBottomHinge} position={[0, 0, HEIGHT / 2]}>
           <Panel
-            w={SW - 0.03}
-            d={H}
-            t={T}
-            
-            pos={[SW / 2, -T / 2, -H / 2]}
+            w={WIDTH - FOLD_OFFSET}
+            h={FLAP_HEIGHT}
+            t={THICKNESS}
+            color="#CBAE91"
+            position={[(WIDTH - FOLD_OFFSET) / 2, 0, FLAP_HEIGHT / 2]}
           />
-        </Hinge>
+        </group>
 
-        {/* BACK PANEL */}
-        <Hinge refObj={panel_back} pos={[SW, 0, 0]} axis="z">
-          <Panel w={L} d={W} t={T} mat={baseMat} pos={[L / 2, -T / 2, 0]} />
+        {/* Second base left hinge (for top base) */}
+        <group ref={SecondBaseLeftHinge} position={[WIDTH, 0, 0]}>
+          {/* Top base panel */}
+          <Panel
+            w={LENGTH}
+            h={HEIGHT}
+            t={THICKNESS}
+            color="#CBAE91"
+            position={[LENGTH / 2, 0, 0]}
+          />
 
-          <Hinge refObj={flap_back_top} pos={[0, 0, W / 2]} axis="x">
+          {/* Top base top flap */}
+          <group ref={topBaseTopHinge} position={[0, 0, -HEIGHT / 2]}>
             <Panel
-              w={L - 0.03}
-              d={H}
-              t={T}
-            
-              pos={[L / 2, -T / 2, H / 2]}
+              w={LENGTH - FOLD_OFFSET}
+              h={FLAP_HEIGHT}
+              t={THICKNESS}
+              color="#CBAE91"
+              position={[(LENGTH - FOLD_OFFSET) / 2, 0, -FLAP_HEIGHT / 2]}
             />
-          </Hinge>
+          </group>
 
-          <Hinge refObj={flap_back_bottom} pos={[0, 0, -W / 2]} axis="x">
+          {/* Top base bottom flap */}
+          <group ref={topBaseBottomHinge} position={[0, 0, HEIGHT / 2]}>
             <Panel
-              w={L - 0.03}
-              d={H}
-              t={T}
-            
-              pos={[L / 2, -T / 2, -H / 2]}
+              w={LENGTH - FOLD_OFFSET}
+              h={FLAP_HEIGHT}
+              t={THICKNESS}
+              color="#CBAE91"
+              position={[(LENGTH - FOLD_OFFSET) / 2, 0, FLAP_HEIGHT / 2]}
             />
-          </Hinge>
+          </group>
 
-          {/* LEFT PANEL */}
-          <Hinge refObj={panel_left} pos={[L, 0, 0]} axis="z">
-            <Panel w={SW} d={W} t={T} mat={baseMat} pos={[SW / 2, -T / 2, 0]} />
+          {/* Second base right hinge (for last panel) */}
+          <group ref={SecondBaseRightHinge} position={[LENGTH, 0, 0]}>
+            {/* Last panel */}
+            <Panel
+              w={WIDTH}
+              h={HEIGHT}
+              t={THICKNESS}
+              color="#CBAE91"
+              position={[WIDTH / 2, 0, 0]}
+            />
 
-            <Hinge refObj={flap_left_top} pos={[0, 0, W / 2]} axis="x">
+            {/* Last panel top flap */}
+            <group ref={lastTopHinge} position={[0, 0, -HEIGHT / 2]}>
               <Panel
-                w={SW - 0.03}
-                d={H}
-                t={T}
-              
-                pos={[SW / 2, -T / 2, H / 2]}
+                w={WIDTH - FOLD_OFFSET}
+                h={FLAP_HEIGHT}
+                t={THICKNESS}
+                color="#CBAE91"
+                position={[(WIDTH - FOLD_OFFSET) / 2, 0, -FLAP_HEIGHT / 2]}
               />
-            </Hinge>
+            </group>
 
-            <Hinge refObj={flap_left_bottom} pos={[0, 0, -W / 2]} axis="x">
+            {/* Last panel bottom flap */}
+            <group ref={lastBottomHinge} position={[0, 0, HEIGHT / 2]}>
               <Panel
-                w={SW - 0.03}
-                d={H}
-                t={T}
-              
-                pos={[SW / 2, -T / 2, -H / 2]}
+                w={WIDTH - FOLD_OFFSET}
+                h={FLAP_HEIGHT}
+                t={THICKNESS}
+                color="#CBAE91"
+                position={[(WIDTH - FOLD_OFFSET) / 2, 0, FLAP_HEIGHT / 2]}
               />
-            </Hinge>
-          </Hinge>
-        </Hinge>
-      </Hinge>
+            </group>
+          </group>
+        </group>
+      </group>
     </group>
   );
 }

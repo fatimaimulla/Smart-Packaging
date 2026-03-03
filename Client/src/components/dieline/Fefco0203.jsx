@@ -12,10 +12,10 @@ export default function Fefco0203Dieline(props) {
   const frontBackFlapHeight = length / 2;     // Flaps on front/back panels: half of width
   const sideFlapHeight = width / 2;         // Flaps on side panels: half of length
   
-
-  const glueFlapWidth = 35.5;  
-  const glueFlapTopY = y+12;
-  const glueFlapBottomY = y+height-12;
+  const glueFlapSlope= height * 0.06; // Slope of glue flap, proportional to height
+  const glueFlapWidth = width * 0.15; // Width of glue flap, proportional to side panel width
+  const glueFlapTopY = y+glueFlapSlope;
+  const glueFlapBottomY = y+height-glueFlapSlope;
   
   // Offsets
   const bleedOffset = 4;       
