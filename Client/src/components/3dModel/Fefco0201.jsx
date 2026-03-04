@@ -103,25 +103,29 @@ function Fefco0201_3D({ slider, length, width, height }) {
     SecondBaseLeftHinge.current.rotation.z = foldSide;
     SecondBaseRightHinge.current.rotation.z = foldSide;
 
-    const isLengthGreater = length > width;
+   if (length > width) {
+     // Top flaps
 
-    const sideFold = isLengthGreater ? foldTop : foldLast;
-    const baseBottomFold = isLengthGreater ? foldLast : foldTop;
-    const topBaseFold = isLengthGreater ? foldLast : foldTop;
+     betweenTopHinge.current.rotation.x = foldTop;
+     betweenBottomHinge.current.rotation.x = -foldTop;
+     lastTopHinge.current.rotation.x = foldTop;
+     lastBottomHinge.current.rotation.x = -foldTop;
+     // Bottom flaps
+     baseTopHinge.current.rotation.x = foldLast;
+     baseBottomHinge.current.rotation.x = -foldLast;
+     topBaseTopHinge.current.rotation.x = foldLast;
+     topBaseBottomHinge.current.rotation.x = -foldLast;
+   } else {
+     betweenTopHinge.current.rotation.x = foldLast;
+     betweenBottomHinge.current.rotation.x = -foldLast;
+     lastTopHinge.current.rotation.x = foldLast;
+     lastBottomHinge.current.rotation.x = -foldLast;
 
-    // Side flaps
-    betweenTopHinge.current.rotation.x = sideFold;
-    betweenBottomHinge.current.rotation.x = -sideFold;
-    lastTopHinge.current.rotation.x = sideFold;
-    lastBottomHinge.current.rotation.x = -sideFold;
-
-    // Base flaps
-    baseTopHinge.current.rotation.x = foldTop;
-    baseBottomHinge.current.rotation.x = -baseBottomFold;
-
-    // Top base flaps
-    topBaseTopHinge.current.rotation.x = topBaseFold;
-    topBaseBottomHinge.current.rotation.x = -topBaseFold;
+     baseTopHinge.current.rotation.x = foldTop;
+     baseBottomHinge.current.rotation.x = -foldTop;
+     topBaseTopHinge.current.rotation.x = foldTop;
+     topBaseBottomHinge.current.rotation.x = -foldTop;
+   }
   });
 
   return (
