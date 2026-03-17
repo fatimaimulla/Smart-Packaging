@@ -145,8 +145,9 @@ const ReviewPage = () => {
     const height = pickHeightFromSide(TopViewLengthWidth, SideViewLengthWidth);
     console.log(height,width,length);
 
-    setDimensions({ l: length, w: width, h: height });
-    dispatch(setImageDimensions(dimensions))
+    const computedDimensions = { l: length, w: width, h: height };
+    setDimensions(computedDimensions);
+    dispatch(setImageDimensions(computedDimensions));
   }, [topViewData, sideViewData]);
 
   return (

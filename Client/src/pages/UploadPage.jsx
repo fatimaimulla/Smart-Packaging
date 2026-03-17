@@ -7,7 +7,8 @@ import ImagePreviewCard from "../components/upload/ImagePreviewCard";
 import UploadZone from "../components/upload/UploadZone";
 import ReferenceSelector from "../components/upload/ReferenceSelector";
 import Header from "../common/Header";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import { toast } from "sonner";
 import uploadFromSystemHandler from "@/api/uploadFromSystemHandler.js";
@@ -15,6 +16,7 @@ import { imageProcessing } from "@/api/imageProcessing";
 import { updateSideDimension } from "@/api/updateSideDimension";
 import { updateTopDimension } from "@/api/updateTopDimension";
 import wake from "@/api/wakeServer";
+import { setAiResponse } from "@/redux/slice/imageSlice";
 
 const UploadPage = () =>
 {
@@ -23,8 +25,15 @@ const UploadPage = () =>
  }, []);
   
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [referenceType, setReferenceType] = useState("coin");
-  const sessionId ="1235";
+  const sessionId = useMemo(
+    () =>
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `session-${Date.now()}`,
+    [],
+  );
 
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
@@ -185,6 +194,7 @@ const handleUpload = (files) => {
       });
       console.log("this is from current chutiya", res);
       if (res.data.success) {
+        dispatch(setAiResponse({}));
         toast.success(res.data.message);
         navigate(`/review/${sessionId}`);
       } else {

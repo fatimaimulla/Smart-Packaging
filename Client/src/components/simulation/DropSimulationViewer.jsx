@@ -388,13 +388,13 @@ const SimulationAssembly = ({
         />
       </group>
 
-      <group position={[0, worldDimensions.y * 0.22, 0]}>
+      {/* <group position={[0, worldDimensions.y * 0.22, 0]}>
         <mesh>
           <boxGeometry args={productSize} />
           <meshStandardMaterial color="#ef4444" roughness={0.4} metalness={0.05} />
         </mesh>
         <PaddingVisual padding={padding} productSize={productSize} />
-      </group>
+      </group> */}
     </group>
   );
 };
