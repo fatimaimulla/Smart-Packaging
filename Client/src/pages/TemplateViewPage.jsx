@@ -136,6 +136,8 @@ const TemplateViewPage = () => {
         dimensions: imageDimensions,
       });
 
+      console.log("AI API Response:", res);
+
       if (res.data.success) {
         setAiData(res.data.data);
         dispatch(setAiResponse(res.data.data));
