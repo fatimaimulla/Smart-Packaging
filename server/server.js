@@ -5,20 +5,32 @@ dotenv.config();
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import imgRouter from "./routes/imgRoutes.js";
 import connectCloudinary from "./config/cloudinary.js";
 import aiRouter from "./routes/aiRoutes.js";
+import authRouter from "./routes/authRoutes.js";
+import projectRouter from "./routes/projectRoutes.js";
+import { requireAuth } from "./middleware/authMiddleware.js";
 
 const app = express();
 const server = http.createServer(app);
 await connectCloudinary();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.get("/", (req, res) => res.send("Hello World!"));
 
+app.use("/api/auth", authRouter);
+app.use("/api/projects", requireAuth, projectRouter);
 app.use("/api/img", imgRouter);
 app.use("/api/ai", aiRouter);
 

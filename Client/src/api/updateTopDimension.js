@@ -1,8 +1,7 @@
-import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import apiClient from "@/lib/apiClient";
 
 export const updateTopDimension = async ({ topView, sessionId }) => {
-  const res = await axios.post(`${baseURL}/api/img/updateTop`, {
+  const res = await apiClient.post("/api/img/updatetop", {
     topView,
     sessionId,
   });

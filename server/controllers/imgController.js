@@ -1,87 +1,100 @@
 import { v2 as cloudinary } from "cloudinary";
-import Img from "../model/imgSchema.js";
+import Project from "../model/projectSchema.js";
+
+const findOwnedProject = async ({ sessionId, userId }) =>
+  Project.findOne({
+    sessionId,
+    userId,
+  });
 
 export const imgUpload = async (req, res) => {
   try {
     const { referenceObject, sessionId } = req.body;
     const img1 = req.files?.img1?.[0];
     const img2 = req.files?.img2?.[0];
-    if (!img1 || !img2 || !referenceObject) {
+
+    if (!img1 || !img2 || !referenceObject || !sessionId) {
       return res.status(400).json({
-        message: "Please Provide the proper Inputs.",
-        succcess: false,
+        message: "Please provide both images, a reference object, and a project session.",
+        success: false,
+      });
+    }
+
+    const project = await findOwnedProject({
+      sessionId,
+      userId: req.user._id,
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found.",
       });
     }
 
     const base64Image1 = `data:${img1.mimetype};base64,${img1.buffer.toString(
       "base64",
     )}`;
-
     const base64Image2 = `data:${img2.mimetype};base64,${img2.buffer.toString(
       "base64",
     )}`;
 
-    const upload1 = await cloudinary.uploader.upload(base64Image1, {
-      access_mode: "public",
-      type: "upload",
-    });
-    const upload2 = await cloudinary.uploader.upload(base64Image2, {
-      access_mode: "public",
-      type: "upload",
-    });
-    const session = await Img.findOne({ sessionId: sessionId }).sort({
-      createdAt: -1,
-    });
+    const [upload1, upload2] = await Promise.all([
+      cloudinary.uploader.upload(base64Image1, {
+        access_mode: "public",
+        type: "upload",
+      }),
+      cloudinary.uploader.upload(base64Image2, {
+        access_mode: "public",
+        type: "upload",
+      }),
+    ]);
 
-    if (session) {
-      session.referenceObject = referenceObject;
-      session.image1 = upload1.secure_url;
-      session.image2 = upload2.secure_url;
-    }
-    await session.save();
-
-    // const session1 = await Img.create({
-    //   sessionId: sessionId,
-    //   referenceObject: referenceObject,
-    //   image1: upload1.secure_url,
-    //   image2: upload2.secure_url,
-    // });
+    project.referenceObject = referenceObject;
+    project.image1 = upload1.secure_url;
+    project.image2 = upload2.secure_url;
+    project.status = "uploaded";
+    await project.save();
 
     return res.status(200).json({
       message: "Image uploaded successfully.",
       success: true,
-      sessionId: session._id,
+      sessionId: project.sessionId,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Image upload error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to upload images.",
+    });
   }
 };
 
 export const getImage = async (req, res) => {
   try {
     const { sessionId } = req.params;
-
-    const session = await Img.findOne({ sessionId: sessionId }).sort({
-      createdAt: -1,
+    const project = await findOwnedProject({
+      sessionId,
+      userId: req.user._id,
     });
 
-    if (!session) {
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
     return res.status(200).json({
       success: true,
       data: {
-        referenceObject: session.referenceObject,
-        topImageUrl: session.image1,
-        sideImageUrl: session.image2,
+        referenceObject: project.referenceObject,
+        topImageUrl: project.image1,
+        sideImageUrl: project.image2,
       },
     });
   } catch (error) {
-    console.error("Get session error:", error);
+    console.error("Get project image error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -96,41 +109,36 @@ export const updateDimensionTop = async (req, res) => {
     if (!sessionId) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
-    const session = await Img.create({
-      sessionId: sessionId,
-      topView: {
-        product: topView.products || [],
-        referenceObject: topView.reference_object || [],
-      },
+    const project = await findOwnedProject({
+      sessionId,
+      userId: req.user._id,
     });
 
-    if (!session) {
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
-    // if (topView) {
-    //   session.topView = {
-    //     product: topView.products || [],
-    //     referenceObject: topView.reference_object || [],
-    //   };
-    // }
-
-    await session.save();
+    project.topView = {
+      product: topView?.products || [],
+      referenceObject: topView?.reference_object || [],
+    };
+    project.status = "measured";
+    await project.save();
 
     return res.status(200).json({
       success: true,
       message: "Dimensions updated successfully",
-      data: session.topView,
+      data: project.topView,
     });
   } catch (error) {
-    console.error("Get session error:", error);
+    console.error("Update top dimension error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -145,37 +153,36 @@ export const updateDimensionSide = async (req, res) => {
     if (!sessionId) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
-    const session = await Img.findOne({ sessionId: sessionId }).sort({
-      createdAt: -1,
+    const project = await findOwnedProject({
+      sessionId,
+      userId: req.user._id,
     });
 
-    if (!session) {
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
-    if (sideView) {
-      session.sideView = {
-        product: sideView.products || [],
-        referenceObject: sideView.reference_object || [],
-      };
-    }
-
-    await session.save();
+    project.sideView = {
+      product: sideView?.products || [],
+      referenceObject: sideView?.reference_object || [],
+    };
+    project.status = "measured";
+    await project.save();
 
     return res.status(200).json({
       success: true,
       message: "Dimensions updated successfully",
-      data: session.sideView,
+      data: project.sideView,
     });
   } catch (error) {
-    console.error("Get session error:", error);
+    console.error("Update side dimension error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -190,34 +197,38 @@ export const getDimensions = async (req, res) => {
     if (!sessionId) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
-    const session = await Img.findOne({ sessionId: sessionId }).sort({
-      createdAt: -1,
+    const project = await findOwnedProject({
+      sessionId,
+      userId: req.user._id,
     });
-    if (!session) {
+
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
+
     return res.status(200).json({
       success: true,
       data: {
-        topView: session.topView,
-        sideView: session.sideView,
+        topView: project.topView,
+        sideView: project.sideView,
       },
     });
   } catch (error) {
-    console.error("Get session error:", error);
+    console.error("Get dimensions error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
     });
   }
 };
+
 export const getSideDimension = async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -225,25 +236,28 @@ export const getSideDimension = async (req, res) => {
     if (!sessionId) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
 
-    const session = await Img.findOne({ sessionId: sessionId }).sort({
-      createdAt: -1,
+    const project = await findOwnedProject({
+      sessionId,
+      userId: req.user._id,
     });
-    if (!session) {
+
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Project not found",
       });
     }
+
     return res.status(200).json({
       success: true,
-      data: session.sideView,
+      data: project.sideView,
     });
   } catch (error) {
-    console.error("Get session error:", error);
+    console.error("Get side dimension error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",

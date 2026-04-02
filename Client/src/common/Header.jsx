@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, Box } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { clsx } from "clsx";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { resetDimensionState } from "@/redux/slice/dimensionSlice";
 import { resetUploadState } from "@/redux/slice/mobileUploadSlice";
 import { resetImageUrlState } from "@/redux/slice/imageSlice";
+import { logoutUser } from "@/redux/slice/authSlice";
+import { toast } from "sonner";
 
 
 const Header = () => {
@@ -14,6 +16,8 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
   const dispatch=useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,11 +27,16 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleReset=()=>{
+  const handleReset = async () => {
     dispatch(resetDimensionState());
     dispatch(resetUploadState());
     dispatch(resetImageUrlState());
-  }
+    const result = await dispatch(logoutUser());
+    if (logoutUser.fulfilled.match(result)) {
+      toast.success("Logged out successfully.");
+      navigate("/");
+    }
+  };
   return (
     <motion.header
       className={clsx(
@@ -69,21 +78,37 @@ const Header = () => {
 
         {/* Auth Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link
-            to="#"
-            className="text-[#0D1B2A] font-semibold hover:text-emerald-600 transition-colors"
-          >
-            Log In
-          </Link>
-          <Link
-            to="#"
-            className="bg-[#0D1B2A] text-white px-5 py-2.5 rounded-full font-medium hover:bg-emerald-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-          >
-            Sign Up
-          </Link>
-          <button onClick={handleReset} className="bg-[#0D1B2A] text-white px-5 py-2.5 rounded-full font-medium hover:bg-emerald-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-            Log Out
-          </button>
+          {user ? (
+            <>
+              <Link
+                to="/projects"
+                className="text-[#0D1B2A] font-semibold hover:text-emerald-600 transition-colors"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={handleReset}
+                className="bg-[#0D1B2A] text-white px-5 py-2.5 rounded-full font-medium hover:bg-emerald-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-[#0D1B2A] font-semibold hover:text-emerald-600 transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/signup"
+                className="bg-[#0D1B2A] text-white px-5 py-2.5 rounded-full font-medium hover:bg-emerald-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -113,12 +138,28 @@ const Header = () => {
             How it Works
           </Link>
           <hr className="border-gray-100" />
-          <Link to="#" className="text-lg font-medium text-gray-700">
-            Log In
-          </Link>
-          <Link to="#" className="text-lg font-medium text-emerald-600">
-            Sign Up
-          </Link>
+          {user ? (
+            <>
+              <Link to="/projects" className="text-lg font-medium text-gray-700">
+                Dashboard
+              </Link>
+              <button
+                onClick={handleReset}
+                className="text-left text-lg font-medium text-emerald-600"
+              >
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-lg font-medium text-gray-700">
+                Log In
+              </Link>
+              <Link to="/signup" className="text-lg font-medium text-emerald-600">
+                Sign Up
+              </Link>
+            </>
+          )}
         </motion.div>
       )}
     </motion.header>

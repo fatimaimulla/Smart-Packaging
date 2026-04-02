@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
 import App from "./App.jsx";
 // import { Toaster } from "sonner";
@@ -12,11 +13,13 @@ import { PersistGate } from "redux-persist/integration/react";
 const persistor = persistStore(store);
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <App />
-      </PersistGate>
-    </Provider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <App />
+        </PersistGate>
+      </Provider>
+    </GoogleOAuthProvider>
     <Toaster richColors position="top-right" />
   </StrictMode>
 );

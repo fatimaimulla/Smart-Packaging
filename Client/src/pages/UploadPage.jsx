@@ -7,7 +7,7 @@ import ImagePreviewCard from "../components/upload/ImagePreviewCard";
 import UploadZone from "../components/upload/UploadZone";
 import ReferenceSelector from "../components/upload/ReferenceSelector";
 import Header from "../common/Header";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import { toast } from "sonner";
@@ -16,7 +16,11 @@ import { imageProcessing } from "@/api/imageProcessing";
 import { updateSideDimension } from "@/api/updateSideDimension";
 import { updateTopDimension } from "@/api/updateTopDimension";
 import wake from "@/api/wakeServer";
-import { setAiResponse } from "@/redux/slice/imageSlice";
+import {
+  setAiResponse,
+  setCurrentProjectSessionId,
+} from "@/redux/slice/imageSlice";
+import { createProjectRequest } from "@/api/projects";
 
 const UploadPage = () =>
 {
@@ -27,21 +31,18 @@ const UploadPage = () =>
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [referenceType, setReferenceType] = useState("coin");
-  const sessionId = useMemo(
-    () =>
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `session-${Date.now()}`,
-    [],
+  const [captureSessionId] = useState(() =>
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `capture-${Date.now()}`,
   );
-
+  const [projectName, setProjectName] = useState("");
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const processImage = async (imageId, file,type) => {
     try {
-     
       const res = await imageProcessing({ croppedImage: file });
 
       setImages((prev) =>
@@ -62,39 +63,6 @@ const UploadPage = () =>
 
       if (res.data.success) {
         toast.success(res.data.message);
-        console.log(type);
-
-        if (type == "Top View") {
-          try {
-            const res1 = await updateTopDimension({
-              topView: res.data,
-              sessionId: sessionId,
-            });
-            console.log("this is from the top dimension", res1);
-          } catch (error) {
-            console.log(error);
-            if (error.response?.data?.message) {
-              toast.error(error.response.data.message);
-            } else {
-              toast.error(error.message);
-            }
-          }
-        } else if (type == "Side View") {
-          try {
-            const res2 = await updateSideDimension({
-              sideView: res.data,
-              sessionId: sessionId,
-            });
-            console.log("this is from the side dimension", res2);
-          } catch (error) {
-            console.log(error);
-            if (error.response?.data?.message) {
-              toast.error(error.response.data.message);
-            } else {
-              toast.error(error.message);
-            }
-          }
-        }
       } else {
         toast.error(res.data.message);
       }
@@ -165,38 +133,73 @@ const handleUpload = (files) => {
      setIsSubmitting(true);
    
     console.log("Helloo")
+
+    if (!projectName.trim()) {
+      toast.error("Please add a project name before continuing.");
+      setIsSubmitting(false);
+      return;
+    }
       
     if (images.length !== 2)
     {
         console.log("2nd step--------->");
         toast.error("Please upload 2 images");
+        setIsSubmitting(false);
         return;
       }
     
 
-      const topView = images.find((img) => img.type === "Top View")?.file;
-    const sideView = images.find((img) => img.type === "Side View")?.file;
+    const topImage = images.find((img) => img.type === "Top View");
+    const sideImage = images.find((img) => img.type === "Side View");
     console.log("2nd step--------->");
     
 
-      if (!topView || !sideView) {
+      if (!topImage?.file || !sideImage?.file) {
         toast.error("Both Top View and Side View are required");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (
+        !topImage.apiResult?.reference_object?.length ||
+        !topImage.apiResult?.products?.length ||
+        !sideImage.apiResult?.reference_object?.length ||
+        !sideImage.apiResult?.products?.length
+      ) {
+        toast.error(
+          "We can only save the project once both product and reference object are detected.",
+        );
+        setIsSubmitting(false);
         return;
       }
 
     try {
       console.log("3rd step------------->");
+      const projectRes = await createProjectRequest({
+        name: projectName.trim(),
+      });
+      const projectSessionId = projectRes.data.data.sessionId;
+      dispatch(setCurrentProjectSessionId(projectSessionId));
+
       const res = await uploadFromSystemHandler({
-        topImage: topView,
-        sideImage: sideView,
+        topImage: topImage.file,
+        sideImage: sideImage.file,
         referenceType: referenceType,
-        sessionId: sessionId, // ✅ THIS IS THE KEY
+        sessionId: projectSessionId,
       });
       console.log("this is from current chutiya", res);
       if (res.data.success) {
-        dispatch(setAiResponse({}));
+        await updateTopDimension({
+          topView: topImage.apiResult,
+          sessionId: projectSessionId,
+        });
+        await updateSideDimension({
+          sideView: sideImage.apiResult,
+          sessionId: projectSessionId,
+        });
+        dispatch(setAiResponse({ sessionId: null, data: {} }));
         toast.success(res.data.message);
-        navigate(`/review/${sessionId}`);
+        navigate(`/review/${projectSessionId}`);
       } else {
         toast.error(res.data.message);
       }
@@ -228,7 +231,11 @@ const handleUpload = (files) => {
   const isComplete = images.length === 2;
   const allProcessed = images.every((img) => img.processing === false);
   const allSuccess = images.every((img) => img.success === true);
-  const canContinue1 = isComplete && allProcessed && allSuccess;
+  const canContinue1 =
+    isComplete &&
+    allProcessed &&
+    allSuccess &&
+    !!projectName.trim();
 
 
   let statusText = "Waiting";
@@ -271,6 +278,19 @@ const handleUpload = (files) => {
                     We need a top view and a side view to calculate dimensions
                     accurately. Ensure your reference object is clearly visible.
                   </p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-[#0D1B2A]">
+                    Project Name
+                  </label>
+                  <input
+                    type="text"
+                    value={projectName}
+                    onChange={(event) => setProjectName(event.target.value)}
+                    placeholder="Example: Shampoo Bottle March Batch"
+                    className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none focus:border-blue-500"
+                  />
                 </div>
 
                 <ReferenceSelector
@@ -357,7 +377,10 @@ const handleUpload = (files) => {
 
             {/* RIGHT COLUMN: QR Panel */}
             <div className="lg:col-span-1">
-              <QRPanel onSimulateMobile={() => setIsMobileModalOpen(true)} />
+              <QRPanel
+                sessionId={captureSessionId}
+                onSimulateMobile={() => setIsMobileModalOpen(true)}
+              />
             </div>
           </div>
         </div>

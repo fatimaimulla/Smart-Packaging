@@ -7,6 +7,8 @@ const IMAGE_SLICE = createSlice({
     sideImageUrl: null,
     dimensions: {},
     aiResponse: {},
+    aiResponseSessionId: null,
+    currentProjectSessionId: null,
   },
   reducers: {
     setTopImageUrl: (state, action) => {
@@ -19,7 +21,23 @@ const IMAGE_SLICE = createSlice({
       state.dimensions = action.payload;
     },
     setAiResponse: (state, action) => {
-      state.aiResponse = action.payload;
+      const payload = action.payload;
+
+      if (
+        payload &&
+        typeof payload === "object" &&
+        Object.prototype.hasOwnProperty.call(payload, "data")
+      ) {
+        state.aiResponse = payload.data || {};
+        state.aiResponseSessionId = payload.sessionId || null;
+        return;
+      }
+
+      state.aiResponse = payload;
+      state.aiResponseSessionId = null;
+    },
+    setCurrentProjectSessionId: (state, action) => {
+      state.currentProjectSessionId = action.payload;
     },
 
     resetImageUrlState: (state) => {
@@ -27,6 +45,8 @@ const IMAGE_SLICE = createSlice({
       state.sideImageUrl = null;
       state.dimensions = {};
       state.aiResponse = {};
+      state.aiResponseSessionId = null;
+      state.currentProjectSessionId = null;
     },
   },
 });
@@ -37,5 +57,6 @@ export const {
   setImageDimensions,
   resetImageUrlState,
   setAiResponse,
+  setCurrentProjectSessionId,
 } = IMAGE_SLICE.actions;
 export default IMAGE_SLICE.reducer;

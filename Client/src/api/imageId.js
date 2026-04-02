@@ -1,8 +1,7 @@
-import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import apiClient from "@/lib/apiClient";
 
 const getImageId = async ({ sessionId }) => {
-  const res = await axios.get(`${baseURL}/api/img/image/${sessionId}`);
+  const res = await apiClient.get(`/api/img/image/${sessionId}`);
   console.log(res);
   return res;
 };

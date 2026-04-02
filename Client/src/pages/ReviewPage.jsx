@@ -13,10 +13,12 @@ import CalculateDimension from "@/functions/calculations";
 import pickHeightFromSide from "@/functions/pickheight";
 import { useDispatch } from "react-redux";
 import {
+  setCurrentProjectSessionId,
   setImageDimensions,
   setSideImageUrl,
   setTopImageUrl,
 } from "@/redux/slice/imageSlice";
+import { updateProjectConfigRequest } from "@/api/projects";
 
 const ReviewPage = () => {
   const [topUrl, setTopUrl] = useState(null);
@@ -31,6 +33,10 @@ const ReviewPage = () => {
   const dispatch = useDispatch();
 
   const sessionId = params.sessionId;
+
+  useEffect(() => {
+    dispatch(setCurrentProjectSessionId(sessionId));
+  }, [dispatch, sessionId]);
 
   const convertXYXYtoXYWH = ([x1, y1, x2, y2]) => ({
     x: x1,
@@ -148,7 +154,21 @@ const ReviewPage = () => {
     const computedDimensions = { l: length, w: width, h: height };
     setDimensions(computedDimensions);
     dispatch(setImageDimensions(computedDimensions));
-  }, [topViewData, sideViewData]);
+  }, [dispatch, referenceObject, sideViewData, topViewData]);
+
+  useEffect(() => {
+    if (!sessionId || !dimensions.l || !dimensions.w || !dimensions.h) {
+      return;
+    }
+
+    updateProjectConfigRequest({
+      sessionId,
+      dimensions,
+      status: "measured",
+    }).catch((error) => {
+      console.error("Failed to persist dimensions:", error);
+    });
+  }, [dimensions, sessionId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
@@ -298,6 +318,7 @@ const ReviewPage = () => {
               <DimensionsPanel
                 dimensions={dimensions}
                 onUpdateDimensions={setDimensions}
+                sessionId={sessionId}
               />
             </div>
           </div>

@@ -21,6 +21,10 @@ import { getAiResponse } from "@/api/getAiResponse";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import { setAiResponse } from "@/redux/slice/imageSlice";
+import {
+  getProjectRequest,
+  updateProjectConfigRequest,
+} from "@/api/projects";
 
 const TemplateViewPage = () => {
   const location = useLocation();
@@ -29,6 +33,12 @@ const TemplateViewPage = () => {
   const sideImageUrl = useSelector((state) => state.image.sideImageUrl);
   const imageDimensions = useSelector((state) => state.image.dimensions);
   const cachedAiResponse = useSelector((state) => state.image.aiResponse);
+  const cachedAiResponseSessionId = useSelector(
+    (state) => state.image.aiResponseSessionId,
+  );
+  const currentProjectSessionId = useSelector(
+    (state) => state.image.currentProjectSessionId,
+  );
 
   const { dimensions } = location.state || {
     dimensions: {
@@ -51,18 +61,104 @@ const TemplateViewPage = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiData, setAiData] = useState(null);
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
+  const [hasHydratedSavedAi, setHasHydratedSavedAi] = useState(false);
+  const activeSessionId = location.state?.sessionId || currentProjectSessionId;
 
   useEffect(() => {
     canvasRef.current?.resetView();
     setSliderValue(0);
   }, [selectedTemplateId]);
 
+  useEffect(() => {
+    if (!activeSessionId) {
+      return;
+    }
+
+    updateProjectConfigRequest({
+      sessionId: activeSessionId,
+      dimensions,
+      selectedTemplateId,
+      status: "configured",
+    }).catch((error) => {
+      console.error("Failed to save template selection:", error);
+    });
+  }, [activeSessionId, dimensions, selectedTemplateId]);
+
+  useEffect(() => {
+    if (!activeSessionId || !aiData) {
+      return;
+    }
+
+    updateProjectConfigRequest({
+      sessionId: activeSessionId,
+      recommendation: aiData,
+    }).catch((error) => {
+      console.error("Failed to save AI recommendation:", error);
+    });
+  }, [activeSessionId, aiData]);
+
   const hasCalledAI = useRef(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (!activeSessionId) {
+      setHasHydratedSavedAi(true);
+      return;
+    }
+
+    let isMounted = true;
+
+    const hydrateSavedAi = async () => {
+      try {
+        const res = await getProjectRequest({ sessionId: activeSessionId });
+        const project = res.data?.data;
+
+        if (!isMounted || !project) {
+          return;
+        }
+
+        if (project.selectedTemplateId) {
+          setSelectedTemplateId(project.selectedTemplateId);
+        }
+
+        const savedAiData = project.recommendation || project.report || null;
+
+        if (savedAiData && Object.keys(savedAiData).length > 0) {
+          setAiData(savedAiData);
+          dispatch(
+            setAiResponse({
+              sessionId: activeSessionId,
+              data: savedAiData,
+            }),
+          );
+          hasCalledAI.current = true;
+        }
+      } catch (error) {
+        console.error("Failed to hydrate saved project data:", error);
+      } finally {
+        if (isMounted) {
+          setHasHydratedSavedAi(true);
+        }
+      }
+    };
+
+    setHasHydratedSavedAi(false);
+    hydrateSavedAi();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeSessionId, dispatch]);
+
+  useEffect(() => {
+    if (!hasHydratedSavedAi) {
+      return;
+    }
+
     const hasCachedAIData =
-      cachedAiResponse && Object.keys(cachedAiResponse).length > 0;
+      cachedAiResponseSessionId === activeSessionId &&
+      cachedAiResponse &&
+      Object.keys(cachedAiResponse).length > 0;
 
     if (hasCachedAIData) {
       setAiData(cachedAiResponse);
@@ -74,14 +170,22 @@ const TemplateViewPage = () => {
       !topImageUrl ||
       !sideImageUrl ||
       !imageDimensions?.l ||
-      hasCalledAI.current 
+      hasCalledAI.current
     ) {
       return;
     }
 
     hasCalledAI.current = true;
     handleAskAI();
-  }, [topImageUrl, sideImageUrl, imageDimensions, cachedAiResponse]);
+  }, [
+    activeSessionId,
+    cachedAiResponse,
+    cachedAiResponseSessionId,
+    hasHydratedSavedAi,
+    imageDimensions,
+    sideImageUrl,
+    topImageUrl,
+  ]);
 
   // Trigger Modal when AI recommends a different box
   useEffect(() => {
@@ -140,7 +244,12 @@ const TemplateViewPage = () => {
 
       if (res.data.success) {
         setAiData(res.data.data);
-        dispatch(setAiResponse(res.data.data));
+        dispatch(
+          setAiResponse({
+            sessionId: activeSessionId,
+            data: res.data.data,
+          }),
+        );
         toast.success(res.data.message);
       }
     } catch (error) {

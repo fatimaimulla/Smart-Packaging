@@ -10,6 +10,12 @@ import MobileReviewPage from "@/pages/MobileReviewPage";
 import DielineLibraryPage from "@/pages/DielineLibraryPage";
 import TemplateViewPage from "@/pages/TemplateViewPage";
 import DropSimulationPage from "@/pages/DropSimulationPage";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import VerifyOtpPage from "@/pages/VerifyOtpPage";
+import ProjectsDashboardPage from "@/pages/ProjectsDashboardPage";
+import ProtectedRoute from "@/auth/ProtectedRoute";
+import PublicOnlyRoute from "@/auth/PublicOnlyRoute";
 
 const AppRouter = createBrowserRouter([
   {
@@ -17,45 +23,70 @@ const AppRouter = createBrowserRouter([
     element: <Home></Home>,
   },
   {
-    path: "/upload",
-    element: <UploadPage></UploadPage>,
+    element: <PublicOnlyRoute />,
+    children: [
+      {
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/signup",
+        element: <SignupPage />,
+      },
+      {
+        path: "/verify-otp",
+        element: <VerifyOtpPage />,
+      },
+    ],
   },
   {
-    path: "/review/:sessionId",
-    element: <ReviewPage></ReviewPage>,
-  },
-  {
-    path: "/recommendation",
-    element: <RecommendationPage></RecommendationPage>,
-  },
-  {
-    path: "/dieline",
-    element: <DieLineGeneratorPage></DieLineGeneratorPage>,
-  },
-  {
-    path: "/dieline-library",
-    element:<DielineLibraryPage></DielineLibraryPage>
-
-  },
-  {
-    path: "/report",
-    element: <ReportPage></ReportPage>,
-  },
-  {
-    path: "/mobile-capture/:sessionId",
-    element: <MobileCapturePage></MobileCapturePage>,
-  },
-  {
-    path: "/mobile-review/:sessionId",
-    element: <MobileReviewPage></MobileReviewPage>,
-  },
-  {
-    path: "/template-view",
-    element: <TemplateViewPage></TemplateViewPage>,
-  },
-  {
-    path: "/drop-simulation",
-    element: <DropSimulationPage></DropSimulationPage>,
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "/projects",
+        element: <ProjectsDashboardPage />,
+      },
+      {
+        path: "/upload",
+        element: <UploadPage></UploadPage>,
+      },
+      {
+        path: "/review/:sessionId",
+        element: <ReviewPage></ReviewPage>,
+      },
+      {
+        path: "/recommendation",
+        element: <RecommendationPage></RecommendationPage>,
+      },
+      {
+        path: "/dieline",
+        element: <DieLineGeneratorPage></DieLineGeneratorPage>,
+      },
+      {
+        path: "/dieline-library",
+        element: <DielineLibraryPage></DielineLibraryPage>,
+      },
+      {
+        path: "/report",
+        element: <ReportPage></ReportPage>,
+      },
+      {
+        path: "/mobile-capture/:sessionId",
+        element: <MobileCapturePage></MobileCapturePage>,
+      },
+      {
+        path: "/mobile-review/:sessionId",
+        element: <MobileReviewPage></MobileReviewPage>,
+      },
+      {
+        path: "/template-view",
+        element: <TemplateViewPage></TemplateViewPage>,
+      },
+      {
+        path: "/drop-simulation",
+        element: <DropSimulationPage></DropSimulationPage>,
+      },
+    ],
   },
 ]);
 

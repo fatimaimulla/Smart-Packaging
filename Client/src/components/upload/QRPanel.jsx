@@ -4,16 +4,19 @@ import { Smartphone, Copy, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useMemo } from "react";
 
-const QRPanel = ({ onSimulateMobile }) => {
-  const sessionId = "session-123";
+const QRPanel = ({ onSimulateMobile, sessionId }) => {
   const navigate = useNavigate();
-  const demoLink = `https://smart-packaging.vercel.app/mobile-capture/${sessionId}`;
-
-  const socket = io(import.meta.env.VITE_API_BASE_URL);
+  const demoLink = useMemo(() => {
+    const origin = window.location.origin;
+    return `${origin}/mobile-capture/${sessionId}`;
+  }, [sessionId]);
 
   useEffect(() => {
+    if (!sessionId) return undefined;
+
+    const socket = io(import.meta.env.VITE_API_BASE_URL);
     socket.emit("join-session", sessionId);
 
     socket.on("mobile-upload-complete", () => {
@@ -21,9 +24,9 @@ const QRPanel = ({ onSimulateMobile }) => {
     });
 
     return () => {
-      socket.off("upload-complete");
+      socket.disconnect();
     };
-  }, [sessionId]);
+  }, [navigate, sessionId]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-fit sticky top-24 border border-gray-100">
@@ -43,6 +46,7 @@ const QRPanel = ({ onSimulateMobile }) => {
 
       <div className="flex flex-col gap-3 w-full">
         <button
+          disabled={!sessionId}
           className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-200"
           onClick={() => navigator.clipboard.writeText(demoLink)}
         >

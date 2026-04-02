@@ -20,7 +20,7 @@ const ReportPage = () => {
     dimensions: { l: 120, w: 85, h: 40 },
     internalDimensions: { l: 126, w: 91, h: 46 }, // +6mm padding logic
     area: 0.42,
-    cost: 0.38,
+    cost: 9,
     waste: 12,
     co2: 16,
     standardCo2: 39,

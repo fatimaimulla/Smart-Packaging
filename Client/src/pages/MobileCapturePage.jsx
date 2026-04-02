@@ -28,7 +28,10 @@ const MobileCapturePage = () => {
   // const [croppedTop, setCroppedTop] = useState(null);
   const { sessionId } = useParams();
   console.log(sessionId);
-  const socket = io(import.meta.env.VITE_API_BASE_URL);
+  const socket = React.useMemo(
+    () => io(import.meta.env.VITE_API_BASE_URL),
+    [],
+  );
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -52,6 +55,12 @@ const MobileCapturePage = () => {
       setTimeout(() => setStep("reference"), 1000);
     }
   }, [sessionId, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      socket.disconnect();
+    };
+  }, [socket]);
 
   /* ==============================
      HANDLERS

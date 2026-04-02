@@ -1,9 +1,4 @@
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-
-
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import apiClient from "@/lib/apiClient";
 
 const uploadFromSystemHandler = async ({
   topImage,
@@ -19,7 +14,7 @@ const uploadFromSystemHandler = async ({
   formData.append("referenceObject", referenceType);
   formData.append("sessionId", sessionId);
 
-  const res = await axios.post(`${baseURL}/api/img/upload`, formData, {
+  const res = await apiClient.post("/api/img/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

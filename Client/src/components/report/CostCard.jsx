@@ -19,7 +19,7 @@ const CostCard = ({ data }) => {
           Estimated Unit Cost
         </p>
         <div className="text-4xl font-extrabold text-[#0D1B2A] tracking-tight mb-2">
-          ${cost}{" "}
+          ₹{cost}{" "}
           <span className="text-lg text-gray-400 font-normal">/ box</span>
         </div>
         <p className="text-xs text-gray-400">

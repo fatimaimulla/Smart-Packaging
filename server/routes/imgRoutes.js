@@ -1,5 +1,6 @@
 import express from "express";
 import upload from "../middleware/multer.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 import {
   getImage,
   getSideDimension,
@@ -10,6 +11,8 @@ import {
 } from "../controllers/imgController.js";
 
 const imgRouter = express.Router();
+
+imgRouter.use(requireAuth);
 
 imgRouter
   .route("/upload")

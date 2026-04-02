@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import mobileUploadReducer from "./slice/mobileUploadSlice";
 import dimensionReducer from "./slice/dimensionSlice";
 import imageReducer from "./slice/imageSlice";
+import authReducer from "./slice/authSlice";
 import {
   // persistStore,
   persistReducer,
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   mobileUpload: mobileUploadReducer,
   dimension: dimensionReducer,
   image: imageReducer,
+  auth: authReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

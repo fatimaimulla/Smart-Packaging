@@ -9,16 +9,43 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useNavigate } from "react-router-dom";
+import { updateProjectConfigRequest } from "@/api/projects";
+import { toast } from "sonner";
 
-const DimensionsPanel = ({ dimensions, onUpdateDimensions }) =>
+const DimensionsPanel = ({ dimensions, onUpdateDimensions, sessionId }) =>
 {
   const navigate = useNavigate();
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [fragility, setFragility] = useState("low");
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleDimensionChange = (key, value) => {
     onUpdateDimensions({ ...dimensions, [key]: Number(value) });
+  };
+
+  const handleContinue = async () => {
+    setIsSaving(true);
+
+    try {
+      await updateProjectConfigRequest({
+        sessionId,
+        dimensions,
+        fragility,
+        status: "configured",
+      });
+
+      navigate("/template-view", {
+        state: {
+          dimensions,
+          sessionId,
+        },
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to save project.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -119,15 +146,9 @@ const DimensionsPanel = ({ dimensions, onUpdateDimensions }) =>
       {/* Actions */}
       <div className="flex flex-col gap-3 mt-auto">
         <button
-           onClick={() => {
-            navigate("/template-view", {
-              state: {
-                dimensions: dimensions,
-              },
-            });
-          }}
+          onClick={handleContinue}
           className="w-full py-4 bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all font-semibold text-lg flex items-center justify-center gap-2 group">
-          Accept & Continue
+          {isSaving ? "Saving..." : "Accept & Continue"}
           <ArrowRight
             size={20}
             className="group-hover:translate-x-1 transition-transform"
