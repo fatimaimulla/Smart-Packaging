@@ -228,22 +228,21 @@ const handleUpload = (files) => {
 
   // Validation Logic
 
+  const hasDetectedTargets = (image) =>
+    image.success === true &&
+    !!image.apiResult?.reference_object?.length &&
+    !!image.apiResult?.products?.length;
+
   const isComplete = images.length === 2;
   const allProcessed = images.every((img) => img.processing === false);
   const allSuccess = images.every((img) => img.success === true);
-  const canContinue1 =
-    isComplete &&
-    allProcessed &&
-    allSuccess &&
-    !!projectName.trim();
-
 
   let statusText = "Waiting";
   let allReferencesDetected = false;
 
   if (images.length === 2) {
-    const topOk = images[0].success === true;
-    const sideOk = images[1].success === true;
+    const topOk = hasDetectedTargets(images[0]);
+    const sideOk = hasDetectedTargets(images[1]);
 
     allReferencesDetected = topOk && sideOk;
 
@@ -256,7 +255,14 @@ const handleUpload = (files) => {
     }
   }
 
-  const fatalErrors = !allReferencesDetected;
+  const canContinue1 =
+    isComplete &&
+    allProcessed &&
+    allSuccess &&
+    allReferencesDetected &&
+    !!projectName.trim();
+
+  const showCompletedUploadLayout = isComplete && allReferencesDetected;
 
 
   return (
@@ -265,9 +271,19 @@ const handleUpload = (files) => {
 
       <main className="pt-32 pb-20 px-6">
         <div className="max-w-screen-xl mx-auto">
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div
+            className={clsx(
+              "grid gap-8",
+              showCompletedUploadLayout ? "grid-cols-1" : "lg:grid-cols-3",
+            )}
+          >
             {/* LEFT COLUMN: Upload & Thumbnails */}
-            <div className="lg:col-span-2 flex flex-col gap-8">
+            <div
+              className={clsx(
+                "flex flex-col gap-8",
+                showCompletedUploadLayout ? "col-span-1" : "lg:col-span-2",
+              )}
+            >
               {/* Upload Instructions Card */}
               <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-8">
                 <div>
@@ -298,19 +314,27 @@ const handleUpload = (files) => {
                   onSelect={setReferenceType}
                 />
 
-                <UploadZone
-                  onUpload={handleUpload}
-                  disabled={images.length >= 2}
-                />
+                {!showCompletedUploadLayout && (
+                  <UploadZone
+                    onUpload={handleUpload}
+                    disabled={images.length >= 2}
+                  />
+                )}
               </div>
 
               {/* Thumbnails List */}
               {images.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <h3 className="text-lg font-semibold text-[#0D1B2A] ml-1">
+                <div
+                  className={clsx(
+                    "flex flex-col gap-4",
+                    showCompletedUploadLayout &&
+                      "bg-[#EDF7FF]/80 rounded-[2rem] p-6 md:p-8 shadow-[0_18px_50px_rgba(35,104,170,0.08)] border border-white/80",
+                  )}
+                >
+                  <h3 className="text-lg md:text-2xl font-semibold text-[#0D1B2A] ml-1">
                     Uploaded Images
                   </h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid xl:grid-cols-2 gap-5">
                     {images.map((img) => (
                       <ImagePreviewCard
                         key={img.id}
@@ -327,7 +351,14 @@ const handleUpload = (files) => {
               )}
 
               {/* Validation Status Bar */}
-              <div className="bg-white/60 backdrop-blur-md rounded-xl p-4 border border-white/50 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+              <div
+                className={clsx(
+                  "backdrop-blur-md border border-white/50 flex flex-wrap items-center justify-between gap-4 shadow-sm",
+                  showCompletedUploadLayout
+                    ? "bg-white rounded-[2rem] px-6 py-6 md:px-8 md:py-8"
+                    : "bg-white/60 rounded-xl p-4",
+                )}
+              >
                 <div className="flex gap-3 text-sm font-medium">
                   <span
                     className={clsx(
@@ -357,7 +388,12 @@ const handleUpload = (files) => {
                 <button
                   onClick={uploadToBackend}
                   disabled={!canContinue1 ||isSubmitting}
-                  className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold"
+                  className={clsx(
+                    "bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold",
+                    showCompletedUploadLayout
+                      ? "px-10 py-4 text-lg min-w-[260px] justify-center"
+                      : "px-8 py-3",
+                  )}
                 >
                   {isSubmitting ? (
                     <>
@@ -376,12 +412,14 @@ const handleUpload = (files) => {
             </div>
 
             {/* RIGHT COLUMN: QR Panel */}
-            <div className="lg:col-span-1">
-              <QRPanel
-                sessionId={captureSessionId}
-                onSimulateMobile={() => setIsMobileModalOpen(true)}
-              />
-            </div>
+            {!showCompletedUploadLayout && (
+              <div className="lg:col-span-1">
+                <QRPanel
+                  sessionId={captureSessionId}
+                  onSimulateMobile={() => setIsMobileModalOpen(true)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>
