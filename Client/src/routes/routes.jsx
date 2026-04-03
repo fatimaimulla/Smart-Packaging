@@ -40,6 +40,14 @@ const AppRouter = createBrowserRouter([
     ],
   },
   {
+    path: "/mobile-capture/:sessionId",
+    element: <MobileCapturePage></MobileCapturePage>,
+  },
+  {
+    path: "/mobile-review/:sessionId",
+    element: <MobileReviewPage></MobileReviewPage>,
+  },
+  {
     element: <ProtectedRoute />,
     children: [
       {
@@ -69,14 +77,6 @@ const AppRouter = createBrowserRouter([
       {
         path: "/report",
         element: <ReportPage></ReportPage>,
-      },
-      {
-        path: "/mobile-capture/:sessionId",
-        element: <MobileCapturePage></MobileCapturePage>,
-      },
-      {
-        path: "/mobile-review/:sessionId",
-        element: <MobileReviewPage></MobileReviewPage>,
       },
       {
         path: "/template-view",

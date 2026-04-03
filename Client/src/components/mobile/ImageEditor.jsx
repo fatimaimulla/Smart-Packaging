@@ -4,14 +4,6 @@ import { useCropMath } from "../../hooks/useCropMath";
 import { useTouchHandlers } from "../../hooks/useTouchHandlers";
 import { imageProcessing } from "@/api/imageProcessing";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
-import {
-  setSideViewProductDimension,
-  setSideViewReferenceDimension,
-  setTopViewProductDimension,
-  setTopViewReferenceDimension,
-} from "@/redux/slice/dimensionSlice";
-import axios from "axios";
 import { updateTopDimension } from "@/api/updateTopDimension";
 import { updateSideDimension } from "@/api/updateSideDimension";
 
@@ -28,7 +20,6 @@ const ImageEditor = ({
     () => URL.createObjectURL(imageFile),
     [imageFile],
   );
-  const dispatch = useDispatch();
   const [imgData, setImgData] = useState(null);
   const [displayRect, setDisplayRect] = useState(null);
   const [cropRect, setCropRect] = useState(null);
@@ -189,48 +180,20 @@ const ImageEditor = ({
           console.log(res);
           console.log(res.data.success);
           if (res.data.success) {
-            if (viewType == "top") {
-              try {
-                const res1 = await updateTopDimension({
-                  topView: res.data,
-                  sessionId: sessionId,
-                });
-                console.log("this is from the top dimension",res1);
-              } catch (error) {
-                console.log(error);
-                if (error.response?.data?.message) {
-                  toast.error(error.response.data.message);
-                } else {
-                  toast.error(error.message);
-                }
-              }
-              // dispatch(setTopViewReferenceDimension(res.data.reference_object));
-              // dispatch(setTopViewProductDimension(res.data.products));
+            if (viewType === "top") {
+              await updateTopDimension({
+                topView: res.data,
+                sessionId,
+              });
             } else {
-              try {
-                const res2 = await updateSideDimension({
-                  sideView: res.data,
-                  sessionId: sessionId,
-                });
-                 console.log("this is from the side dimension",res2);
-              } catch (error) {
-                console.log(error);
-                if (error.response?.data?.message) {
-                  toast.error(error.response.data.message);
-                } else {
-                  toast.error(error.message);
-                }
-              }
-              // dispatch(
-              //   setSideViewReferenceDimension(res.data.reference_object),
-              // );
-              // dispatch(setSideViewProductDimension(res.data.products));
+              await updateSideDimension({
+                sideView: res.data,
+                sessionId,
+              });
             }
-            // if(res.data.reference_object)
+
             toast.success(res.data.message);
           } else if (res.data.success == false) {
-            // dispatch(setTopViewReferenceDimension(res.data.reference_object));
-            // dispatch(setTopViewProductDimension(res.data.products));
             toast.error(res.data.message);
             onRetake();
           }

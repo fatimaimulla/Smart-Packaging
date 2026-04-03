@@ -5,6 +5,7 @@ const uploadFromSystemHandler = async ({
   sideImage,
   referenceType,
   sessionId,
+  projectName,
 }) =>
 {
   
@@ -13,6 +14,7 @@ const uploadFromSystemHandler = async ({
   formData.append("img2", sideImage);
   formData.append("referenceObject", referenceType);
   formData.append("sessionId", sessionId);
+  formData.append("projectName", projectName || "");
 
   const res = await apiClient.post("/api/img/upload", formData, {
     headers: {

@@ -7,9 +7,19 @@ const findOwnedProject = async ({ sessionId, userId }) =>
     userId,
   });
 
+const findProjectForWrite = async ({ sessionId, user }) => {
+  if (!sessionId) return null;
+
+  if (user?._id) {
+    return findOwnedProject({ sessionId, userId: user._id });
+  }
+
+  return Project.findOne({ sessionId });
+};
+
 export const imgUpload = async (req, res) => {
   try {
-    const { referenceObject, sessionId } = req.body;
+    const { referenceObject, sessionId, projectName } = req.body;
     const img1 = req.files?.img1?.[0];
     const img2 = req.files?.img2?.[0];
 
@@ -20,15 +30,12 @@ export const imgUpload = async (req, res) => {
       });
     }
 
-    const project = await findOwnedProject({
-      sessionId,
-      userId: req.user._id,
-    });
+    const project = await Project.findOne({ sessionId });
 
     if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Project not found.",
+        message: "Project session not found.",
       });
     }
 
@@ -51,6 +58,9 @@ export const imgUpload = async (req, res) => {
     ]);
 
     project.referenceObject = referenceObject;
+    if (typeof projectName === "string" && projectName.trim()) {
+      project.name = projectName.trim();
+    }
     project.image1 = upload1.secure_url;
     project.image2 = upload2.secure_url;
     project.status = "uploaded";
@@ -73,9 +83,9 @@ export const imgUpload = async (req, res) => {
 export const getImage = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const project = await findOwnedProject({
+    const project = await findProjectForWrite({
       sessionId,
-      userId: req.user._id,
+      user: req.user,
     });
 
     if (!project) {
@@ -113,9 +123,9 @@ export const updateDimensionTop = async (req, res) => {
       });
     }
 
-    const project = await findOwnedProject({
+    const project = await findProjectForWrite({
       sessionId,
-      userId: req.user._id,
+      user: req.user,
     });
 
     if (!project) {
@@ -157,9 +167,9 @@ export const updateDimensionSide = async (req, res) => {
       });
     }
 
-    const project = await findOwnedProject({
+    const project = await findProjectForWrite({
       sessionId,
-      userId: req.user._id,
+      user: req.user,
     });
 
     if (!project) {

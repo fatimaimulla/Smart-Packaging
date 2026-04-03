@@ -36,6 +36,7 @@ const MobileCapturePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [projectName, setProjectName] = useState("");
 
   // Redux State
   const { referenceObject, topImage, sideImage } = useSelector(
@@ -132,6 +133,11 @@ const MobileCapturePage = () => {
   //   }
   // };
   const handleUpload = async () => {
+    if (!projectName.trim()) {
+      toast.error("Please enter a project name before uploading.");
+      return;
+    }
+
     setStep("uploading");
     try {
       // Use existing API handler
@@ -140,6 +146,7 @@ const MobileCapturePage = () => {
         sideImage,
         referenceType: referenceObject,
         sessionId: sessionId,
+        projectName: projectName.trim(),
       });
       console.log(res);
 
@@ -512,10 +519,24 @@ const MobileCapturePage = () => {
             </Swiper>
           </div>
 
+          <div className="px-6 pb-2">
+            <label className="mb-2 block text-sm font-semibold text-[#0D1B2A]">
+              Project Name
+            </label>
+            <input
+              type="text"
+              value={projectName}
+              onChange={(event) => setProjectName(event.target.value)}
+              placeholder="Example: Matte Bottle Sample"
+              className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-[#0D1B2A] outline-none transition focus:border-blue-500"
+            />
+          </div>
+
           {/* Confirm Button */}
           <div className="p-6 flex items-center justify-center">
             <button
               onClick={handleUpload}
+              disabled={!projectName.trim()}
               className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none flex items-center gap-2 font-semibold"
             >
               Confirm & Upload

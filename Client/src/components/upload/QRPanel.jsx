@@ -9,6 +9,8 @@ import { useMemo } from "react";
 const QRPanel = ({ onSimulateMobile, sessionId }) => {
   const navigate = useNavigate();
   const demoLink = useMemo(() => {
+    if (!sessionId) return "";
+
     const origin = window.location.origin;
     return `${origin}/mobile-capture/${sessionId}`;
   }, [sessionId]);
@@ -40,8 +42,14 @@ const QRPanel = ({ onSimulateMobile, sessionId }) => {
         reference detection automatically.
       </p>
 
-      <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mb-6">
-        <QRCodeSVG value={demoLink} size={160} level="H" />
+      <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mb-6 min-h-[184px] flex items-center justify-center">
+        {sessionId ? (
+          <QRCodeSVG value={demoLink} size={160} level="H" />
+        ) : (
+          <p className="text-sm font-medium text-gray-400">
+            Preparing secure mobile link...
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 w-full">

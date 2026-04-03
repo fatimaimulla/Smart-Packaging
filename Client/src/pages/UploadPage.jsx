@@ -20,7 +20,11 @@ import {
   setAiResponse,
   setCurrentProjectSessionId,
 } from "@/redux/slice/imageSlice";
-import { createProjectRequest } from "@/api/projects";
+import {
+  createProjectRequest,
+  getProjectRequest,
+  updateProjectConfigRequest,
+} from "@/api/projects";
 
 const UploadPage = () =>
 {
@@ -31,15 +35,65 @@ const UploadPage = () =>
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [referenceType, setReferenceType] = useState("coin");
-  const [captureSessionId] = useState(() =>
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `capture-${Date.now()}`,
-  );
+  const [captureSessionId, setCaptureSessionId] = useState(null);
   const [projectName, setProjectName] = useState("");
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const ensureProjectSession = async () => {
+      try {
+        const projectRes = await createProjectRequest();
+
+        if (!isMounted) return;
+
+        const projectSessionId = projectRes.data.data.sessionId;
+        setCaptureSessionId(projectSessionId);
+        dispatch(setCurrentProjectSessionId(projectSessionId));
+      } catch (error) {
+        if (!isMounted) return;
+        toast.error(
+          error.response?.data?.message ||
+            "Unable to prepare a mobile upload session.",
+        );
+      }
+    };
+
+    ensureProjectSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!captureSessionId) return undefined;
+
+    const pollForMobileUpload = async () => {
+      try {
+        const res = await getProjectRequest({ sessionId: captureSessionId });
+        const project = res.data?.data;
+
+        const hasTopDetection = !!project?.topView?.product?.length;
+        const hasSideDetection = !!project?.sideView?.product?.length;
+
+        if (project?.image1 && project?.image2 && hasTopDetection && hasSideDetection) {
+          navigate(`/review/${captureSessionId}`);
+        }
+      } catch (_error) {
+        // Ignore transient polling failures and keep waiting for upload completion.
+      }
+    };
+
+    const intervalId = window.setInterval(pollForMobileUpload, 2500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [captureSessionId, navigate]);
 
   const processImage = async (imageId, file,type) => {
     try {
@@ -175,10 +229,19 @@ const handleUpload = (files) => {
 
     try {
       console.log("3rd step------------->");
-      const projectRes = await createProjectRequest({
+      if (!captureSessionId) {
+        toast.error("Your upload session is still getting ready. Please retry.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const projectSessionId = captureSessionId;
+
+      await updateProjectConfigRequest({
+        sessionId: projectSessionId,
         name: projectName.trim(),
       });
-      const projectSessionId = projectRes.data.data.sessionId;
+
       dispatch(setCurrentProjectSessionId(projectSessionId));
 
       const res = await uploadFromSystemHandler({
@@ -414,9 +477,9 @@ const handleUpload = (files) => {
             {/* RIGHT COLUMN: QR Panel */}
             {!showCompletedUploadLayout && (
               <div className="lg:col-span-1">
-                <QRPanel
-                  sessionId={captureSessionId}
-                  onSimulateMobile={() => setIsMobileModalOpen(true)}
+              <QRPanel
+                sessionId={captureSessionId}
+                onSimulateMobile={() => setIsMobileModalOpen(true)}
                 />
               </div>
             )}
