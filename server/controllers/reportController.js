@@ -126,12 +126,10 @@ export const estimatePackagingCost = async (req, res) => {
         ply,
         plythickness,
         gsm,
-        // length:Number(length),
-        // width:Number(width),
-        // height:Number(height),
-        length,
-        width,
-        height,
+        length:Number(length),
+        width:Number(width),
+        height:Number(height),
+      
 
         boardArea: boardArea.toFixed(3),
         finalArea: finalArea.toFixed(3),
