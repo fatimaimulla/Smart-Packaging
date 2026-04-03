@@ -54,6 +54,10 @@ export const estimatePackagingCost = async (req, res) => {
     else if (weight <= 20) ply = 5;
     else ply = 7;
 
+    let plythickness="3 mm";
+    if (ply === 5) plythickness="5–7 mm";
+    if (ply === 7) plythickness="7–10 mm";
+
     if (fragility === "Medium" && weight >= 3) ply = Math.min(ply + 2, 7);
     if (fragility === "High") ply = Math.min(ply + 2, 7);
     if (ply === 4) ply = 5; 
@@ -125,6 +129,7 @@ export const estimatePackagingCost = async (req, res) => {
       data: {
         fefcoCode,
         ply,
+        plythickness,
         gsm,
 
         boardArea: boardArea.toFixed(3),

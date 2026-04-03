@@ -24,7 +24,7 @@ export const productAnalyze = async (req, res) => {
     const imageBuffer1 = imageResponse1.data;
     const base64Image1 = Buffer.from(imageBuffer1).toString("base64");
 
-    const imageBuffer2=imageResponse2.data;
+    const imageBuffer2 = imageResponse2.data;
     const base64Image2 = Buffer.from(imageBuffer2).toString("base64");
 
     const response = await ai.models.generateContent({
@@ -77,7 +77,7 @@ WEIGHT ESTIMATION RULE:
   - Typical material assumptions
   - Given dimensions
 - Weight is an APPROXIMATION
-- Return weight in kilograms if it is gerater then 1 kg else return weight in grams
+- Return weight in grams and dont mention unit in the response
 
 TASKS:
 1. Identify the main product using BOTH images
@@ -99,7 +99,7 @@ Respond ONLY in valid JSON:
 {
   "productName": "",
   "fragilityLevel": "",
-  "estimatedWeight": "xunit",
+  "estimatedWeight": "",
   "recommendedFefcoBox": ""
 }
 `,
@@ -125,7 +125,7 @@ Respond ONLY in valid JSON:
     return res.status(200).json({
       data: parsedData,
       success: true,
-      message:"Ai response found",
+      message: "Ai response found",
     });
   } catch (error) {
     return res.status(400).json({
