@@ -21,10 +21,7 @@ import { getAiResponse } from "@/api/getAiResponse";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import { setAiResponse } from "@/redux/slice/imageSlice";
-import {
-  getProjectRequest,
-  updateProjectConfigRequest,
-} from "@/api/projects";
+import { getProjectRequest, updateProjectConfigRequest } from "@/api/projects";
 
 const TemplateViewPage = () => {
   const location = useLocation();
@@ -47,7 +44,7 @@ const TemplateViewPage = () => {
       h: imageDimensions.h,
     },
   };
-    const [selectedTemplateId, setSelectedTemplateId] = useState("0301");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("0301");
   const template = TEMPLATE_CONFIG[selectedTemplateId];
 
   // 2D Canvas Ref
@@ -199,14 +196,14 @@ const TemplateViewPage = () => {
     }
   }, [aiData, selectedTemplateId]);
 
-   const handleSwitchToAI = () => {
-     if (!aiData?.recommendedFefcoBox) return;
+  const handleSwitchToAI = () => {
+    if (!aiData?.recommendedFefcoBox) return;
 
-     const numericCode = aiData.recommendedFefcoBox.replace(/\D/g, "");
+    const numericCode = aiData.recommendedFefcoBox.replace(/\D/g, "");
 
-     setSelectedTemplateId(numericCode);
-     setShowRecommendationModal(false);
-   };
+    setSelectedTemplateId(numericCode);
+    setShowRecommendationModal(false);
+  };
 
   if (!template) {
     return (
@@ -461,7 +458,7 @@ const TemplateViewPage = () => {
                           Est. Weight
                         </span>
                         <span className="text-sm font-bold text-gray-900">
-                          {aiData.estimatedWeight}
+                          {aiData.estimatedWeight}g
                         </span>
                       </div>
                       <div className="flex justify-between items-center">

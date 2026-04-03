@@ -2,7 +2,14 @@ import React from "react";
 import { Box, Ruler, Layers, CheckCircle } from "lucide-react";
 
 const OverviewCard = ({ data }) => {
-  const { fefco, material, thickness, dimensions, internalDimensions } = data;
+  const {
+    fefco,
+    material,
+    thickness,
+    dimensions,
+    internalDimensions,
+    optimalFit,
+  } = data;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-6 h-full border border-gray-100">
@@ -10,10 +17,16 @@ const OverviewCard = ({ data }) => {
         <h3 className="text-2xl font-semibold text-[#0D1B2A]">
           Packaging Summary
         </h3>
-        <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold flex items-center gap-1.5 border border-emerald-100">
+        {/* <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold flex items-center gap-1.5 border border-emerald-100">
           <CheckCircle size={14} />
           Optimal Fit
-        </span>
+        </span> */}
+        {optimalFit && (
+          <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold flex items-center gap-1.5 border border-emerald-100">
+            <CheckCircle size={14} />
+            Optimal Fit
+          </span>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -28,7 +41,7 @@ const OverviewCard = ({ data }) => {
             </h4>
             <p className="text-lg font-bold text-[#0D1B2A]">{fefco}</p>
             <p className="text-sm text-gray-600">
-              {material} • {thickness}mm
+              {material} • {thickness}
             </p>
           </div>
         </div>
@@ -49,7 +62,7 @@ const OverviewCard = ({ data }) => {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-600">Product</span>
                 <span className="font-mono font-medium text-gray-800">
-                  {dimensions.l} × {dimensions.w} × {dimensions.h} mm
+                  {dimensions?.l} × {dimensions?.w} × {dimensions?.h} mm
                 </span>
               </div>
 

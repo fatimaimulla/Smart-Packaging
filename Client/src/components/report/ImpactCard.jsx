@@ -5,9 +5,12 @@ const ImpactCard = ({ data }) => {
   const { co2, standardCo2, savings, recyclability } = data;
 
   // Calculate width percentages for the chart
-  const maxVal = Math.max(co2, standardCo2);
-  const standardWidth = (standardCo2 / maxVal) * 100;
-  const yourWidth = (co2 / maxVal) * 100;
+  const co2Val = Number(co2) || 0;
+  const standardVal = Number(standardCo2) || 0;
+
+  const maxVal = Math.max(co2Val, standardVal) || 1;
+  const standardWidth = (standardVal / maxVal) * 100
+  const yourWidth = (co2Val / maxVal) * 100;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-6 h-full border border-gray-100">
@@ -28,7 +31,7 @@ const ImpactCard = ({ data }) => {
           </h4>
           <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center gap-1">
             <ArrowDown size={12} strokeWidth={3} />
-            {savings}% Reduction
+            {savings ?? 0}% Reduction
           </span>
         </div>
 
@@ -76,13 +79,13 @@ const ImpactCard = ({ data }) => {
             </span>
           </div>
           <span className="text-sm font-bold text-emerald-600">
-            {recyclability}/10
+            {recyclability ?? 0}/10
           </span>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-emerald-500 rounded-full"
-            style={{ width: `${recyclability * 10}%` }}
+            style={{ width: `${(recyclability ?? 0 )* 10}%` }}
           ></div>
         </div>
       </div>
@@ -91,7 +94,7 @@ const ImpactCard = ({ data }) => {
       <ul className="text-sm text-gray-600 space-y-2 mt-2">
         <li className="flex items-start gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
-          Reduced material usage by {savings}%
+          Reduced material usage by {savings ?? 0}%
         </li>
         <li className="flex items-start gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Download, Share2, Plus, FileArchive } from "lucide-react";
+import { Download, Share2, Plus, FileArchive, Info } from "lucide-react";
 import OverviewCard from "../components/report/OverviewCard";
 import CostCard from "../components/report/CostCard";
 import ImpactCard from "../components/report/ImpactCard";
@@ -11,26 +11,43 @@ const ReportPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const reportData = location.state?.reportData;
+
   // Mock Data (In a real app, this would come from previous steps or API)
   // We try to read from location state, otherwise default
-  const defaults = {
-    fefco: "FEFCO 0201",
-    material: "3-Ply Corrugated",
-    thickness: 3,
-    dimensions: { l: 120, w: 85, h: 40 },
-    internalDimensions: { l: 126, w: 91, h: 46 }, // +6mm padding logic
-    area: 0.42,
-    cost: 9,
-    waste: 12,
-    co2: 16,
-    standardCo2: 39,
-    recyclability: 9.5,
+  const data = {
+    fefco: reportData?.fefcoCode,
+    material: `${reportData?.ply}-Ply Corrugated`,
+    thickness: reportData?.plythickness,
+    dimensions: {
+      l: reportData?.length,
+      w: reportData?.width,
+      h: reportData?.height,
+    },
+    // internalDimensions: { l: 126, w: 91, h: 46 }, // +6mm padding logic
+    internalDimensions: {
+      l: Number(reportData?.length || 0) + 6,
+      w: Number(reportData?.width || 0) + 6,
+      h: Number(reportData?.height || 0) + 6,
+    },
+    area: reportData?.finalArea,
+    cost: reportData?.estimatedCostPerBox,
+    waste: reportData?.wasteRatio,
+    co2: (Number(reportData?.environment?.carbonFootprint) * 1000).toFixed(0),
+    standardCo2: (
+      Number(reportData?.environment?.standardFootprint) * 1000
+    ).toFixed(0),
+    recyclability: reportData?.environment?.recyclabilityScore,
+    optimalFit: reportData?.optimalFit,
+    costBreakdown: reportData?.costBreakdown,
   };
 
-  const data = { ...defaults, ...location.state };
-  const savings = Math.round(
-    ((data.standardCo2 - data.co2) / data.standardCo2) * 100
-  );
+  // const data = { ...defaults, ...location.state };
+  // const savings = Math.round(
+  //   ((data.standardCo2 - data.co2) / data.standardCo2) * 100,
+  // );
+
+  const savings = reportData?.environment?.reduction;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
@@ -43,6 +60,11 @@ const ReportPage = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-[#0D1B2A] mb-4">
               Project Summary & Impact Report
             </h1>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-full text-xs font-medium">
+              <Info size={14} />
+              Estimated values  may vary based on location, material rates, and
+              market conditions
+            </div>
             <p className="text-gray-600 max-w-2xl mx-auto">
               A detailed breakdown of your packaging specifications, estimated
               costs, and environmental savings.
@@ -62,7 +84,7 @@ const ReportPage = () => {
           </div>
 
           {/* Final Actions */}
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center items-center">
+          {/* <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center items-center">
             <button className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8 py-4 font-bold text-lg flex items-center justify-center gap-2">
               <Download size={20} />
               Download Full Report
@@ -85,7 +107,7 @@ const ReportPage = () => {
               <Plus size={18} />
               Start New Project
             </button>
-          </div>
+          </div> */}
         </div>
       </main>
 

@@ -2,7 +2,10 @@ import React from "react";
 import { DollarSign, PieChart, TrendingDown } from "lucide-react";
 
 const CostCard = ({ data }) => {
-  const { area, cost, waste } = data;
+  const { area, cost, waste, costBreakdown } = data;
+  const material =Number(costBreakdown?.materialPercent)  || 0;
+  const process = Number(costBreakdown?.processPercent) || 0;
+  const wastePercent = Number(costBreakdown?.wastePercent) || 0;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-6 h-full border border-gray-100">
@@ -19,7 +22,7 @@ const CostCard = ({ data }) => {
           Estimated Unit Cost
         </p>
         <div className="text-4xl font-extrabold text-[#0D1B2A] tracking-tight mb-2">
-          ₹{cost}{" "}
+          ₹{cost ?? 0}{" "}
           <span className="text-lg text-gray-400 font-normal">/ box</span>
         </div>
         <p className="text-xs text-gray-400">
@@ -33,13 +36,13 @@ const CostCard = ({ data }) => {
           <p className="text-xs text-gray-500 font-bold uppercase mb-1">
             Material Used
           </p>
-          <p className="text-xl font-bold text-gray-800">{area} m²</p>
+          <p className="text-xl font-bold text-gray-800">{area ?? 0} m²</p>
         </div>
         <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
           <p className="text-xs text-blue-600 font-bold uppercase mb-1">
             Waste Ratio
           </p>
-          <p className="text-xl font-bold text-blue-800">{waste}%</p>
+          <p className="text-xl font-bold text-blue-800">{waste ?? 0}%</p>
         </div>
       </div>
 
@@ -48,13 +51,32 @@ const CostCard = ({ data }) => {
         <div className="flex justify-between text-xs text-gray-500 mb-2">
           <span>Cost Breakdown</span>
         </div>
-        <div className="flex h-4 rounded-full overflow-hidden w-full">
+        {/* <div className="flex h-4 rounded-full overflow-hidden w-full">
           <div className="bg-blue-500 w-[65%]" title="Material (65%)"></div>
           <div
             className="bg-emerald-400 w-[25%]"
             title="Processing (25%)"
           ></div>
           <div className="bg-gray-300 w-[10%]" title="Waste (10%)"></div>
+        </div> */}
+        <div className="flex h-4 rounded-full overflow-hidden w-full">
+          <div
+            className="bg-blue-500"
+            style={{ width: `${material}%` }}
+            title={`Material (${material}%)`}
+          ></div>
+
+          <div
+            className="bg-emerald-400"
+            style={{ width: `${process}%` }}
+            title={`Process (${process}%)`}
+          ></div>
+
+          <div
+            className="bg-gray-300"
+            style={{ width: `${wastePercent}%` }}
+            title={`Waste (${wastePercent}%)`}
+          ></div>
         </div>
         <div className="flex gap-4 mt-2 justify-center">
           <div className="flex items-center gap-1.5">

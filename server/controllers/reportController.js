@@ -12,7 +12,7 @@ const calculateBoardArea = (l, w, h, fefcoCode) => {
 
     case "Fefco0301":
       const bottom = (2 * (l + w) + 43) * (2 * (h * 0.6) + w + 10);
-      const top    = (2 * (l + w + 6) + 43) * (2 * (h * 0.45) + w + 10);
+      const top = (2 * (l + w + 6) + 43) * (2 * (h * 0.45) + w + 10);
       area = bottom + top;
       break;
 
@@ -28,7 +28,7 @@ const calculateBoardArea = (l, w, h, fefcoCode) => {
       area = (2 * (l + w) + 43) * (2 * h + w + 10);
   }
 
-  return area / 1_000_000; 
+  return area / 1_000_000;
 };
 
 export const estimatePackagingCost = async (req, res) => {
@@ -48,25 +48,24 @@ export const estimatePackagingCost = async (req, res) => {
     const h = parseFloat(height);
     const parseWeight = parseFloat(productWeight);
 
-    const weight = parseWeight / 1000; 
+    const weight = parseWeight / 1000;
     let ply;
     if (weight <= 5) ply = 3;
     else if (weight <= 20) ply = 5;
     else ply = 7;
 
-    let plythickness="3 mm";
-    if (ply === 5) plythickness="5–7 mm";
-    if (ply === 7) plythickness="7–10 mm";
-
     if (fragility === "Medium" && weight >= 3) ply = Math.min(ply + 2, 7);
     if (fragility === "High") ply = Math.min(ply + 2, 7);
-    if (ply === 4) ply = 5; 
+    if (ply === 4) ply = 5;
     if (ply === 6) ply = 7;
 
     let gsm;
     if (ply === 3) gsm = 420;
     else if (ply === 5) gsm = 700;
     else gsm = 980;
+    let plythickness = "3 mm";
+    if (ply === 5) plythickness = "5–7 mm";
+    if (ply === 7) plythickness = "7–10 mm";
 
     const boardArea = calculateBoardArea(l, w, h, fefcoCode);
 
@@ -83,10 +82,8 @@ export const estimatePackagingCost = async (req, res) => {
 
     const boardWeightKg = (finalArea * gsm) / 1000;
 
-
     const paperRateByPly = { 3: 46, 5: 62, 7: 76 };
     const materialCost = boardWeightKg * paperRateByPly[ply];
-
 
     const conversionRateByPly = { 3: 18, 5: 28, 7: 42 };
     const conversionCost = finalArea * conversionRateByPly[ply];
@@ -98,20 +95,18 @@ export const estimatePackagingCost = async (req, res) => {
     const finalCost = subtotal + gst;
 
     const materialPercent = ((materialCost / subtotal) * 100).toFixed(0);
-    const processPercent  = ((conversionCost / subtotal) * 100).toFixed(0);
-    const wasteCost       = materialCost * (wasteRatio / 100);
-    const wastePercent    = ((wasteCost / subtotal) * 100).toFixed(0);
+    const processPercent = ((conversionCost / subtotal) * 100).toFixed(0);
+    const wasteCost = materialCost * (wasteRatio / 100);
+    const wastePercent = ((wasteCost / subtotal) * 100).toFixed(0);
 
     const carbonFactorByPly = { 3: 0.72, 5: 0.95, 7: 1.38 };
-    const carbon    = boardWeightKg * carbonFactorByPly[ply];
-    const standard  = boardWeightKg * 3.2;
+    const carbon = boardWeightKg * carbonFactorByPly[ply];
+    const standard = boardWeightKg * 3.2;
 
-    const carbonFootprint   = carbon.toFixed(2);
-    const standardFootprint = standard.toFixed(2);
+    const carbonFootprint = carbon.toFixed(4);
+    const standardFootprint = standard.toFixed(4);
     const reduction =
-      standard > 0
-        ? (((standard - carbon) / standard) * 100).toFixed(0)
-        : "0";
+      standard > 0 ? (((standard - carbon) / standard) * 100).toFixed(0) : "0";
 
     const recyclabilityScore = { 3: 9.5, 5: 8.8, 7: 7.5 }[ply];
 
@@ -131,6 +126,9 @@ export const estimatePackagingCost = async (req, res) => {
         ply,
         plythickness,
         gsm,
+        length:Number(length),
+        width:Number(width),
+        height:Number(height),
 
         boardArea: boardArea.toFixed(3),
         finalArea: finalArea.toFixed(3),

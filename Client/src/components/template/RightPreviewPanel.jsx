@@ -14,16 +14,20 @@ import { generateFefco0401DXF } from "@/utils/generateFefco0401DXF";
 import { generateFefco0427DXF } from "@/utils/generateFefco0427DXF";
 import Dieline3DViewer from "./DieLine3DViewer";
 import { TEMPLATE_CONFIG } from "@/constants/template";
+import { getReport } from "@/api/getReport";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
+  const navigate = useNavigate();
   const [sliderValue, setSliderValue] = useState(0);
   const templateDefaults = TEMPLATE_CONFIG[fefcoCode]?.defaultDimensions ||
     TEMPLATE_CONFIG["0201"]?.defaultDimensions || {
       l: 191,
       w: 383,
       h: 245,
-  };
-  
+    };
+
   const l =
     dimensions?.l ??
     dimensions?.length ??
@@ -98,9 +102,10 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
     });
 
     pdf.save("FEFCO_0201_Dieline.pdf");
+    await generateReport();
   };
 
-  const handleDownloadDXF = () => {
+  const handleDownloadDXF = async () => {
     try {
       // Get dimensions from props or use defaults from Fefco0201Dieline
       const dims = {
@@ -127,12 +132,29 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
       URL.revokeObjectURL(url);
 
       toast.success("DXF downloaded successfully!");
+      await generateReport();
     } catch (error) {
       console.error("DXF generation error:", error);
       toast.error("Failed to generate DXF file. Please try again.");
     }
   };
-  
+  const aiData = useSelector((state) => state.image.aiResponse);
+  const generateReport = async () => {
+    try {
+      const res = await getReport({ dimensions, aiData });
+      if (res.data.success) {
+        navigate("/report", {
+          state: {
+            reportData: res.data.data,
+          },
+        });
+      }
+      console.log(res);
+    } catch (error) {
+      console.error("Report generation error:", error);
+      toast.error("Failed to generate report. Please try again.");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 h-full relative">
