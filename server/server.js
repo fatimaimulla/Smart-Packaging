@@ -13,6 +13,8 @@ import aiRouter from "./routes/aiRoutes.js";
 import authRouter from "./routes/authRoutes.js";
 import projectRouter from "./routes/projectRoutes.js";
 import { requireAuth } from "./middleware/authMiddleware.js";
+import reportRouter from "./routes/reportRoutes.js";
+
 
 const app = express();
 const server = http.createServer(app);
@@ -33,6 +35,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/projects", requireAuth, projectRouter);
 app.use("/api/img", imgRouter);
 app.use("/api/ai", aiRouter);
+app.use("/api/report", reportRouter);
+
 
 const io = new Server(server, {
   cors: {
