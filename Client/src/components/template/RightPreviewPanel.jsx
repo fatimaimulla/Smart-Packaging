@@ -1,5 +1,5 @@
 import React, { useState, Suspense } from "react";
-import { Download, Loader2, MessageCircle } from "lucide-react";
+import { Download, FileText, Loader2, MessageCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -245,6 +245,13 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
         className="w-full px-4 py-3 bg-black text-white rounded-lg"
       >
         Download Dieline (DXF)
+      </button>
+      <button
+        onClick={generateReport}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-slate-900 border border-slate-300 rounded-lg font-medium transition-colors hover:bg-slate-50"
+      >
+        <FileText size={18} />
+        <span>View Report</span>
       </button>
 
       {/* 3. You will get list */}

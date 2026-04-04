@@ -237,10 +237,14 @@ const ProjectCard = ({
             onClick={() =>
               navigate("/report", {
                 state: {
+                  sessionId: project.sessionId,
                   dimensions: project.dimensions,
-                  fefco: project.selectedTemplateId
-                    ? `FEFCO ${project.selectedTemplateId}`
-                    : "FEFCO 0201",
+                  aiData: {
+                    ...project.recommendation,
+                    fragility: project.fragility,
+                    selectedTemplateId: project.selectedTemplateId,
+                    fefcoCode: project.selectedTemplateId,
+                  },
                 },
               })
             }
