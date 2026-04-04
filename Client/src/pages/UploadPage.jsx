@@ -7,10 +7,11 @@ import ImagePreviewCard from "../components/upload/ImagePreviewCard";
 import UploadZone from "../components/upload/UploadZone";
 import ReferenceSelector from "../components/upload/ReferenceSelector";
 import Header from "../common/Header";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import { toast } from "sonner";
+import { io } from "socket.io-client";
 import uploadFromSystemHandler from "@/api/uploadFromSystemHandler.js";
 import { imageProcessing } from "@/api/imageProcessing";
 import { updateSideDimension } from "@/api/updateSideDimension";
@@ -40,6 +41,8 @@ const UploadPage = () =>
   const [images, setImages] = useState([]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMobileDeviceConnected, setIsMobileDeviceConnected] = useState(false);
+  const desktopSocketRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -72,6 +75,26 @@ const UploadPage = () =>
   useEffect(() => {
     if (!captureSessionId) return undefined;
 
+    const socket = io(import.meta.env.VITE_API_BASE_URL);
+    desktopSocketRef.current = socket;
+
+    socket.on("connect", () => {
+      socket.emit("join-session", {
+        sessionId: captureSessionId,
+        role: "desktop",
+      });
+    });
+
+    socket.on("mobile-session-status", (payload) => {
+      if (payload?.sessionId === captureSessionId) {
+        setIsMobileDeviceConnected(Boolean(payload.mobileConnected));
+      }
+    });
+
+    socket.on("mobile-upload-complete", () => {
+      navigate(`/review/${captureSessionId}`);
+    });
+
     const pollForMobileUpload = async () => {
       try {
         const res = await getProjectRequest({ sessionId: captureSessionId });
@@ -91,9 +114,24 @@ const UploadPage = () =>
     const intervalId = window.setInterval(pollForMobileUpload, 2500);
 
     return () => {
+      desktopSocketRef.current = null;
+      socket.disconnect();
       window.clearInterval(intervalId);
     };
   }, [captureSessionId, navigate]);
+
+  const handleEndMobileSession = () => {
+    if (!captureSessionId) {
+      return;
+    }
+
+    desktopSocketRef.current?.emit(
+      "desktop-end-mobile-session",
+      captureSessionId,
+    );
+    setIsMobileDeviceConnected(false);
+    toast.success("Mobile session ended.");
+  };
 
   const processImage = async (imageId, file,type) => {
     try {
@@ -326,6 +364,8 @@ const handleUpload = (files) => {
     !!projectName.trim();
 
   const showCompletedUploadLayout = isComplete && allReferencesDetected;
+  const isDesktopUploadLocked =
+    isMobileDeviceConnected && !showCompletedUploadLayout;
 
 
   return (
@@ -348,8 +388,23 @@ const handleUpload = (files) => {
               )}
             >
               {/* Upload Instructions Card */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-8">
-                <div>
+              <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-8 relative overflow-hidden">
+                {isDesktopUploadLocked ? (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/65 backdrop-blur-[2px] px-6 text-center">
+                    <div className="max-w-md rounded-2xl border border-emerald-200 bg-white/95 p-6 shadow-sm">
+                      <p className="text-lg font-semibold text-[#0D1B2A]">
+                        Mobile device connected
+                      </p>
+                      <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                        Laptop upload is disabled while the QR-linked mobile
+                        session is active. End the mobile session on the right
+                        if you want to upload from this computer instead.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className={clsx(isDesktopUploadLocked && "pointer-events-none select-none")}>
                   <h1 className="text-3xl font-bold text-[#0D1B2A] mb-2">
                     Upload Two Photos
                   </h1>
@@ -368,19 +423,26 @@ const handleUpload = (files) => {
                     value={projectName}
                     onChange={(event) => setProjectName(event.target.value)}
                     placeholder="Example: Shampoo Bottle March Batch"
-                    className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none focus:border-blue-500"
+                    disabled={isDesktopUploadLocked}
+                    className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
                   />
                 </div>
 
                 <ReferenceSelector
                   selected={referenceType}
                   onSelect={setReferenceType}
+                  disabled={isDesktopUploadLocked}
                 />
 
                 {!showCompletedUploadLayout && (
                   <UploadZone
                     onUpload={handleUpload}
-                    disabled={images.length >= 2}
+                    disabled={images.length >= 2 || isDesktopUploadLocked}
+                    disabledMessage={
+                      isDesktopUploadLocked
+                        ? "A phone is currently connected to this session. End the mobile session to upload from this computer."
+                        : undefined
+                    }
                   />
                 )}
               </div>
@@ -480,6 +542,8 @@ const handleUpload = (files) => {
               <QRPanel
                 sessionId={captureSessionId}
                 onSimulateMobile={() => setIsMobileModalOpen(true)}
+                mobileConnected={isMobileDeviceConnected}
+                onEndMobileSession={handleEndMobileSession}
                 />
               </div>
             )}

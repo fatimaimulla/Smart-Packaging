@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Form } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setSessionId,
@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Pagination } from "swiper/modules";
 import Footer from "@/common/Footer";
 import Header from "@/common/Header";
 import { io } from "socket.io-client";
@@ -28,15 +27,12 @@ const MobileCapturePage = () => {
   // const [croppedTop, setCroppedTop] = useState(null);
   const { sessionId } = useParams();
   console.log(sessionId);
-  const socket = React.useMemo(
-    () => io(import.meta.env.VITE_API_BASE_URL),
-    [],
-  );
+  const socketRef = useRef(null);
 
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
   const [projectName, setProjectName] = useState("");
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   // Redux State
   const { referenceObject, topImage, sideImage } = useSelector(
@@ -58,10 +54,31 @@ const MobileCapturePage = () => {
   }, [sessionId, dispatch]);
 
   useEffect(() => {
+    if (!sessionId) {
+      return;
+    }
+
+    const socket = io(import.meta.env.VITE_API_BASE_URL);
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      socket.emit("join-session", {
+        sessionId,
+        role: "mobile",
+      });
+    });
+
+    socket.on("mobile-session-ended", () => {
+      setSessionEnded(true);
+      window.open("", "_self");
+      window.close();
+    });
+
     return () => {
+      socketRef.current = null;
       socket.disconnect();
     };
-  }, [socket]);
+  }, [sessionId]);
 
   /* ==============================
      HANDLERS
@@ -152,7 +169,7 @@ const MobileCapturePage = () => {
 
       if (res.data.success) {
         dispatch(setImageId(res.data.sessionId));
-        socket.emit("mobile-upload-complete", sessionId);
+        socketRef.current?.emit("mobile-upload-complete", sessionId);
         setStep("success");
       } else {
         toast.error("Upload failed. Please try again.");
@@ -174,6 +191,19 @@ const MobileCapturePage = () => {
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white">
         <Loader2 className="w-10 h-10 animate-spin text-emerald-500 mb-4" />
         <p className="font-medium">Connecting to session...</p>
+      </div>
+    );
+  }
+
+  if (sessionEnded) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-center text-white px-6">
+        <AlertTriangle className="w-10 h-10 text-amber-400 mb-4" />
+        <p className="text-lg font-semibold">This mobile session was ended</p>
+        <p className="mt-2 text-sm text-slate-300 max-w-sm">
+          The desktop has terminated this QR session. You can safely close this
+          tab now.
+        </p>
       </div>
     );
   }

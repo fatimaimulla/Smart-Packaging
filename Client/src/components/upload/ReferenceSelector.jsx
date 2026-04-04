@@ -8,7 +8,7 @@ const references = [
   { id: "2x2 box", label: "2x2 Marker", hasDownload: true },
 ];
 
-const ReferenceSelector = ({ selected, onSelect }) => {
+const ReferenceSelector = ({ selected, onSelect, disabled = false }) => {
   return (
     <div className="flex flex-col gap-3">
       <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
@@ -18,12 +18,15 @@ const ReferenceSelector = ({ selected, onSelect }) => {
         {references.map((ref) => (
           <button
             key={ref.id}
+            type="button"
             onClick={() => onSelect(ref.id)}
+            disabled={disabled}
             className={clsx(
               "relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border flex items-center gap-2",
               selected === ref.id
                 ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm"
-                : "bg-white border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-gray-50"
+                : "bg-white border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-gray-50",
+              disabled && "cursor-not-allowed opacity-60 hover:border-gray-200 hover:bg-white",
             )}
           >
             {selected === ref.id && <Check size={14} strokeWidth={3} />}

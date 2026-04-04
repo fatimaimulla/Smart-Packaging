@@ -3,7 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { UploadCloud, Image as ImageIcon } from "lucide-react";
 import { clsx } from "clsx";
 
-const UploadZone = ({ onUpload, disabled }) => {
+const UploadZone = ({ onUpload, disabled, disabledMessage }) => {
   const onDrop = useCallback(
     (acceptedFiles) => {
       if (acceptedFiles?.length > 0) {
@@ -40,12 +40,21 @@ const UploadZone = ({ onUpload, disabled }) => {
         {isDragActive ? <UploadCloud size={32} /> : <ImageIcon size={32} />}
       </div>
       <h3 className="text-lg font-semibold text-gray-800 mb-2">
-        {isDragActive ? "Drop images here" : "Drag & Drop or Click to Upload"}
+        {disabled
+          ? "Laptop upload is disabled"
+          : isDragActive
+            ? "Drop images here"
+            : "Drag & Drop or Click to Upload"}
       </h3>
       <p className="text-sm text-gray-500 max-w-xs mx-auto">
-        Upload Top View and Side View photos. JPG, PNG or HEIC supported.
+        {disabledMessage ||
+          "Upload Top View and Side View photos. JPG, PNG or HEIC supported."}
       </p>
-      <button className="mt-6 px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+      <button
+        type="button"
+        disabled={disabled}
+        className="mt-6 px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      >
         Select from Computer
       </button>
     </div>
