@@ -4,7 +4,8 @@ import axios from "axios";
 
 export const productAnalyze = async (req, res) => {
   try {
-    const { imageUrl1, imageUrl2, dimension } = req.body;
+    const { imageUrl1, imageUrl2, dimension, dimensions } = req.body;
+    const resolvedDimensions = dimension ?? dimensions;
 
     if (!imageUrl1 || !imageUrl2) {
       return res.status(400).json({
@@ -68,7 +69,7 @@ PRODUCT IDENTIFICATION RULE:
   - Is the consumer item intended to be packed and shipped
 
 PHYSICAL DATA PROVIDED:
-- Product dimensions (in millimeters): ${dimension}
+- Product dimensions (in millimeters): ${resolvedDimensions}
   Format: Length × Width × Height (mm)
 
 WEIGHT ESTIMATION RULE:

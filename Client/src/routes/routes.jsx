@@ -14,6 +14,8 @@ import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import VerifyOtpPage from "@/pages/VerifyOtpPage";
 import ProjectsDashboardPage from "@/pages/ProjectsDashboardPage";
+import MultiProductBundlePage from "@/pages/MultiProductBundlePage";
+import BundleLayerBreakdownPage from "@/pages/BundleLayerBreakdownPage";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import PublicOnlyRoute from "@/auth/PublicOnlyRoute";
 
@@ -53,6 +55,18 @@ const AppRouter = createBrowserRouter([
       {
         path: "/projects",
         element: <ProjectsDashboardPage />,
+      },
+      {
+        path: "/bundle-planner",
+        element: <MultiProductBundlePage />,
+      },
+      {
+        path: "/bundle-planner/:sessionId",
+        element: <MultiProductBundlePage />,
+      },
+      {
+        path: "/bundle-planner/:sessionId/layers",
+        element: <BundleLayerBreakdownPage />,
       },
       {
         path: "/upload",

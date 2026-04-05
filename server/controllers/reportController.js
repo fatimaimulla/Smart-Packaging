@@ -1,35 +1,4 @@
-const calculateBoardArea = (l, w, h, fefcoCode) => {
-  let area = 0;
-
-  switch (fefcoCode) {
-    case "Fefco0201":
-      area = (2 * (l + w) + 43) * (2 * h + w + 10);
-      break;
-
-    case "Fefco0203":
-      area = (2 * (l + w) + 45) * (2 * h + w + 20);
-      break;
-
-    case "Fefco0301":
-      const bottom = (2 * (l + w) + 43) * (2 * (h * 0.6) + w + 10);
-      const top = (2 * (l + w + 6) + 43) * (2 * (h * 0.45) + w + 10);
-      area = bottom + top;
-      break;
-
-    case "Fefco0401":
-      area = (l + 2 * h + 30) * (w + 2 * h + 30);
-      break;
-
-    case "Fefco0427":
-      area = (l + w + 2 * h + 50) * (w + h + 45);
-      break;
-
-    default:
-      area = (2 * (l + w) + 43) * (2 * h + w + 10);
-  }
-
-  return area / 1_000_000;
-};
+import { calculateBoardArea, normalizeFefcoCode } from "../utils/fefco.js";
 
 export const estimatePackagingCost = async (req, res) => {
   try {
@@ -67,13 +36,14 @@ export const estimatePackagingCost = async (req, res) => {
     if (ply === 5) plythickness = "5–7 mm";
     if (ply === 7) plythickness = "7–10 mm";
 
-    const boardArea = calculateBoardArea(l, w, h, fefcoCode);
+    const normalizedFefcoCode = normalizeFefcoCode(fefcoCode) || "Fefco0201";
+    const boardArea = calculateBoardArea(l, w, h, normalizedFefcoCode);
 
     let wastageFactor = 1.05;
-    if (fefcoCode === "Fefco0203") wastageFactor = 1.07;
-    if (fefcoCode === "Fefco0301") wastageFactor = 1.08;
-    if (fefcoCode === "Fefco0401") wastageFactor = 1.06;
-    if (fefcoCode === "Fefco0427") wastageFactor = 1.14;
+    if (normalizedFefcoCode === "Fefco0203") wastageFactor = 1.07;
+    if (normalizedFefcoCode === "Fefco0301") wastageFactor = 1.08;
+    if (normalizedFefcoCode === "Fefco0401") wastageFactor = 1.06;
+    if (normalizedFefcoCode === "Fefco0427") wastageFactor = 1.14;
 
     const finalArea = boardArea * wastageFactor;
 
@@ -117,12 +87,12 @@ export const estimatePackagingCost = async (req, res) => {
       Fefco0401: 9,
       Fefco0427: 15,
     };
-    const optimalFit = wasteRatio <= (wasteThreshold[fefcoCode] || 10);
+    const optimalFit = wasteRatio <= (wasteThreshold[normalizedFefcoCode] || 10);
 
     return res.status(200).json({
       success: true,
       data: {
-        fefcoCode,
+        fefcoCode: normalizedFefcoCode,
         ply,
         plythickness,
         gsm,

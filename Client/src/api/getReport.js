@@ -32,7 +32,10 @@ const normalizeFefcoCode = (value) => {
 
 export const getReport = async ({ dimensions, aiData }) => {
   const normalizedDimensions = normalizeDimensions(dimensions);
-  const productWeight = aiData?.estimatedWeight ?? aiData?.productWeight;
+  const productWeight =
+    aiData?.productWeightGrams ??
+    aiData?.estimatedWeight ??
+    aiData?.productWeight;
   const fragility =
     normalizeFragility(aiData?.fragilityLevel ?? aiData?.fragility) ?? "Low";
   const fefcoCode = normalizeFefcoCode(

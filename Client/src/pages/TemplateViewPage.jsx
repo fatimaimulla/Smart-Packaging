@@ -23,6 +23,11 @@ import { toast } from "sonner";
 import { setAiResponse } from "@/redux/slice/imageSlice";
 import { getProjectRequest, updateProjectConfigRequest } from "@/api/projects";
 
+const normalizeTemplateId = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits || "0301";
+};
+
 const TemplateViewPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,16 +41,24 @@ const TemplateViewPage = () => {
   const currentProjectSessionId = useSelector(
     (state) => state.image.currentProjectSessionId,
   );
-
-  const { dimensions } = location.state || {
-    dimensions: {
+  const activeSessionId = location.state?.sessionId || currentProjectSessionId;
+  const [projectType, setProjectType] = useState(
+    location.state?.projectType || "single",
+  );
+  const [dimensions, setDimensions] = useState(
+    location.state?.dimensions || {
       l: imageDimensions.l,
       w: imageDimensions.w,
       h: imageDimensions.h,
     },
-  };
-  const [selectedTemplateId, setSelectedTemplateId] = useState("0301");
+  );
+  const [selectedTemplateId, setSelectedTemplateId] = useState(
+    normalizeTemplateId(
+      location.state?.templateId || location.state?.fefcoCode || "0301",
+    ),
+  );
   const template = TEMPLATE_CONFIG[selectedTemplateId];
+  const isBundleProject = projectType === "bundle";
 
   // 2D Canvas Ref
   const canvasRef = useRef(null);
@@ -59,7 +72,6 @@ const TemplateViewPage = () => {
   const [aiData, setAiData] = useState(null);
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
   const [hasHydratedSavedAi, setHasHydratedSavedAi] = useState(false);
-  const activeSessionId = location.state?.sessionId || currentProjectSessionId;
 
   useEffect(() => {
     canvasRef.current?.resetView();
@@ -67,7 +79,7 @@ const TemplateViewPage = () => {
   }, [selectedTemplateId]);
 
   useEffect(() => {
-    if (!activeSessionId) {
+    if (!activeSessionId || !hasHydratedSavedAi) {
       return;
     }
 
@@ -75,24 +87,35 @@ const TemplateViewPage = () => {
       sessionId: activeSessionId,
       dimensions,
       selectedTemplateId,
+      projectType,
       status: "configured",
     }).catch((error) => {
       console.error("Failed to save template selection:", error);
     });
-  }, [activeSessionId, dimensions, selectedTemplateId]);
+  }, [
+    activeSessionId,
+    dimensions,
+    hasHydratedSavedAi,
+    projectType,
+    selectedTemplateId,
+  ]);
 
   useEffect(() => {
-    if (!activeSessionId || !aiData) {
+    if (!activeSessionId || !hasHydratedSavedAi || !aiData) {
       return;
     }
 
     updateProjectConfigRequest({
       sessionId: activeSessionId,
       recommendation: aiData,
+      productWeightGrams:
+        aiData?.productWeightGrams ??
+        aiData?.estimatedWeight ??
+        aiData?.productWeight,
     }).catch((error) => {
       console.error("Failed to save AI recommendation:", error);
     });
-  }, [activeSessionId, aiData]);
+  }, [activeSessionId, aiData, hasHydratedSavedAi]);
 
   const hasCalledAI = useRef(false);
   const dispatch = useDispatch();
@@ -114,8 +137,14 @@ const TemplateViewPage = () => {
           return;
         }
 
+        setProjectType(project.projectType || "single");
+
+        if (project.dimensions?.l && project.dimensions?.w && project.dimensions?.h) {
+          setDimensions(project.dimensions);
+        }
+
         if (project.selectedTemplateId) {
-          setSelectedTemplateId(project.selectedTemplateId);
+          setSelectedTemplateId(normalizeTemplateId(project.selectedTemplateId));
         }
 
         const savedAiData = project.recommendation || project.report || null;
@@ -128,6 +157,10 @@ const TemplateViewPage = () => {
               data: savedAiData,
             }),
           );
+          hasCalledAI.current = true;
+        }
+
+        if (project.projectType === "bundle") {
           hasCalledAI.current = true;
         }
       } catch (error) {
@@ -163,10 +196,14 @@ const TemplateViewPage = () => {
       return;
     }
 
+    if (isBundleProject) {
+      return;
+    }
+
     if (
       !topImageUrl ||
       !sideImageUrl ||
-      !imageDimensions?.l ||
+      !dimensions?.l ||
       hasCalledAI.current
     ) {
       return;
@@ -179,7 +216,8 @@ const TemplateViewPage = () => {
     cachedAiResponse,
     cachedAiResponseSessionId,
     hasHydratedSavedAi,
-    imageDimensions,
+    dimensions,
+    isBundleProject,
     sideImageUrl,
     topImageUrl,
   ]);
@@ -234,7 +272,7 @@ const TemplateViewPage = () => {
       const res = await getAiResponse({
         imageUrl1: topImageUrl,
         imageUrl2: sideImageUrl, // FIXED
-        dimensions: imageDimensions,
+        dimensions,
       });
 
       console.log("AI API Response:", res);
@@ -341,6 +379,8 @@ const TemplateViewPage = () => {
                       state: {
                         dimensions: dimensions,
                         templateId: selectedTemplateId,
+                        sessionId: activeSessionId,
+                        projectType,
                       },
                     })
                   }
@@ -418,11 +458,11 @@ const TemplateViewPage = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     <Sparkles size={18} className="text-purple-500" />
-                    AI Assistant
+                    {isBundleProject ? "Bundle Summary" : "AI Assistant"}
                   </h3>
                 </div>
 
-                {isAiLoading && (
+                {isAiLoading && !isBundleProject && (
                   <div className="flex flex-col items-center justify-center py-6 gap-3">
                     <div className="relative w-10 h-10 flex items-center justify-center">
                       <Sparkles className="text-purple-400 w-8 h-8 animate-[pulse_2s_ease-in-out_infinite]" />
@@ -439,7 +479,7 @@ const TemplateViewPage = () => {
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-3">
                       <div className="flex justify-between border-b border-gray-200 pb-2">
                         <span className="text-xs text-gray-500 uppercase tracking-wide">
-                          Product
+                          {isBundleProject ? "Bundle" : "Product"}
                         </span>
                         <span className="text-sm font-bold text-gray-900">
                           {aiData.productName}
@@ -458,7 +498,7 @@ const TemplateViewPage = () => {
                           Est. Weight
                         </span>
                         <span className="text-sm font-bold text-gray-900">
-                          {aiData.estimatedWeight}g
+                          {aiData.estimatedWeight || aiData.productWeightGrams}g
                         </span>
                       </div>
                       <div className="flex justify-between items-center">

@@ -14,6 +14,52 @@ const viewSchema = new Schema(
   { _id: false },
 );
 
+const dimensionSchema = new Schema(
+  {
+    l: { type: Number, default: null },
+    w: { type: Number, default: null },
+    h: { type: Number, default: null },
+  },
+  { _id: false },
+);
+
+const sourceItemSchema = new Schema(
+  {
+    sessionId: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      trim: true,
+      default: "Untitled Product",
+    },
+    quantity: {
+      type: Number,
+      min: 1,
+      default: 1,
+    },
+    image1: {
+      type: String,
+      default: null,
+    },
+    dimensions: {
+      type: dimensionSchema,
+      default: () => ({}),
+    },
+    fragility: {
+      type: String,
+      enum: ["low", "medium", "high", null],
+      default: null,
+    },
+    productWeightGrams: {
+      type: Number,
+      default: null,
+    },
+  },
+  { _id: false },
+);
+
 const projectSchema = new Schema(
   {
     sessionId: {
@@ -26,6 +72,12 @@ const projectSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    projectType: {
+      type: String,
+      enum: ["single", "bundle"],
+      default: "single",
       index: true,
     },
     name: {
@@ -60,17 +112,28 @@ const projectSchema = new Schema(
       default: () => ({}),
     },
     dimensions: {
-      l: { type: Number, default: null },
-      w: { type: Number, default: null },
-      h: { type: Number, default: null },
+      type: dimensionSchema,
+      default: () => ({}),
     },
     fragility: {
       type: String,
       enum: ["low", "medium", "high", null],
       default: null,
     },
+    productWeightGrams: {
+      type: Number,
+      default: null,
+    },
     selectedTemplateId: {
       type: String,
+      default: null,
+    },
+    sourceItems: {
+      type: [sourceItemSchema],
+      default: [],
+    },
+    bundleResult: {
+      type: Schema.Types.Mixed,
       default: null,
     },
     recommendation: {

@@ -13,3 +13,6 @@ export const updateProjectConfigRequest = ({ sessionId, ...payload }) =>
 
 export const deleteProjectRequest = ({ sessionId }) =>
   apiClient.delete(`/api/projects/${sessionId}`);
+
+export const optimizeBundleRequest = (payload = {}) =>
+  apiClient.post("/api/projects/bundles/optimize", payload);

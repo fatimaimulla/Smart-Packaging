@@ -18,6 +18,8 @@ import {
   PencilLine,
   Trash2,
   X,
+  PackagePlus,
+  Boxes,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,6 +34,9 @@ const formatDimensions = (dimensions) =>
     dimensions?.w || 0,
   ).toFixed(1)} x ${Number(dimensions?.h || 0).toFixed(1)} mm`;
 
+const formatWeight = (weightGrams) =>
+  weightGrams ? `${Math.round(Number(weightGrams))} g` : "Weight pending";
+
 const statusLabelMap = {
   uploaded: "Uploaded",
   measured: "Reviewed",
@@ -39,15 +44,78 @@ const statusLabelMap = {
   completed: "Completed",
 };
 
+const isBundleProject = (project) => project.projectType === "bundle";
+
+const isVisibleProject = (project) => {
+  if (isBundleProject(project)) {
+    return Boolean(
+      project.dimensions?.l &&
+        project.dimensions?.w &&
+        project.dimensions?.h &&
+        project.sourceItems?.length,
+    );
+  }
+
+  return Boolean(
+    project.image1 &&
+      project.image2 &&
+      project.dimensions?.l &&
+      project.dimensions?.w &&
+      project.dimensions?.h,
+  );
+};
+
 const getLastStep = (project) => {
-  if (project.report) return "Report";
+  if (project.status === "completed") return "Report";
+  if (isBundleProject(project)) return "Bundle Planner";
   if (project.selectedTemplateId) return "Dieline Editor";
-  if (project.recommendation) return "Recommendation";
   if (project.dimensions?.l && project.dimensions?.w && project.dimensions?.h) {
     return "Review";
   }
   return "Upload";
 };
+
+const buildReportState = (project) => ({
+  sessionId: project.sessionId,
+  dimensions: project.dimensions,
+  aiData: {
+    fragility: project.fragility,
+    fragilityLevel: project.fragility,
+    selectedTemplateId: project.selectedTemplateId,
+    fefcoCode: project.selectedTemplateId,
+    recommendedFefcoBox: project.selectedTemplateId
+      ? `Fefco${project.selectedTemplateId}`
+      : undefined,
+    estimatedWeight: project.productWeightGrams
+      ? String(project.productWeightGrams)
+      : undefined,
+    productWeightGrams: project.productWeightGrams,
+  },
+});
+
+const buildEditorState = (project) => ({
+  dimensions: project.dimensions,
+  templateId: project.selectedTemplateId,
+  fefcoCode: project.selectedTemplateId,
+  sessionId: project.sessionId,
+  projectType: project.projectType,
+  source: "dashboard-card",
+  from: "dashboard-card",
+});
+
+const buildDropSimulationState = (project) => ({
+  source: isBundleProject(project) ? "dashboard-bundle" : "dashboard-card",
+  from: "dashboard-card",
+  lockSimulationInputs: isBundleProject(project),
+  projectType: project.projectType,
+  dimensions: project.dimensions,
+  templateId: project.selectedTemplateId,
+  fefcoCode: project.selectedTemplateId,
+  weightGrams: project.productWeightGrams,
+  estimatedWeight: project.productWeightGrams,
+  fragility: project.fragility,
+  fragilityLevel: project.fragility,
+});
 
 const ActionButton = ({ icon: Icon, label, onClick, primary = false }) => (
   <button
@@ -56,7 +124,7 @@ const ActionButton = ({ icon: Icon, label, onClick, primary = false }) => (
     className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
       primary
         ? "bg-[#0D1B2A] text-white hover:bg-emerald-600"
-        : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+        : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
     }`}
   >
     <Icon size={16} />
@@ -105,6 +173,62 @@ const SettingsMenu = ({
   </div>
 );
 
+const BundleMedia = ({ project }) => {
+  const images = (project.sourceItems || [])
+    .map((item) => item.image1)
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (images.length === 0) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-slate-900/90 text-slate-200">
+        <div className="text-center">
+          <Boxes className="mx-auto mb-3" size={34} />
+          <p className="text-sm font-semibold">Bundle Preview</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (images.length === 1) {
+    return (
+      <img
+        src={images[0]}
+        alt={project.name}
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+
+  return (
+    <div className={`grid h-full w-full gap-1 bg-slate-900 ${images.length === 2 ? "grid-cols-2" : "grid-cols-2 grid-rows-2"}`}>
+      {images.map((image, index) => (
+        <div
+          key={`${project.sessionId}-image-${index}`}
+          className={index === 0 && images.length === 3 ? "row-span-2" : ""}
+        >
+          <img
+            src={image}
+            alt={`${project.name} item ${index + 1}`}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const MetricCard = ({ label, value }) => (
+  <div className="rounded-2xl bg-[#F4F7FF] p-3">
+    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+      {label}
+    </p>
+    <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+      {value}
+    </p>
+  </div>
+);
+
 const ProjectCard = ({
   project,
   navigate,
@@ -113,45 +237,70 @@ const ProjectCard = ({
   onRenameProject,
   onDeleteProject,
 }) => {
-  const quickState = {
-    dimensions: project.dimensions,
-    templateId: project.selectedTemplateId,
-    fefcoCode: project.selectedTemplateId,
-    source: "dashboard-card",
-    from: "dashboard-card",
+  const bundle = isBundleProject(project);
+  const primaryActionLabel = bundle ? "Planner" : "Review";
+  const badgeLabel = bundle
+    ? `Bundle • ${project.sourceItems?.length || 0} SKUs`
+    : statusLabelMap[project.status] || project.status || "Saved";
+  const metaChipLabel = bundle
+    ? `Weight ${formatWeight(project.productWeightGrams)}`
+    : project.referenceObject || "Reference";
+  const secondaryMetric = bundle
+    ? `${project.sourceItems?.length || 0} products • ${formatWeight(
+        project.productWeightGrams,
+      )}`
+    : project.selectedTemplateId
+      ? `FEFCO ${project.selectedTemplateId}`
+      : "Not selected";
+
+  const openPrimaryAction = () => {
+    if (bundle) {
+      navigate(`/bundle-planner/${project.sessionId}`);
+      return;
+    }
+
+    navigate(`/review/${project.sessionId}`);
   };
 
   return (
     <article className="rounded-[28px] border border-white/70 bg-white/95 p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative overflow-hidden rounded-[22px] bg-slate-100 h-44 mb-5">
-        {project.image1 ? (
+      <div className="relative mb-5 h-44 overflow-hidden rounded-[22px] bg-slate-100">
+        {bundle ? (
+          <BundleMedia project={project} />
+        ) : project.image1 ? (
           <img
             src={project.image1}
             alt={project.name}
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="h-full w-full flex items-center justify-center text-slate-400">
+          <div className="flex h-full w-full items-center justify-center text-slate-400">
             <FolderOpen size={36} />
           </div>
         )}
 
         <button
           type="button"
-          onClick={() => navigate(`/review/${project.sessionId}`)}
+          onClick={openPrimaryAction}
           className="absolute inset-0 z-0"
-          aria-label={`Open ${project.name} in review`}
+          aria-label={`Open ${project.name}`}
         />
 
-        <div className="absolute left-4 top-4 z-10">
-          <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-bold uppercase tracking-wide text-blue-600 shadow-sm backdrop-blur">
-            {statusLabelMap[project.status] || project.status || "Saved"}
+        <div className="absolute left-4 top-4 z-10 flex gap-2">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm backdrop-blur ${
+              bundle
+                ? "bg-[#0D1B2A]/90 text-white"
+                : "bg-white/92 text-blue-600"
+            }`}
+          >
+            {badgeLabel}
           </span>
         </div>
 
         <div className="absolute right-4 top-4 z-20 flex items-center gap-2">
           <span className="rounded-full bg-emerald-50/95 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm backdrop-blur">
-            {project.referenceObject || "Reference"}
+            {metaChipLabel}
           </span>
           <SettingsMenu
             project={project}
@@ -162,7 +311,7 @@ const ProjectCard = ({
           />
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-10 p-4 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent pointer-events-none">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent p-4">
           <h2 className="text-2xl font-bold text-white">{project.name}</h2>
           <p className="mt-1 text-sm font-medium text-white/80">
             Last worked in {getLastStep(project)}
@@ -172,28 +321,17 @@ const ProjectCard = ({
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-[#F4F7FF] p-3">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-              Dimensions
-            </p>
-            <p className="mt-2 text-sm font-semibold text-slate-700 leading-6">
-              {formatDimensions(project.dimensions)}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-[#F4F7FF] p-3">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-              Template
-            </p>
-            <p className="mt-2 text-sm font-semibold text-slate-700">
-              {project.selectedTemplateId
-                ? `FEFCO ${project.selectedTemplateId}`
-                : "Not selected"}
-            </p>
-          </div>
+          <MetricCard
+            label="Dimensions"
+            value={formatDimensions(project.dimensions)}
+          />
+          <MetricCard
+            label={bundle ? "Bundle Load" : "Template"}
+            value={secondaryMetric}
+          />
         </div>
 
-        <div className="rounded-2xl bg-[#F8FAFC] p-4 border border-slate-100">
+        <div className="rounded-2xl border border-slate-100 bg-[#F8FAFC] p-4">
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <Clock3 size={14} />
             Updated {formatDate(project.updatedAt)}
@@ -204,21 +342,29 @@ const ProjectCard = ({
               {project.sessionId.slice(0, 8)}
             </span>
           </div>
+          {bundle ? (
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="font-medium text-slate-500">Fragility</span>
+              <span className="font-semibold capitalize text-slate-700">
+                {project.fragility || "unknown"}
+              </span>
+            </div>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <ActionButton
-            icon={ArrowRight}
-            label="Review"
+            icon={bundle ? PackagePlus : ArrowRight}
+            label={primaryActionLabel}
             primary
-            onClick={() => navigate(`/review/${project.sessionId}`)}
+            onClick={openPrimaryAction}
           />
           <ActionButton
             icon={Layers3}
             label="Editor"
             onClick={() =>
               navigate("/dieline", {
-                state: quickState,
+                state: buildEditorState(project),
               })
             }
           />
@@ -227,7 +373,7 @@ const ProjectCard = ({
             label="Drop Sim"
             onClick={() =>
               navigate("/drop-simulation", {
-                state: quickState,
+                state: buildDropSimulationState(project),
               })
             }
           />
@@ -236,16 +382,7 @@ const ProjectCard = ({
             label="Report"
             onClick={() =>
               navigate("/report", {
-                state: {
-                  sessionId: project.sessionId,
-                  dimensions: project.dimensions,
-                  aiData: {
-                    ...project.recommendation,
-                    fragility: project.fragility,
-                    selectedTemplateId: project.selectedTemplateId,
-                    fefcoCode: project.selectedTemplateId,
-                  },
-                },
+                state: buildReportState(project),
               })
             }
           />
@@ -266,12 +403,12 @@ const RenameProjectModal = ({
   if (!project) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-sm flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-6 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
+        <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Rename project</h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="mt-1 text-sm text-slate-500">
               Update the project title so it is easier to recognize later.
             </p>
           </div>
@@ -326,7 +463,7 @@ const DeleteProjectModal = ({
   if (!project) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-sm flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-6 backdrop-blur-sm">
       <div className="w-full max-w-lg rounded-[30px] bg-white p-7 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -377,7 +514,10 @@ const DeleteProjectModal = ({
           <button
             type="button"
             onClick={onDelete}
-            disabled={isDeleting || confirmText.trim().toLowerCase() !== "delete this project"}
+            disabled={
+              isDeleting ||
+              confirmText.trim().toLowerCase() !== "delete this project"
+            }
             className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
           >
             {isDeleting ? "Deleting..." : "Delete"}
@@ -393,6 +533,7 @@ const ProjectsDashboardPage = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [viewMode, setViewMode] = useState("all");
   const [openMenuSessionId, setOpenMenuSessionId] = useState(null);
   const [renameTarget, setRenameTarget] = useState(null);
   const [renameValue, setRenameValue] = useState("");
@@ -401,18 +542,37 @@ const ProjectsDashboardPage = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const visibleProjects = useMemo(
-    () =>
-      projects.filter(
-        (project) =>
-          project.image1 &&
-          project.image2 &&
-          project.dimensions?.l &&
-          project.dimensions?.w &&
-          project.dimensions?.h,
-      ),
+  const visibleBaseProjects = useMemo(
+    () => projects.filter((project) => isVisibleProject(project)),
     [projects],
   );
+
+  const projectCounts = useMemo(() => {
+    const products = visibleBaseProjects.filter(
+      (project) => !isBundleProject(project),
+    ).length;
+    const bundles = visibleBaseProjects.filter((project) =>
+      isBundleProject(project),
+    ).length;
+
+    return {
+      all: visibleBaseProjects.length,
+      products,
+      bundles,
+    };
+  }, [visibleBaseProjects]);
+
+  const visibleProjects = useMemo(() => {
+    if (viewMode === "products") {
+      return visibleBaseProjects.filter((project) => !isBundleProject(project));
+    }
+
+    if (viewMode === "bundles") {
+      return visibleBaseProjects.filter((project) => isBundleProject(project));
+    }
+
+    return visibleBaseProjects;
+  }, [viewMode, visibleBaseProjects]);
 
   const loadProjects = async () => {
     try {
@@ -491,25 +651,70 @@ const ProjectsDashboardPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF]">
       <Header />
+
       <main className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-[#0D1B2A] mb-2">
+              <h1 className="mb-2 text-4xl font-bold text-[#0D1B2A]">
                 Your Projects
               </h1>
               <p className="text-gray-600">
-                Reopen past uploads or jump directly into the next tool you need.
+                Reopen measured products, continue dieline work, or build a new combined shipping bundle.
               </p>
             </div>
-            <button
-              onClick={handleCreateProject}
-              disabled={isCreating}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0D1B2A] px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:opacity-70"
-            >
-              <Plus size={18} />
-              {isCreating ? "Creating..." : "New Project"}
-            </button>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate("/bundle-planner")}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                <PackagePlus size={18} />
+                Bundle Planner
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateProject}
+                disabled={isCreating}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0D1B2A] px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:opacity-70"
+              >
+                <Plus size={18} />
+                {isCreating ? "Creating..." : "New Project"}
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-8 flex flex-col gap-4 rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">
+                Switch between products and bundles
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Keep saved single-product projects and combined bundle jobs separated when needed.
+              </p>
+            </div>
+
+            <div className="inline-flex rounded-full bg-slate-100 p-1">
+              {[
+                { id: "all", label: `All (${projectCounts.all})` },
+                { id: "products", label: `Projects (${projectCounts.products})` },
+                { id: "bundles", label: `Bundles (${projectCounts.bundles})` },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setViewMode(option.id)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    viewMode === option.id
+                      ? "bg-white text-[#0D1B2A] shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {isLoading ? (
@@ -519,21 +724,39 @@ const ProjectsDashboardPage = () => {
           ) : visibleProjects.length === 0 ? (
             <div className="rounded-3xl bg-white/80 p-12 text-center shadow-sm">
               <FolderOpen className="mx-auto mb-4 text-blue-500" size={42} />
-              <h2 className="text-2xl font-bold text-[#0D1B2A] mb-2">
-                No saved projects yet
+              <h2 className="mb-2 text-2xl font-bold text-[#0D1B2A]">
+                {viewMode === "bundles"
+                  ? "No saved bundles yet"
+                  : viewMode === "products"
+                    ? "No saved product projects yet"
+                    : "No saved projects yet"}
               </h2>
-              <p className="text-gray-500 mb-6">
-                Projects will appear here only after both images, detections, and
-                dimensions are saved successfully.
+              <p className="mb-6 text-gray-500">
+                {viewMode === "bundles"
+                  ? "Saved bundle plans appear here after you combine configured products into a shared shipping box."
+                  : viewMode === "products"
+                    ? "Measured single-product projects appear here after dimensions are saved."
+                    : "Projects appear here after dimensions are saved. Once products are configured, you can also combine them into a shared bundle planner project."}
               </p>
-              <button
-                onClick={handleCreateProject}
-                disabled={isCreating}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-              >
-                <Plus size={18} />
-                Start First Project
-              </button>
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleCreateProject}
+                  disabled={isCreating}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+                >
+                  <Plus size={18} />
+                  Start First Project
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/bundle-planner")}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <PackagePlus size={18} />
+                  Open Bundle Planner
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

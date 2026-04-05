@@ -49,6 +49,8 @@ const ReportPage = () => {
             aiData = {
               ...(project.recommendation || {}),
               ...(aiData || {}),
+              productWeightGrams:
+                aiData?.productWeightGrams || project.productWeightGrams,
               fragility:
                 aiData?.fragility ||
                 project.fragility ||
@@ -59,7 +61,10 @@ const ReportPage = () => {
             };
 
             const hasWeight =
-              aiData?.estimatedWeight ?? aiData?.productWeight ?? null;
+              aiData?.productWeightGrams ??
+              aiData?.estimatedWeight ??
+              aiData?.productWeight ??
+              null;
 
             if (!hasWeight && project.report) {
               setReportData(project.report);
