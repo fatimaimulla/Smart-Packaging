@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, PlayCircle } from "lucide-react";
+import { ArrowRight, Compass } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -60,12 +60,12 @@ const Hero = () => {
                 backgroundColor: "rgba(255,255,255,0.8)",
               }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/review?demo=true")}
+              onClick={() => navigate("/how-it-works")}
               className="border border-gray-400 text-gray-700 rounded-full px-8 py-4 font-semibold text-lg hover:border-gray-500 transition-all flex items-center justify-center gap-2 bg-transparent"
-              aria-label="Try sample demo"
+              aria-label="View how it works"
             >
-              <PlayCircle size={20} />
-              Try Demo
+              <Compass size={20} />
+              How It Works
             </motion.button>
           </div>
         </motion.div>

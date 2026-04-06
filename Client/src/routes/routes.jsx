@@ -16,6 +16,8 @@ import VerifyOtpPage from "@/pages/VerifyOtpPage";
 import ProjectsDashboardPage from "@/pages/ProjectsDashboardPage";
 import MultiProductBundlePage from "@/pages/MultiProductBundlePage";
 import BundleLayerBreakdownPage from "@/pages/BundleLayerBreakdownPage";
+import HowItWorksPage from "@/pages/HowItWorksPage";
+import AboutPage from "@/pages/AboutPage";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import PublicOnlyRoute from "@/auth/PublicOnlyRoute";
 
@@ -23,6 +25,14 @@ const AppRouter = createBrowserRouter([
   {
     path: "/",
     element: <Home></Home>,
+  },
+  {
+    path: "/how-it-works",
+    element: <HowItWorksPage />,
+  },
+  {
+    path: "/about",
+    element: <AboutPage />,
   },
   {
     element: <PublicOnlyRoute />,

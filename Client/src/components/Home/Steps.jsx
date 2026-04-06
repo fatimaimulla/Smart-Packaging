@@ -1,6 +1,7 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Upload, ScanLine, Download } from "lucide-react";
+import { ArrowRight, Upload, ScanLine, Download } from "lucide-react";
 
 const steps = [
   {
@@ -33,6 +34,8 @@ const steps = [
 ];
 
 const Steps = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-24 px-6 md:px-12 relative z-10">
       <div className="max-w-7xl mx-auto">
@@ -44,6 +47,14 @@ const Steps = () => {
             From physical product to digital packaging design in three simple
             steps.
           </p>
+          <button
+            type="button"
+            onClick={() => navigate("/how-it-works")}
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            Explore Full Workflow
+            <ArrowRight size={16} />
+          </button>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
