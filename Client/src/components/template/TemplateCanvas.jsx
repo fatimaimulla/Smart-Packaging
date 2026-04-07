@@ -2,7 +2,7 @@ import React, { forwardRef, useImperativeHandle } from "react";
 import { useState, useRef } from "react";
 import { MousePointer2, Move, Plus, Minus, Maximize } from "lucide-react";
 
-const TemplateCanvas = ({ Dieline, dimensions }, ref) => {
+const TemplateCanvas = ({ Dieline, dimensions, renderDimensions }, ref) => {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [tool, setTool] = useState("move"); // "select" | "move"
@@ -40,6 +40,8 @@ const TemplateCanvas = ({ Dieline, dimensions }, ref) => {
     setScale(1);
     setOffset({ x: 0, y: 0 });
   };
+
+  const viewDimensions = renderDimensions || dimensions;
 
   return (
     <div className="relative flex-1 bg-[#F9FAFB] overflow-hidden rounded-3xl">
@@ -109,9 +111,9 @@ const TemplateCanvas = ({ Dieline, dimensions }, ref) => {
           }}
         >
           <Dieline
-            length={dimensions.l}
-            width={dimensions.w}
-            height={dimensions.h}
+            length={viewDimensions.l}
+            width={viewDimensions.w}
+            height={viewDimensions.h}
           />
         </div>
       </div>

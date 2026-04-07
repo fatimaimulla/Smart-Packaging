@@ -144,9 +144,12 @@ const LeftSettingsPanel = ({ settings, setSettings }) => {
             onChange={(e) => handleChange("material", e.target.value)}
             className="w-full appearance-none border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
           >
-            <option>White card board</option>
-            <option>Kraft paper</option>
-            <option>Corrugated Board</option>
+            <option value="3ply">3-Ply Corrugated</option>
+            <option value="5ply">5-Ply Heavy Duty</option>
+            <option value="recycled">100% Recycled Kraft</option>
+            <option value="White card board">White card board</option>
+            <option value="Kraft paper">Kraft paper</option>
+            <option value="Corrugated Board">Corrugated Board</option>
           </select>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
             <ChevronDown size={16} />

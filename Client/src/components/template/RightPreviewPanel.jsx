@@ -18,7 +18,20 @@ import { getReport } from "@/api/getReport";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
+const DXF_GENERATORS = {
+  "0201": generateFefco0201DXF,
+  "0203": generateFefco0203DXF,
+  "0301": generateFefco0301DXF,
+  "0401": generateFefco0401DXF,
+  "0427": generateFefco0427DXF,
+};
+
+const RightPreviewPanel = ({
+  fefcoCode = "0201",
+  dimensions,
+  renderDimensions,
+  packagingGeometry,
+}) => {
   const navigate = useNavigate();
   const [sliderValue, setSliderValue] = useState(0);
   const templateDefaults = TEMPLATE_CONFIG[fefcoCode]?.defaultDimensions ||
@@ -46,6 +59,11 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
     templateDefaults?.h ??
     templateDefaults?.height ??
     245;
+  const inner = packagingGeometry?.innerDimensions || dimensions;
+  const outer = packagingGeometry?.outerDimensions || dimensions;
+  const renderL = renderDimensions?.l ?? l;
+  const renderW = renderDimensions?.w ?? w;
+  const renderH = renderDimensions?.h ?? h;
   // const handleDownloadDieline = async () => {
   //   // console.log("Download");
   //   const svg = document.getElementById("fefco-0201-dieline");
@@ -107,25 +125,21 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
 
   const handleDownloadDXF = async () => {
     try {
-      // Get dimensions from props or use defaults from Fefco0201Dieline
       const dims = {
         x: 100,
         y: 200,
-        length: 191,
-        width: 383,
-        height: 245,
+        length: l,
+        width: w,
+        height: h,
       };
-
-      console.log("Generating DXF with dimensions:", dims);
-
-      // Generate DXF content
-      const dxfContent = generateFefco0201DXF(dims);
+      const generator = DXF_GENERATORS[fefcoCode] || generateFefco0201DXF;
+      const dxfContent = generator(dims);
       // Create blob and download
       const blob = new Blob([dxfContent], { type: "application/dxf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `FEFCO_0201_${dims.length}x${dims.width}x${dims.height}_Dieline.dxf`;
+      link.download = `FEFCO_${fefcoCode}_${dims.length}x${dims.width}x${dims.height}_Dieline.dxf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -176,9 +190,9 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
               <Dieline3DViewer
                 fefcoCode={fefcoCode}
                 slider={sliderValue}
-                width={w}
-                length={l}
-                height={h}
+                width={renderW}
+                length={renderL}
+                height={renderH}
               />
             </Suspense>
           </div>
@@ -253,6 +267,13 @@ const RightPreviewPanel = ({ fefcoCode = "0201", dimensions }) => {
         <FileText size={18} />
         <span>View Report</span>
       </button>
+
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+        <p className="font-semibold text-slate-900">Dimension Set</p>
+        <p className="mt-1">Manufacture: {l} x {w} x {h} mm</p>
+        <p>Inner: {inner.l} x {inner.w} x {inner.h} mm</p>
+        <p>Outer: {outer.l} x {outer.w} x {outer.h} mm</p>
+      </div>
 
       {/* 3. You will get list */}
       <div>

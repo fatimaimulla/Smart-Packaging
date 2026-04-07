@@ -2,11 +2,17 @@ import React from "react";
 import { Box, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
-const BoxPreview = ({ dimensions, padding }) => {
-  // Calculate total internal dimensions
-  const totalL = dimensions.l + padding * 2;
-  const totalW = dimensions.w + padding * 2;
-  const totalH = dimensions.h + padding * 2;
+const BoxPreview = ({ packagingSpec }) => {
+  const product = packagingSpec?.productDimensions || { l: 0, w: 0, h: 0 };
+  const inner = packagingSpec?.innerDimensions || { l: 0, w: 0, h: 0 };
+  const manufacture = packagingSpec?.manufacturingDimensions || {
+    l: 0,
+    w: 0,
+    h: 0,
+  };
+  const outer = packagingSpec?.outerDimensions || { l: 0, w: 0, h: 0 };
+  const padding = packagingSpec?.protectivePaddingMm || 0;
+  const clearance = packagingSpec?.insertionClearanceMm || 0;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-6 h-full relative overflow-hidden">
@@ -23,7 +29,7 @@ const BoxPreview = ({ dimensions, padding }) => {
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-[#0D1B2A] tracking-tight">
-            FEFCO 0201
+            FEFCO {packagingSpec?.fefcoCode || "0201"}
           </div>
           <div className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full inline-block mt-1">
             Industry Standard
@@ -90,13 +96,13 @@ const BoxPreview = ({ dimensions, padding }) => {
             {/* Dimensions Indicators */}
             <g className="text-[8px] font-mono fill-gray-500">
               <text x="20" y="130" transform="rotate(-25 20,130)">
-                H: {totalH}
+                H: {manufacture.h}
               </text>
               <text x="120" y="170" transform="rotate(25 120,170)">
-                L: {totalL}
+                L: {manufacture.l}
               </text>
               <text x="170" y="100" transform="rotate(-25 170,100)">
-                W: {totalW}
+                W: {manufacture.w}
               </text>
             </g>
           </svg>
@@ -108,37 +114,69 @@ const BoxPreview = ({ dimensions, padding }) => {
         <div className="flex items-center gap-2 mb-3">
           <Info size={16} className="text-blue-500" />
           <span className="text-sm font-semibold text-gray-700">
-            Internal Usable Dimensions
+            Packaging Dimensions
           </span>
         </div>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
-              Length
+              Product
             </div>
             <div className="text-lg font-bold text-[#0D1B2A] bg-white border border-gray-200 rounded-lg py-1 shadow-sm">
-              {totalL}{" "}
+              {product.l}{" "}
               <span className="text-xs font-normal text-gray-400">mm</span>
             </div>
           </div>
           <div>
             <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+              Inner
+            </div>
+            <div className="text-lg font-bold text-[#0D1B2A] bg-white border border-gray-200 rounded-lg py-1 shadow-sm">
+              {inner.l}{" "}
+              <span className="text-xs font-normal text-gray-400">mm</span>
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+              Outer
+            </div>
+            <div className="text-lg font-bold text-[#0D1B2A] bg-white border border-gray-200 rounded-lg py-1 shadow-sm">
+              {outer.l}{" "}
+              <span className="text-xs font-normal text-gray-400">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+          <div className="rounded-lg border border-gray-200 bg-white p-2">
+            <div className="text-[11px] font-semibold text-gray-500 uppercase">
               Width
             </div>
-            <div className="text-lg font-bold text-[#0D1B2A] bg-white border border-gray-200 rounded-lg py-1 shadow-sm">
-              {totalW}{" "}
-              <span className="text-xs font-normal text-gray-400">mm</span>
+            <div className="text-sm font-bold text-[#0D1B2A]">
+              {product.w} / {inner.w} / {outer.w} mm
             </div>
           </div>
-          <div>
-            <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+          <div className="rounded-lg border border-gray-200 bg-white p-2">
+            <div className="text-[11px] font-semibold text-gray-500 uppercase">
               Height
             </div>
-            <div className="text-lg font-bold text-[#0D1B2A] bg-white border border-gray-200 rounded-lg py-1 shadow-sm">
-              {totalH}{" "}
-              <span className="text-xs font-normal text-gray-400">mm</span>
+            <div className="text-sm font-bold text-[#0D1B2A]">
+              {product.h} / {inner.h} / {outer.h} mm
             </div>
           </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-2">
+            <div className="text-[11px] font-semibold text-gray-500 uppercase">
+              Dieline
+            </div>
+            <div className="text-sm font-bold text-[#0D1B2A]">
+              {manufacture.l} x {manufacture.w} x {manufacture.h} mm
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          Uses {padding} mm protective padding + {clearance} mm insertion
+          clearance per side, with {packagingSpec?.boardThicknessMm} mm board.
         </div>
       </div>
     </div>

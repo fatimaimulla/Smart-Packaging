@@ -28,6 +28,13 @@ export default function Fefco0401Dieline(props) {
 
   //Bleed Offset
   const bleedOffset = 5;
+  const svgPadding = 24;
+  const minX = trimLeft - bleedOffset - svgPadding;
+  const minY = trimTop - bleedOffset - svgPadding;
+  const maxX = trimRight + bleedOffset + svgPadding;
+  const maxY = trimBottom + bleedOffset + svgPadding;
+  const svgWidth = maxX - minX;
+  const svgHeight = maxY - minY;
 
   //Trim Path
   const createTrimLine = () => {
@@ -86,9 +93,9 @@ export default function Fefco0401Dieline(props) {
     <div>
       <svg
         id="fefco-0401-dieline"
-        width="3000"
-        height="2000"
-        viewBox="0 0 3000 2000"
+        width={svgWidth}
+        height={svgHeight}
+        viewBox={`${minX} ${minY} ${svgWidth} ${svgHeight}`}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >

@@ -3,12 +3,20 @@ import { Edit3, Box, FileText } from "lucide-react";
 import { clsx } from "clsx";
 import { useNavigate } from "react-router-dom";
 import Dieline3DViewer from "../template/DieLine3DViewer";
+import { TEMPLATE_CONFIG } from "@/constants/template";
+import { getNormalizedRenderDimensions } from "@/utils/packagingMath";
 
 const TemplateRightPanel = ({
   dimensions,
   fefcoCode = "0301", // default, can be dynamic later
 }) => {
   const { l = 0, w = 0, h = 0 } = dimensions || {};
+  const templateDefaults =
+    TEMPLATE_CONFIG[fefcoCode]?.defaultDimensions || dimensions || {};
+  const renderDimensions = getNormalizedRenderDimensions({
+    actualDimensions: dimensions,
+    defaultDimensions: templateDefaults,
+  }).dimensions;
 
   const s = 1;
 
@@ -75,9 +83,9 @@ const TemplateRightPanel = ({
               <Dieline3DViewer
                 fefcoCode={fefcoCode}
                 slider={sliderValue}
-                width={w}
-                length={l}
-                height={h}
+                width={renderDimensions.w}
+                length={renderDimensions.l}
+                height={renderDimensions.h}
               />
             </Suspense>
           </div>

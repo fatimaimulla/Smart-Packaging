@@ -22,6 +22,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import { setAiResponse } from "@/redux/slice/imageSlice";
 import { getProjectRequest, updateProjectConfigRequest } from "@/api/projects";
+import { getNormalizedRenderDimensions } from "@/utils/packagingMath";
 
 const normalizeTemplateId = (value) => {
   const digits = String(value || "").replace(/\D/g, "");
@@ -253,6 +254,11 @@ const TemplateViewPage = () => {
 
   const { Dieline2D } = template;
   const { l = 0, w = 0, h = 0 } = dimensions;
+  const renderGeometry = getNormalizedRenderDimensions({
+    actualDimensions: dimensions,
+    defaultDimensions: template.defaultDimensions,
+  });
+  const renderDimensions = renderGeometry.dimensions;
 
   // Unit Conversion
   const MM_TO_IN = 0.0393701;
@@ -326,6 +332,7 @@ const TemplateViewPage = () => {
                 ref={canvasRef}
                 Dieline={Dieline2D}
                 dimensions={dimensions}
+                renderDimensions={renderDimensions}
               />
 
               {/* AI Recommendation Modal Overlay */}
@@ -435,9 +442,9 @@ const TemplateViewPage = () => {
                       <Dieline3DViewer
                         fefcoCode={selectedTemplateId}
                         slider={sliderValue}
-                        width={w}
-                        length={l}
-                        height={h}
+                        width={renderDimensions.w}
+                        length={renderDimensions.l}
+                        height={renderDimensions.h}
                       />
                     </Suspense>
                   </div>

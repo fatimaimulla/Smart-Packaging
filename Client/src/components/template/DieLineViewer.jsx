@@ -13,32 +13,62 @@ import { clsx } from "clsx";
 import Fefco0201Dieline from "../dieline/Fefco0201";
 import { TEMPLATE_CONFIG } from "@/constants/template";
 
-const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
+const DieLineViewer = ({
+  fefcoCode = "0201",
+  dimensions,
+  renderDimensions,
+  settings,
+  packagingGeometry,
+}) => {
   const containerRef = useRef(null);
+  const artboardRef = useRef(null);
   const [scale, setScale] = useState(0.9);
-  const [position, setPosition] = useState({ x: 150, y: 150 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [activeTool, setActiveTool] = useState("pan"); // Default to pan for better UX
 
   // Dimensions & Settings
   const { l, w, h } = dimensions;
-  const thickness = settings.thickness || 0.5;
+  const {
+    l: renderL = l,
+    w: renderW = w,
+    h: renderH = h,
+  } = renderDimensions || {};
   const template = TEMPLATE_CONFIG[fefcoCode];
   const Dieline2D = template?.Dieline2D || Fefco0201Dieline;
 
   // Calculate Derived Dimensions for Display
-  const innerL = (l - thickness * 2).toFixed(1);
-  const innerW = (w - thickness * 2).toFixed(1);
-  const innerH = (h - thickness * 2).toFixed(1);
-
-  const outerL = (l + thickness).toFixed(1);
-  const outerW = (w + thickness).toFixed(1);
-  const outerH = (h + thickness).toFixed(1);
+  const innerDimensions = packagingGeometry?.innerDimensions || dimensions;
+  const outerDimensions = packagingGeometry?.outerDimensions || dimensions;
 
   // Reset view when dimensions change
   useEffect(() => {
-    handleFit();
+    const rafId = window.requestAnimationFrame(() => {
+      handleFit();
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
+  }, [renderL, renderW, renderH, settings.glueFlap, settings.topFlap, settings.bottomFlap, fefcoCode]);
+
+  useEffect(() => {
+    if (!containerRef.current) return undefined;
+
+    const node = containerRef.current;
+    const handleResize = () => handleFit();
+
+    window.addEventListener("resize", handleResize);
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => handleFit());
+      observer.observe(node);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      observer?.disconnect();
+    };
   }, []);
 
   
@@ -90,30 +120,29 @@ const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
   // };
 
   const handleFit = () => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const svg = artboardRef.current?.querySelector("svg");
+    if (!container || !svg) return;
 
-    const { clientWidth, clientHeight } = containerRef.current;
+    const bbox = svg.getBBox();
+    if (!Number.isFinite(bbox.width) || !Number.isFinite(bbox.height) || bbox.width <= 0 || bbox.height <= 0) {
+      return;
+    }
 
-    // Approximate dieline bounding size
-    const dielineWidth = l + w + l + w + settings.glueFlap;
-    const dielineHeight = h + settings.topFlap + settings.bottomFlap;
-
-    // Calculate scale to fit with some padding (0.8 = 80% of available space)
-    const scaleX = (clientWidth * 0.8) / dielineWidth;
-    const scaleY = (clientHeight * 0.8) / dielineHeight;
-
-    const fittedScale = Math.min(scaleX, scaleY);
-
-    const finalScale = Math.max(fittedScale, 0.9);
-    // Calculate center position
-    const scaledDielineWidth = dielineWidth * fittedScale;
-    const scaledDielineHeight = dielineHeight * fittedScale;
-
-    const centerX = (clientWidth - scaledDielineWidth) / 2 +200;
-    const centerY = (clientHeight - scaledDielineHeight) / 2+100;
+    const padding = 56;
+    const availableWidth = Math.max(container.clientWidth - padding * 2, 80);
+    const availableHeight = Math.max(container.clientHeight - padding * 2, 80);
+    const fittedScale = Math.min(
+      availableWidth / bbox.width,
+      availableHeight / bbox.height,
+    );
+    const finalScale = Math.min(Math.max(fittedScale, 0.08), 2.5);
 
     setScale(finalScale);
-    setPosition({ x: centerX, y: centerY });
+    setPosition({
+      x: (container.clientWidth - bbox.width * finalScale) / 2 - bbox.x * finalScale,
+      y: (container.clientHeight - bbox.height * finalScale) / 2 - bbox.y * finalScale,
+    });
   };
   // Wheel Zoom Logic with center point zooming
   const handleWheel = (e) => {
@@ -182,6 +211,9 @@ const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
 
         {/* Dimensions Text */}
         <div className="space-y-2">
+          <div className="inline-flex items-center rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+            FEFCO {fefcoCode}
+          </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
               Manufacture dimensions
@@ -196,7 +228,7 @@ const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
                 Inner
               </p>
               <p className="text-xs font-bold text-gray-600 font-mono">
-                {innerL} × {innerW} × {innerH}
+                {innerDimensions.l} × {innerDimensions.w} × {innerDimensions.h}
               </p>
             </div>
             <div>
@@ -204,7 +236,7 @@ const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
                 Outer
               </p>
               <p className="text-xs font-bold text-gray-600 font-mono">
-                {outerL} × {outerW} × {outerH}
+                {outerDimensions.l} × {outerDimensions.w} × {outerDimensions.h}
               </p>
             </div>
           </div>
@@ -237,32 +269,28 @@ const DieLineViewer = ({ fefcoCode = "0201", dimensions, settings }) => {
         />
 
         <div
+          ref={artboardRef}
           style={{
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
             transformOrigin: "0 0",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            position: "absolute",
+            left: 0,
+            top: 0,
             transition: isDragging ? "none" : "transform 0.1s ease-out",
             willChange: "transform",
           }}
         >
-          {/* Removing extra padding to allow better fit */}
-          <div className="w-full h-full flex items-center justify-center p-10">
-            <Dieline2D
-              x={0}
-              y={0}
-              length={l}
-              height={h}
-              width={w}
-              thickness={settings.thickness}
-              glueFlap={settings.glueFlap}
-              topFlap={settings.topFlap}
-              bottomFlap={settings.bottomFlap}
-            />
-          </div>
+          <Dieline2D
+            x={0}
+            y={0}
+            length={renderL}
+            height={renderH}
+            width={renderW}
+            thickness={settings.thickness}
+            glueFlap={settings.glueFlap}
+            topFlap={settings.topFlap}
+            bottomFlap={settings.bottomFlap}
+          />
         </div>
       </div>
 

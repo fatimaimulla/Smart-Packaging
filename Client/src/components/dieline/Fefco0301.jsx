@@ -116,14 +116,17 @@ export default function Fefco0301Dieline(props) {
   `;
 
   const margin = height2 + flapGap + boxGap + bleed + 40;
+  const viewBoxMinX = x - margin;
+  const viewBoxMinY = y - margin;
+  const viewBoxWidth = length + length2 + 4 * margin;
+  const viewBoxHeight = width + 2 * margin;
 
   return (
     <svg
-          id="fefco-0301-dieline"
-
-      width="800"
-      height="500"
-      viewBox={`${x - margin} ${y - margin} ${length + length2 + 4 * margin} ${width + 2 * margin}`}
+      id="fefco-0301-dieline"
+      width={viewBoxWidth}
+      height={viewBoxHeight}
+      viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}
     >
 
       {/* ===== BLEED ===== */}

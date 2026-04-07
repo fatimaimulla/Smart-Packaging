@@ -6,6 +6,7 @@ import PaddingEditor from "../components/recommendation/PaddingEditor";
 import MaterialSelector from "../components/recommendation/MaterialSelector";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
+import { buildPackagingSpec } from "../utils/packagingMath";
 
 const RecommendationPage = () => {
   const navigate = useNavigate();
@@ -21,6 +22,20 @@ const RecommendationPage = () => {
   const [padding, setPadding] = useState(3); // Default 3mm padding
   const [material, setMaterial] = useState("3ply");
   const [fragility, setFragility] = useState("medium");
+  const incomingTemplateId =
+    location.state?.templateId ||
+    location.state?.fefcoCode ||
+    location.state?.recommendedFefcoBox ||
+    "0201";
+  const templateId = String(incomingTemplateId).replace(/\D/g, "") || "0201";
+
+  const packagingSpec = buildPackagingSpec({
+    productDimensions: initialDimensions,
+    fragility,
+    material,
+    paddingMm: padding,
+    fefcoCode: templateId,
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] font-sans">
@@ -42,7 +57,7 @@ const RecommendationPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* LEFT COLUMN: Preview */}
             <div className="h-full">
-              <BoxPreview dimensions={initialDimensions} padding={padding} />
+              <BoxPreview packagingSpec={packagingSpec} />
             </div>
 
             {/* RIGHT COLUMN: Controls */}
@@ -77,7 +92,18 @@ const RecommendationPage = () => {
                   </div>
 
                   <button
-                    onClick={() => navigate("/template")}
+                    onClick={() =>
+                      navigate("/dieline", {
+                        state: {
+                          templateId,
+                          dimensions: packagingSpec.manufacturingDimensions,
+                          packagingSpec,
+                          fragility,
+                          material,
+                          padding,
+                        },
+                      })
+                    }
                     className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-emerald-400 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all px-8 py-3.5 font-bold text-lg flex items-center justify-center gap-2 whitespace-nowrap"
                   >
                     Generate Die-line

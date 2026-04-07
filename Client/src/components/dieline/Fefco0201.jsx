@@ -35,13 +35,20 @@ export default function Fefco0201Dieline(props) {
   const bleedMidY2 = y - 5; // 209.5
   const bleedMidY3 = y - 5.5; // 209
   const bleedEndY = y + 2; // 216.5
+  const svgPadding = 24;
+  const minX = Math.min(x - glueFlapWidth, bleedLeftOuter) - svgPadding;
+  const minY = Math.min(flapYtop, bleedTop) - svgPadding;
+  const maxX = Math.max(endX, bleedRightOuter) + svgPadding;
+  const maxY = Math.max(flapYbottom, bleedBottom) + svgPadding;
+  const svgWidth = maxX - minX;
+  const svgHeight = maxY - minY;
 
   return (
     <svg
       id="fefco-0201-dieline"
-      width="3899"
-      height="2880"
-      viewBox="0 0 3899 2880"
+      width={svgWidth}
+      height={svgHeight}
+      viewBox={`${minX} ${minY} ${svgWidth} ${svgHeight}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >

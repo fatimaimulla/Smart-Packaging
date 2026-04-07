@@ -8,11 +8,19 @@ import SidebarNav from "@/components/template/SidebarNav";
 import LeftSettingsPanel from "@/components/template/LeftSettingsPanel";
 import RightPreviewPanel from "@/components/template/RightPreviewPanel";
 import { TEMPLATE_CONFIG } from "@/constants/template";
+import {
+  buildPackagingSpec,
+  convertDimensionSet,
+  getMaterialProfile,
+  getNormalizedRenderDimensions,
+} from "@/utils/packagingMath";
 // import SidebarNav from "../components/dieline/SidebarNav";
 
 const DieLineGeneratorPage = () => {
   const location = useLocation();
-  const selectedTemplateId = location.state?.templateId || "0201";
+  const incomingTemplateId = location.state?.templateId || "0201";
+  const selectedTemplateId =
+    String(incomingTemplateId).replace(/\D/g, "") || "0201";
   const templateDefaults =
     TEMPLATE_CONFIG[selectedTemplateId]?.defaultDimensions || {
       l: 191,
@@ -22,14 +30,29 @@ const DieLineGeneratorPage = () => {
 
   // Get dimensions from previous step or use defaults
   const initialDimensions = location.state?.dimensions || templateDefaults;
+  const incomingPackagingSpec =
+    location.state?.packagingSpec ||
+    buildPackagingSpec({
+      productDimensions:
+        location.state?.productDimensions || location.state?.dimensions || templateDefaults,
+      fragility: location.state?.fragility || "medium",
+      material: location.state?.material || "3ply",
+      paddingMm: location.state?.padding || 0,
+      fefcoCode: selectedTemplateId,
+    });
+  const initialMaterialProfile = getMaterialProfile(
+    incomingPackagingSpec.material || location.state?.material || "3ply",
+  );
 
   // Centralized State
   const [settings, setSettings] = useState({
     l: initialDimensions.l,
     w: initialDimensions.w,
     h: initialDimensions.h,
-    thickness: 0.5,
-    material: "White card board",
+    thickness:
+      incomingPackagingSpec.boardThicknessMm ||
+      initialMaterialProfile.boardThicknessMm,
+    material: initialMaterialProfile.id,
     sizeMode: "manufacture", // 'manufacture' | 'inner'
     glueFlap: 15,
     topFlap: initialDimensions.w / 2,
@@ -40,12 +63,24 @@ const DieLineGeneratorPage = () => {
     console.log("Regenerating with", settings);
   };
 
-  // Derived dimensions object for the viewer
-  const dimensions = {
-    l: settings.l,
-    w: settings.w,
-    h: settings.h,
-  };
+  const activeMaterialProfile = getMaterialProfile(settings.material);
+  const packagingGeometry = convertDimensionSet({
+    inputDimensions: {
+      l: settings.l,
+      w: settings.w,
+      h: settings.h,
+    },
+    inputMode: settings.sizeMode,
+    boardThicknessMm: settings.thickness || activeMaterialProfile.boardThicknessMm,
+    fefcoCode: selectedTemplateId,
+    outerBufferFactor: activeMaterialProfile.outerBufferFactor,
+  });
+  const dimensions = packagingGeometry.manufacturingDimensions;
+  const renderGeometry = getNormalizedRenderDimensions({
+    actualDimensions: dimensions,
+    defaultDimensions: templateDefaults,
+  });
+  const renderDimensions = renderGeometry.dimensions;
 
   return (
     <div className="h-screen bg-gradient-to-br from-[#E8FFF4] via-[#F5FBFF] to-[#CDE7FF] flex flex-col font-sans overflow-hidden">
@@ -79,7 +114,9 @@ const DieLineGeneratorPage = () => {
           <DieLineViewer
             fefcoCode={selectedTemplateId}
             dimensions={dimensions}
+            renderDimensions={renderDimensions}
             settings={settings}
+            packagingGeometry={packagingGeometry}
           />
         </div>
 
@@ -88,6 +125,8 @@ const DieLineGeneratorPage = () => {
           <RightPreviewPanel
             fefcoCode={selectedTemplateId}
             dimensions={dimensions}
+            renderDimensions={renderDimensions}
+            packagingGeometry={packagingGeometry}
           />
         </div>
       </main>

@@ -41,6 +41,25 @@ export default function Fefco0203Dieline(props) {
   const frontBottomFlapY = y + height + frontBackFlapHeight;     // Bottom of front flap
   const rightSideBottomFlapY = y + height + sideFlapHeight;      // Bottom of right side flap
   const backBottomFlapY = y + height + frontBackFlapHeight;      // Bottom of back flap
+  const svgPadding = 24;
+  const minX = leftGlueX - bleedOffset - creaseOffsetX - svgPadding;
+  const minY =
+    Math.min(
+      leftSideTopFlapY,
+      frontTopFlapY,
+      rightSideTopFlapY,
+      backTopFlapY,
+    ) - bleedOffset - svgPadding;
+  const maxX = endX + bleedOffset + creaseOffsetX + svgPadding;
+  const maxY =
+    Math.max(
+      leftSideBottomFlapY,
+      frontBottomFlapY,
+      rightSideBottomFlapY,
+      backBottomFlapY,
+    ) + bleedOffset + svgPadding;
+  const svgWidth = maxX - minX;
+  const svgHeight = maxY - minY;
   
   // Dynamic trim line function
   const createTrimLine = () => {
@@ -178,11 +197,10 @@ V${rightSideBottomFlapY + bleedOffset}
 
   return (
     <svg 
-          id="fefco-0203-dieline"
-
-      width="1017" 
-      height="736" 
-      viewBox="0 0 1017 736" 
+      id="fefco-0203-dieline"
+      width={svgWidth}
+      height={svgHeight}
+      viewBox={`${minX} ${minY} ${svgWidth} ${svgHeight}`}
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
     >
