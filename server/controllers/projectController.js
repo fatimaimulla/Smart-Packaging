@@ -1,6 +1,8 @@
 import crypto from "crypto";
+import { GoogleGenAI } from "@google/genai";
 import Project from "../model/projectSchema.js";
 import { optimizeBundleLayout } from "../utils/bundleOptimizer.js";
+import { definedBoxes } from "../config/fefco.js";
 import {
   getBundleEligibilityIssues,
   isBundleEligibleProject,
@@ -10,6 +12,139 @@ import {
   resolveProjectFragility,
   resolveProjectWeightGrams,
 } from "../utils/projectMetadata.js";
+
+const extractRecommendedTemplateId = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits || null;
+};
+
+const toShortReason = (value, maxWords = 10) => {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, maxWords)
+    .join(" ");
+};
+
+const parseJsonResponse = (rawValue) => {
+  if (typeof rawValue !== "string") {
+    return null;
+  }
+
+  const trimmed = rawValue.trim();
+
+  try {
+    return JSON.parse(trimmed);
+  } catch (error) {
+    const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fencedMatch?.[1]) {
+      return JSON.parse(fencedMatch[1].trim());
+    }
+
+    const jsonStart = trimmed.indexOf("{");
+    const jsonEnd = trimmed.lastIndexOf("}");
+
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      return JSON.parse(trimmed.slice(jsonStart, jsonEnd + 1));
+    }
+
+    throw error;
+  }
+};
+
+const getBundleAiRecommendation = async ({
+  bundleName,
+  sourceItems,
+  bundleResult,
+}) => {
+  if (!process.env.GOOGLE_API_KEY) {
+    return null;
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
+
+  const itemLines = sourceItems.map((item, index) => {
+    const dims = item?.dimensions || {};
+    return [
+      `${index + 1}. Product: ${item.name}`,
+      `Quantity: ${item.quantity}`,
+      `Dimensions: ${dims.l} x ${dims.w} x ${dims.h} mm`,
+      `Estimated weight: ${item.productWeightGrams} g`,
+      `Fragility: ${item.fragility}`,
+    ].join("\n");
+  });
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash-lite",
+    contents: [
+      {
+        parts: [
+          {
+            text: `You are a packaging engineer recommending the best FEFCO style for a bundle shipment.
+
+Bundle name: ${bundleName}
+Total packed items: ${sourceItems.reduce((sum, item) => sum + item.quantity, 0)}
+Optimized internal bundle dimensions: ${bundleResult.dimensions.l} x ${bundleResult.dimensions.w} x ${bundleResult.dimensions.h} mm
+Optimized total estimated weight: ${bundleResult.totalWeightGrams} g
+Overall fragility: ${bundleResult.overallFragility}
+
+Products in the bundle:
+${itemLines.join("\n\n")}
+
+Allowed FEFCO options only: ${definedBoxes.join(", ")}
+
+Choose the single best FEFCO option for holding all items properly as one combined shipment.
+Balance structural safety, stacking stability, and practical packability.
+Keep "reason" to 10 words maximum.
+
+Respond ONLY in valid JSON:
+{
+  "productName": "",
+  "fragilityLevel": "",
+  "estimatedWeight": "",
+  "recommendedFefcoBox": "",
+  "reason": ""
+}`,
+          },
+        ],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 400,
+    },
+  });
+
+  const rawData = response.text;
+  if (!rawData) {
+    return null;
+  }
+
+  const parsed = parseJsonResponse(rawData);
+  if (!parsed) {
+    return null;
+  }
+  const recommendedTemplateId = extractRecommendedTemplateId(
+    parsed?.recommendedFefcoBox,
+  );
+
+  if (!recommendedTemplateId) {
+    return null;
+  }
+
+  return {
+    ...parsed,
+    recommendedFefcoBox: `Fefco${recommendedTemplateId}`,
+    reason: toShortReason(parsed?.reason, 10),
+    selectedTemplateId: recommendedTemplateId,
+  };
+};
 
 const summarizeBundleResult = (bundleResult) => {
   if (!bundleResult) {
@@ -41,6 +176,7 @@ const buildProjectSummary = (project) => ({
   selectedTemplateId: project.selectedTemplateId,
   sourceItems: project.sourceItems || [],
   bundleResult: summarizeBundleResult(project.bundleResult),
+  recommendation: project.recommendation || null,
   isBundleEligible: isBundleEligibleProject(project),
   createdAt: project.createdAt,
   updatedAt: project.updatedAt,
@@ -345,11 +481,23 @@ export const optimizeBundleProject = async (req, res) => {
       };
     });
 
-    const bundleResult = optimizeBundleLayout(sourceSnapshots, optimizerMode);
+    const optimizedBundleResult = optimizeBundleLayout(sourceSnapshots, optimizerMode);
     const trimmedName =
       typeof name === "string" && name.trim()
         ? name.trim()
         : `${sourceSnapshots[0]?.name || "Bundle"} Bundle`;
+    const bundleAiRecommendation = await getBundleAiRecommendation({
+      bundleName: trimmedName,
+      sourceItems: sourceSnapshots,
+      bundleResult: optimizedBundleResult,
+    });
+    const bundleResult = bundleAiRecommendation?.selectedTemplateId
+      ? {
+          ...optimizedBundleResult,
+          fefcoCode: bundleAiRecommendation.recommendedFefcoBox,
+          selectedTemplateId: bundleAiRecommendation.selectedTemplateId,
+        }
+      : optimizedBundleResult;
 
     let project = null;
 
@@ -393,6 +541,12 @@ export const optimizeBundleProject = async (req, res) => {
       fragilityLevel: bundleResult.overallFragility,
       estimatedWeight: String(bundleResult.totalWeightGrams),
       recommendedFefcoBox: bundleResult.fefcoCode,
+      ...(bundleAiRecommendation?.reason
+        ? { reason: bundleAiRecommendation.reason }
+        : {}),
+      ...(bundleAiRecommendation?.selectedTemplateId
+        ? { selectedTemplateId: bundleAiRecommendation.selectedTemplateId }
+        : {}),
     };
     project.report = null;
     project.image1 = sourceSnapshots.find((item) => item.image1)?.image1 || null;

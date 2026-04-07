@@ -41,9 +41,11 @@ export const hasValidDimensions = (dimensions = {}) =>
 
 export const resolveProjectFragility = (project = {}) =>
   normalizeFragility(
-    project?.fragility ??
-      project?.recommendation?.fragilityLevel ??
+    project?.recommendation?.fragilityLevel ??
       project?.recommendation?.fragility,
+  ) ??
+  normalizeFragility(
+    project?.fragility,
   );
 
 export const resolveProjectWeightGrams = (project = {}) =>
