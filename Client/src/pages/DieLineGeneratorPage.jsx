@@ -127,6 +127,10 @@ const DieLineGeneratorPage = () => {
             dimensions={dimensions}
             renderDimensions={renderDimensions}
             packagingGeometry={packagingGeometry}
+            sessionId={location.state?.sessionId}
+            projectType={location.state?.projectType}
+            fragility={location.state?.fragility}
+            estimatedWeight={location.state?.estimatedWeight}
           />
         </div>
       </main>

@@ -1,5 +1,5 @@
 import React, { useState, Suspense } from "react";
-import { Download, FileText, Loader2, MessageCircle } from "lucide-react";
+import { Activity, Download, FileText, Loader2, MessageCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -31,6 +31,10 @@ const RightPreviewPanel = ({
   dimensions,
   renderDimensions,
   packagingGeometry,
+  sessionId,
+  projectType,
+  fragility,
+  estimatedWeight,
 }) => {
   const navigate = useNavigate();
   const [sliderValue, setSliderValue] = useState(0);
@@ -170,6 +174,22 @@ const RightPreviewPanel = ({
     }
   };
 
+  const openDropSimulation = () => {
+    navigate("/drop-simulation", {
+      state: {
+        source: "dieline-editor",
+        from: "dieline-editor",
+        lockSimulationInputs: true,
+        fefcoCode,
+        dimensions: { l, w, h },
+        sessionId,
+        projectType,
+        fragilityLevel: fragility,
+        estimatedWeight,
+      },
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6 h-full relative">
       {/* 1. 3D Preview Card */}
@@ -247,6 +267,13 @@ const RightPreviewPanel = ({
         </div>
       </div> */}
 
+      <button
+        onClick={openDropSimulation}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+      >
+        <Activity size={18} />
+        <span>Open Drop Simulation</span>
+      </button>
       <button
         onClick={handleDownloadDieline}
         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Play, RotateCcw } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, Play, RotateCcw } from "lucide-react";
 
 import Header from "@/common/Header";
 import DropSimulationViewer from "@/components/simulation/DropSimulationViewer";
@@ -66,12 +66,16 @@ const getInitialState = (state) => {
 };
 
 const DropSimulationPage = () => {
+  const navigate = useNavigate();
   const { state } = useLocation();
   const initial = useMemo(() => getInitialState(state), [state]);
   const isTemplateLockedMode = Boolean(
     state?.lockSimulationInputs ||
       state?.source === "template-view" ||
       state?.from === "template-view",
+  );
+  const canReturnToDieline = Boolean(
+    state?.source === "dieline-editor" || state?.from === "dieline-editor",
   );
 
   const [fefcoCode, setFefcoCode] = useState(initial.fefcoCode);
@@ -135,6 +139,19 @@ const DropSimulationPage = () => {
         ? "bg-amber-500"
         : "bg-emerald-500";
 
+  const backToDieline = () => {
+    navigate("/dieline", {
+      state: {
+        templateId: fefcoCode,
+        dimensions,
+        sessionId: state?.sessionId,
+        projectType: state?.projectType,
+        fragility: state?.fragilityLevel ?? state?.fragility,
+        estimatedWeight: state?.estimatedWeight ?? state?.weightGrams,
+      },
+    });
+  };
+
   return (
     <div className="min-h-screen xl:h-screen bg-slate-100 flex flex-col">
       <Header />
@@ -143,7 +160,19 @@ const DropSimulationPage = () => {
         <div className="h-full max-w-[1560px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-4">
           <section className="xl:col-span-4 h-full bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col min-h-0">
             <div className="space-y-1 mb-4">
-              <h1 className="text-2xl font-bold text-slate-900">Drop Simulation</h1>
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-2xl font-bold text-slate-900">Drop Simulation</h1>
+                {canReturnToDieline ? (
+                  <button
+                    type="button"
+                    onClick={backToDieline}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <ArrowLeft size={16} />
+                    Back to Dieline
+                  </button>
+                ) : null}
+              </div>
               <p className="text-xs text-slate-500">
                 Educational simulator for comparing scenarios. Not an engineering validation tool.
               </p>
