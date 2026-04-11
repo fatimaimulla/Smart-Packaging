@@ -4,8 +4,8 @@ export default function Fefco0201Dieline(props) {
   const x = 91.5;
   const y = 214.5;
   const length = props.length || 191; // Base panel length
-  const height = props.height || 245; // base panel height
-  const width = props.width || 383; // top base pannel x - (base panel x + base panel length)
+  const height = props.width || 245; // base panel height
+  const width = props.height || 383; // top base pannel x - (base panel x + base panel length)
 
   const topBaseX = x + length + width; // 1069.5
   const topBaseY = y; // 214.5

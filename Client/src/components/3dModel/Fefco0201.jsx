@@ -54,11 +54,11 @@ function Panel({
 
 function Fefco0201_3D({ slider, length, width, height }) {
   const S = 0.01;
-  const WIDTH = width * S;
+  const WIDTH = height * S;
   const LENGTH = length * S;
   const THICKNESS = 0.5 * S;
-  const HEIGHT = height * S;
-  const FLAP_HEIGHT = length > width ? WIDTH / 2 : LENGTH / 2;
+  const HEIGHT = width * S;
+  const FLAP_HEIGHT = length > height ? WIDTH / 2 : LENGTH / 2;
   const FOLD_OFFSET = 5 * S;
 
   // Glue flap dimensions (as per SVG)
@@ -92,8 +92,8 @@ function Fefco0201_3D({ slider, length, width, height }) {
 
   // Create glue flap geometry once
   const glueFlapGeo = useMemo(
-    () => createGlueFlapGeometry(width * 0.15, height, height * 0.1, 0.5, S),
-    [width, height, S],
+    () => createGlueFlapGeometry(height * 0.15, width, width * 0.1, 0.5, S),
+    [height, width, S],
   );
 
   useFrame(() => {
@@ -103,7 +103,7 @@ function Fefco0201_3D({ slider, length, width, height }) {
     SecondBaseLeftHinge.current.rotation.z = foldSide;
     SecondBaseRightHinge.current.rotation.z = foldSide;
 
-   if (length > width) {
+   if (length > height) {
      // Top flaps
 
      betweenTopHinge.current.rotation.x = foldTop;

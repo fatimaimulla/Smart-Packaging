@@ -5,8 +5,8 @@ export default function Fefco0203Dieline(props) {
   const x = 150;
   const y = 300;
   const length = props.length || 150;    // Front/Back panel length
-  const width = props.width || 180;      // Side panel width
-  const height = props.height || 210;    // Box height
+  const width = props.height || 180;      // Side panel width
+  const height = props.width || 210;    // Box height
   
   // Calculate flap heights (DIFFERENT from 0201!)
   const frontBackFlapHeight = length / 2;     // Flaps on front/back panels: half of width

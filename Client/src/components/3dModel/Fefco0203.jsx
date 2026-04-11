@@ -51,8 +51,8 @@ function Fefco0203_3D({
 }) {
   const S = 0.01;
   const L = length * S;
-  const W = height * S;
-  const panelHeight = width;
+  const W = width * S;
+  const panelHeight = height;
   const SW = panelHeight * S;
   const T = thickness * S;
   const H = (panelHeight / 2) * S;
